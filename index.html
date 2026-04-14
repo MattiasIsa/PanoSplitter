@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instagram Panorama Splitter</title>
+    <title>PanoSplitter - Professional Social Slicer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script>
@@ -15,13 +15,12 @@
         /* True Black Dark Mode */
         .dark body { background-color: #000000; }
         .dark .bg-card { background-color: #0a0a0a; }
-        .dark .border-custom { border-color: #1a1a1a; }
         
         .canvas-container {
             width: 100%;
             overflow-x: auto;
-            border-radius: 0.5rem;
-            padding: 1rem;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -32,11 +31,10 @@
         
         canvas {
             max-width: 100%;
-            height: auto !important; /* Ensure canvas fits container width */
+            height: auto !important;
             display: block;
         }
 
-        /* Large panoramas still need to scroll horizontally if they are super wide */
         .wide-canvas canvas {
             max-width: none;
         }
@@ -52,10 +50,9 @@
             background-color: #0f172a;
         }
 
-        /* Custom scrollbar for better dark mode aesthetic */
         ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
         }
         ::-webkit-scrollbar-track {
             background: transparent;
@@ -76,9 +73,9 @@
         <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
             <div class="text-center md:text-left">
                 <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white mb-1">PanoSplitter</h1>
-                <p class="text-gray-600 dark:text-gray-400 text-sm md:text-base">Professional seamless carousel generator for Instagram.</p>
+                <p class="text-gray-600 dark:text-gray-400 text-sm md:text-base font-medium">Multi-platform social media carousel generator.</p>
             </div>
-            <button id="themeToggle" class="p-2.5 rounded-full bg-gray-200 dark:bg-zinc-800 hover:ring-4 hover:ring-gray-300 dark:hover:ring-zinc-700 transition-all">
+            <button id="themeToggle" class="p-3 rounded-full bg-gray-200 dark:bg-zinc-800 hover:scale-110 transition-transform shadow-sm">
                 <span id="themeIcon">
                     <svg id="sunIcon" class="w-5 h-5 md:w-6 md:h-6 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"></path></svg>
                     <svg id="moonIcon" class="hidden w-5 h-5 md:w-6 md:h-6 text-gray-700" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
@@ -87,16 +84,16 @@
         </header>
 
         <!-- Upload Section -->
-        <div id="uploadSection" class="bg-white dark:bg-zinc-950 p-6 md:p-12 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-800 text-center transition-colors">
-            <div id="dropZone" class="drop-zone border-2 border-dashed border-gray-300 dark:border-zinc-700 rounded-xl p-8 md:p-20 cursor-pointer hover:border-blue-500">
+        <div id="uploadSection" class="bg-white dark:bg-zinc-950 p-6 md:p-12 rounded-3xl shadow-sm border border-gray-200 dark:border-zinc-800 text-center transition-colors">
+            <div id="dropZone" class="drop-zone border-2 border-dashed border-gray-300 dark:border-zinc-700 rounded-2xl p-8 md:p-24 cursor-pointer hover:border-blue-500 hover:bg-blue-50/10 transition-all">
                 <div class="flex flex-col items-center">
-                    <div class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-full mb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div class="p-5 bg-blue-500/10 rounded-full mb-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                     </div>
-                    <p class="text-xl font-bold text-gray-800 dark:text-gray-100">Drop your panorama here</p>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">or click to browse from files</p>
+                    <p class="text-2xl font-bold text-gray-800 dark:text-gray-100">Click or Drag & Drop Panorama</p>
+                    <p class="text-gray-500 dark:text-gray-400 mt-2 max-w-sm mx-auto">Upload high-res images for better results. We handle the math, you handle the posting.</p>
                 </div>
                 <input type="file" id="fileInput" class="hidden" accept="image/*">
             </div>
@@ -105,48 +102,77 @@
         <!-- Editor Section -->
         <div id="editorSection" class="hidden space-y-6">
             <!-- Controls Card -->
-            <div class="bg-white dark:bg-zinc-950 p-5 md:p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-800">
-                <div class="flex flex-col gap-6">
-                    <!-- Top Row: Configs -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <div>
-                            <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3">Slices Count</label>
-                            <div class="flex items-center space-x-4">
-                                <input type="range" id="sliceRange" min="2" max="10" value="3" class="flex-1 h-2 bg-gray-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-600">
-                                <span id="sliceCountDisplay" class="text-xl font-black text-blue-600 w-8 text-center">3</span>
+            <div class="bg-white dark:bg-zinc-950 p-6 md:p-8 rounded-3xl shadow-sm border border-gray-200 dark:border-zinc-800">
+                <div class="flex flex-col gap-8">
+                    <!-- Config Row -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <!-- Slices -->
+                        <div class="lg:col-span-1">
+                            <label class="block text-xs font-black uppercase tracking-widest text-gray-400 mb-4">Slices Count</label>
+                            <div class="flex items-center space-x-4 bg-gray-50 dark:bg-zinc-900/50 p-3 rounded-2xl border border-gray-100 dark:border-zinc-800/50">
+                                <input type="range" id="sliceRange" min="2" max="15" value="3" class="flex-1 h-2 bg-gray-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                                <span id="sliceCountDisplay" class="text-lg font-black text-blue-600 w-6 text-center">3</span>
                             </div>
                         </div>
 
-                        <div>
-                            <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Aspect Ratio</label>
-                            <select id="ratioSelect" class="w-full p-3 bg-gray-50 dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-white text-sm rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
-                                <option value="1">Square (1:1)</option>
-                                <option value="0.8">Portrait (4:5)</option>
-                                <option value="0.5625">Story (9:16)</option>
-                                <option value="original">Original Height</option>
+                        <!-- Aspect Ratio -->
+                        <div class="lg:col-span-1">
+                            <label class="block text-xs font-black uppercase tracking-widest text-gray-400 mb-4">Target Ratio</label>
+                            <select id="ratioSelect" class="w-full p-4 bg-gray-50 dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 text-gray-900 dark:text-white text-sm font-bold rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none appearance-none cursor-pointer">
+                                <optgroup label="Instagram">
+                                    <option value="1">Square (1:1)</option>
+                                    <option value="0.8">Portrait (4:5)</option>
+                                    <option value="1.91">Landscape (1.91:1)</option>
+                                </optgroup>
+                                <optgroup label="Mobile Video / Stories">
+                                    <option value="0.5625">Story / Reel (9:16)</option>
+                                    <option value="0.5">TikTok (1:2)</option>
+                                </optgroup>
+                                <optgroup label="Web & Video">
+                                    <option value="1.777">Widescreen (16:9)</option>
+                                    <option value="1.333">Old TV (4:3)</option>
+                                </optgroup>
+                                <optgroup label="Advanced">
+                                    <option value="original">Original Height</option>
+                                    <option value="custom">Custom Ratio...</option>
+                                </optgroup>
                             </select>
                         </div>
 
-                        <div class="flex items-center space-x-3 bg-gray-50 dark:bg-zinc-900/50 p-3 rounded-xl border border-gray-100 dark:border-zinc-800/50">
+                        <!-- Custom Inputs (Conditional) -->
+                        <div id="customRatioInputs" class="hidden flex items-end space-x-3">
+                            <div class="flex-1">
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Width</label>
+                                <input type="number" id="customW" value="1" step="0.1" min="0.1" class="w-full p-3 bg-gray-50 dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-xl text-center font-bold">
+                            </div>
+                            <div class="flex-none pb-3 text-gray-400 font-bold">:</div>
+                            <div class="flex-1">
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Height</label>
+                                <input type="number" id="customH" value="1" step="0.1" min="0.1" class="w-full p-3 bg-gray-50 dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-xl text-center font-bold">
+                            </div>
+                        </div>
+
+                        <!-- Blur BG Toggle -->
+                        <div class="flex items-center space-x-3 bg-gray-50 dark:bg-zinc-900/50 p-4 rounded-2xl border border-gray-100 dark:border-zinc-800/50 self-end">
                             <div class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" id="blurToggle" class="sr-only peer">
                                 <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-zinc-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                             </div>
-                            <label for="blurToggle" class="text-sm font-semibold text-gray-700 dark:text-gray-300 cursor-pointer">Blurred Background</label>
+                            <label for="blurToggle" class="text-sm font-bold text-gray-700 dark:text-gray-300 cursor-pointer">Blur Fill</label>
                         </div>
                     </div>
 
-                    <!-- Bottom Row: Actions -->
-                    <div class="flex flex-col sm:flex-row items-stretch gap-3 border-t border-gray-100 dark:border-zinc-900 pt-6">
-                        <button id="downloadZipBtn" class="flex-1 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-bold py-3.5 px-6 rounded-xl transition duration-200 shadow-lg shadow-blue-500/20 flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                    <!-- Actions Row -->
+                    <div class="flex flex-col sm:flex-row items-stretch gap-4 border-t border-gray-100 dark:border-zinc-900 pt-8">
+                        <button id="downloadZipBtn" class="flex-1 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-black py-4 px-8 rounded-2xl transition-all shadow-xl shadow-blue-500/30 flex items-center justify-center text-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                             Download ZIP
                         </button>
-                        <button id="downloadBatchBtn" class="flex-1 bg-zinc-800 hover:bg-zinc-700 active:scale-[0.98] text-white font-bold py-3.5 px-6 rounded-xl transition duration-200 flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                            Individual JPEGs
+                        <button id="downloadBatchBtn" class="flex-1 bg-zinc-800 hover:bg-zinc-700 active:scale-[0.98] text-white font-black py-4 px-8 rounded-2xl transition-all flex items-center justify-center text-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                            Save JPEGs
                         </button>
-                        <button id="resetBtn" class="sm:flex-none px-6 py-3.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 font-bold rounded-xl transition-all">
+                        <button id="resetBtn" class="sm:flex-none px-8 py-4 bg-red-500/10 hover:bg-red-500/20 text-red-500 font-bold rounded-2xl transition-all">
                             Reset
                         </button>
                     </div>
@@ -154,25 +180,25 @@
             </div>
 
             <!-- Preview Card -->
-            <div class="bg-white dark:bg-zinc-950 p-4 md:p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-zinc-800">
-                <h3 class="text-sm font-bold uppercase tracking-widest text-gray-400 dark:text-zinc-500 mb-4 px-1">Live Split Preview</h3>
-                <div id="canvasWrapper" class="canvas-container shadow-inner border border-gray-100 dark:border-zinc-900">
+            <div class="bg-white dark:bg-zinc-950 p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-zinc-800">
+                <h3 class="text-xs font-black uppercase tracking-widest text-gray-400 mb-6 px-1">Interactive Preview</h3>
+                <div id="canvasWrapper" class="canvas-container shadow-inner border border-gray-100 dark:border-zinc-900 min-h-[300px]">
                     <canvas id="previewCanvas"></canvas>
                 </div>
             </div>
 
-            <!-- Individual Slices Grid -->
+            <!-- Slices Section -->
             <div>
-                <h3 class="text-sm font-bold uppercase tracking-widest text-gray-400 dark:text-zinc-500 mb-4 px-1">Individual Slices</h3>
-                <div id="slicesGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4"></div>
+                <h3 class="text-xs font-black uppercase tracking-widest text-gray-400 mb-6 px-1">Exported Slices</h3>
+                <div id="slicesGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"></div>
             </div>
         </div>
     </div>
 
-    <!-- Notification system -->
-    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:right-8 bg-blue-600 text-white px-6 py-3.5 rounded-2xl shadow-2xl translate-y-24 opacity-0 transition-all duration-300 z-50 font-bold flex items-center space-x-3 pointer-events-none">
-        <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-        <span id="toastMsg">Processing...</span>
+    <!-- Feedback Toast -->
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:right-10 bg-blue-600 text-white px-8 py-4 rounded-3xl shadow-2xl translate-y-32 opacity-0 transition-all duration-500 z-50 font-bold flex items-center space-x-4 pointer-events-none border border-white/10">
+        <svg id="toastIcon" class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+        <span id="toastMsg">Splitting pixels...</span>
     </div>
 
     <script>
@@ -183,6 +209,9 @@
         const sliceRange = document.getElementById('sliceRange');
         const sliceCountDisplay = document.getElementById('sliceCountDisplay');
         const ratioSelect = document.getElementById('ratioSelect');
+        const customRatioInputs = document.getElementById('customRatioInputs');
+        const customW = document.getElementById('customW');
+        const customH = document.getElementById('customH');
         const blurToggle = document.getElementById('blurToggle');
         const previewCanvas = document.getElementById('previewCanvas');
         const canvasWrapper = document.getElementById('canvasWrapper');
@@ -192,6 +221,7 @@
         const resetBtn = document.getElementById('resetBtn');
         const toast = document.getElementById('toast');
         const toastMsg = document.getElementById('toastMsg');
+        const toastIcon = document.getElementById('toastIcon');
         const themeToggle = document.getElementById('themeToggle');
         const html = document.documentElement;
 
@@ -201,17 +231,10 @@
 
         // --- Theme ---
         themeToggle.addEventListener('click', () => {
-            if (html.classList.contains('dark')) {
-                html.classList.remove('dark');
-                html.classList.add('light');
-                document.getElementById('sunIcon').classList.add('hidden');
-                document.getElementById('moonIcon').classList.remove('hidden');
-            } else {
-                html.classList.remove('light');
-                html.classList.add('dark');
-                document.getElementById('sunIcon').classList.remove('hidden');
-                document.getElementById('moonIcon').classList.add('hidden');
-            }
+            html.classList.toggle('dark');
+            const isDark = html.classList.contains('dark');
+            document.getElementById('sunIcon').classList.toggle('hidden', !isDark);
+            document.getElementById('moonIcon').classList.toggle('hidden', isDark);
             if (originalImage) processImage();
         });
 
@@ -234,55 +257,26 @@
             sliceCountDisplay.textContent = e.target.value;
             processImage();
         });
-        ratioSelect.addEventListener('change', processImage);
-        blurToggle.addEventListener('change', processImage);
-        resetBtn.addEventListener('click', () => {
-            if(confirm("Discard changes and start over?")) location.reload();
+
+        ratioSelect.addEventListener('change', () => {
+            customRatioInputs.classList.toggle('hidden', ratioSelect.value !== 'custom');
+            processImage();
         });
 
-        // --- Resizing logic ---
+        [customW, customH].forEach(input => input.addEventListener('input', processImage));
+        blurToggle.addEventListener('change', processImage);
+        
+        resetBtn.addEventListener('click', () => {
+            uploadSection.classList.remove('hidden');
+            editorSection.classList.add('hidden');
+            originalImage = null;
+        });
+
         window.addEventListener('resize', () => {
             if (originalImage) processImage();
         });
 
-        // --- Downloads ---
-        downloadZipBtn.addEventListener('click', async () => {
-            if (slicesDataUrls.length === 0) return;
-            downloadZipBtn.disabled = true;
-            showToast("Packaging ZIP archive...");
-            try {
-                const zip = new JSZip();
-                slicesDataUrls.forEach((url, index) => {
-                    const imageData = url.split(',')[1];
-                    zip.file(`${originalFileName}_slice_${index + 1}.jpg`, imageData, {base64: true});
-                });
-                const content = await zip.generateAsync({type: "blob"});
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(content);
-                link.download = `${originalFileName}_carousel.zip`;
-                link.click();
-                showToast("ZIP ready!", true);
-            } catch (err) {
-                showToast("Error creating ZIP.");
-            } finally {
-                downloadZipBtn.disabled = false;
-            }
-        });
-
-        downloadBatchBtn.addEventListener('click', () => {
-            if (slicesDataUrls.length === 0) return;
-            showToast("Starting batch download...");
-            slicesDataUrls.forEach((url, index) => {
-                setTimeout(() => {
-                    const link = document.createElement('a');
-                    link.download = `${originalFileName}_slice_${index + 1}.jpg`;
-                    link.href = url;
-                    link.click();
-                    if(index === slicesDataUrls.length - 1) showToast("All JPEGs saved!", true);
-                }, index * 400);
-            });
-        });
-
+        // --- Processing & Logic ---
         function handleFileSelect() {
             const file = fileInput.files[0];
             if (!file) return;
@@ -301,12 +295,24 @@
             reader.readAsDataURL(file);
         }
 
+        function getAspectRatio() {
+            const val = ratioSelect.value;
+            if (val === 'original') return 'original';
+            if (val === 'custom') {
+                const w = parseFloat(customW.value) || 1;
+                const h = parseFloat(customH.value) || 1;
+                return w / h;
+            }
+            return parseFloat(val);
+        }
+
         function processImage() {
             if (!originalImage) return;
             const sliceCount = parseInt(sliceRange.value);
-            const ratioType = ratioSelect.value;
+            const ratioValue = getAspectRatio();
+            
             const sliceWidth = originalImage.width / sliceCount;
-            let sliceHeight = ratioType === 'original' ? originalImage.height : sliceWidth / parseFloat(ratioType);
+            let sliceHeight = ratioValue === 'original' ? originalImage.height : sliceWidth / ratioValue;
             
             // Adjust canvas container scroll state
             if (originalImage.width > canvasWrapper.clientWidth) {
@@ -337,15 +343,12 @@
                 ctx.restore();
                 ctx.fillStyle = html.classList.contains('dark') ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.4)';
                 ctx.fillRect(0,0, totalW, totalH);
-            } else if (!html.classList.contains('dark')) {
-                ctx.fillStyle = "#ffffff";
-                ctx.fillRect(0,0, totalW, totalH);
             }
 
             const imgY = (totalH - originalImage.height) / 2;
             ctx.drawImage(originalImage, 0, imgY);
 
-            // Grid Lines
+            // Red Cutting Lines
             ctx.strokeStyle = '#ef4444';
             ctx.lineWidth = Math.max(6, totalW / 300);
             ctx.setLineDash([20, 15]);
@@ -356,12 +359,12 @@
                 ctx.stroke();
             }
 
-            // Export Area Highlight
+            // Blue Area Highlight
             ctx.setLineDash([]);
             ctx.strokeStyle = '#3b82f6';
-            ctx.lineWidth = 4;
+            ctx.lineWidth = 6;
             const captureY = (totalH - sliceH) / 2;
-            ctx.strokeRect(2, captureY+2, totalW-4, sliceH-4);
+            ctx.strokeRect(3, captureY+3, totalW-6, sliceH-6);
         }
 
         function generateSlices(count, sliceW, sliceH) {
@@ -381,7 +384,7 @@
                     const drawH = originalImage.height * scale;
                     tCtx.drawImage(originalImage, (sliceW - drawW) / 2, (sliceH - drawH) / 2, drawW, drawH);
                     tCtx.restore();
-                    tCtx.fillStyle = 'rgba(0,0,0,0.3)';
+                    tCtx.fillStyle = 'rgba(0,0,0,0.2)';
                     tCtx.fillRect(0, 0, sliceW, sliceH);
                 } else {
                     tCtx.fillStyle = "white"; 
@@ -394,17 +397,20 @@
                 slicesDataUrls.push(dataUrl);
 
                 const wrapper = document.createElement('div');
-                wrapper.className = "group relative aspect-square bg-zinc-100 dark:bg-zinc-900 rounded-xl overflow-hidden border border-gray-200 dark:border-zinc-800 transition-all hover:scale-[1.02] cursor-pointer";
+                wrapper.className = "group relative aspect-square bg-zinc-100 dark:bg-zinc-900 rounded-2xl overflow-hidden border border-gray-100 dark:border-zinc-800 transition-all hover:scale-[1.04] active:scale-95 cursor-pointer shadow-sm";
                 wrapper.innerHTML = `
                     <img src="${dataUrl}" class="w-full h-full object-cover">
-                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                        <span class="text-white text-xs font-bold bg-blue-600 px-3 py-1 rounded-full shadow-lg">Download Slice ${i+1}</span>
+                    <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-all p-4 text-center">
+                        <span class="text-white text-[10px] font-black uppercase tracking-tighter mb-2">Part ${i+1}</span>
+                        <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center shadow-lg">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        </div>
                     </div>
                 `;
                 wrapper.onclick = (e) => {
                     e.stopPropagation();
                     const link = document.createElement('a');
-                    link.download = `${originalFileName}_slice_${i+1}.jpg`;
+                    link.download = `${originalFileName}_p${i+1}.jpg`;
                     link.href = dataUrl;
                     link.click();
                 };
@@ -412,12 +418,53 @@
             }
         }
 
-        function showToast(msg, fastClose = false) {
+        // --- Download Helpers ---
+        downloadZipBtn.addEventListener('click', async () => {
+            if (slicesDataUrls.length === 0) return;
+            downloadZipBtn.disabled = true;
+            showToast("Generating high-res ZIP...", true);
+            try {
+                const zip = new JSZip();
+                slicesDataUrls.forEach((url, index) => {
+                    const imageData = url.split(',')[1];
+                    zip.file(`${originalFileName}_part_${index + 1}.jpg`, imageData, {base64: true});
+                });
+                const content = await zip.generateAsync({type: "blob"});
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(content);
+                link.download = `${originalFileName}_pano_carousel.zip`;
+                link.click();
+                showToast("ZIP ready for download!");
+            } catch (err) {
+                showToast("ZIP generation failed.");
+            } finally {
+                downloadZipBtn.disabled = false;
+            }
+        });
+
+        downloadBatchBtn.addEventListener('click', () => {
+            if (slicesDataUrls.length === 0) return;
+            showToast("Saving files individually...", true);
+            slicesDataUrls.forEach((url, index) => {
+                setTimeout(() => {
+                    const link = document.createElement('a');
+                    link.download = `${originalFileName}_p${index + 1}.jpg`;
+                    link.href = url;
+                    link.click();
+                    if(index === slicesDataUrls.length - 1) showToast("All images saved successfully!");
+                }, index * 400);
+            });
+        });
+
+        function showToast(msg, isSpinning = false) {
             toastMsg.textContent = msg;
-            toast.classList.remove('translate-y-24', 'opacity-0');
-            setTimeout(() => {
-                toast.classList.add('translate-y-24', 'opacity-0');
-            }, fastClose ? 2000 : 4000);
+            toastIcon.classList.toggle('hidden', !isSpinning);
+            toast.classList.remove('translate-y-32', 'opacity-0');
+            if (!isSpinning) {
+                setTimeout(() => {
+                    toast.classList.add('translate-y-32', 'opacity-0');
+                }, 3000);
+            }
         }
     </script>
 </body>
