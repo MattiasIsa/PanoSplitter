@@ -39,7 +39,6 @@
             max-width: 100%;
             max-height: 100%;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            transition: opacity 0.3s ease;
         }
 
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
@@ -188,7 +187,7 @@
                         <label class="flex items-center justify-between p-3 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-900 cursor-pointer transition-colors border border-transparent hover:border-zinc-100 dark:hover:border-zinc-800">
                             <span class="text-xs font-bold">Safe Zone Overlays</span>
                             <input type="checkbox" id="safeZoneToggle" checked class="sr-only peer">
-                            <div class="w-8 h-4 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-zinc-800 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-blue-600 relative"></div>
+                            <div class="w-8 h-4 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-zinc-800 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left....[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-blue-600 relative"></div>
                         </label>
                         <label class="flex items-center justify-between p-3 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-900 cursor-pointer transition-colors border border-transparent hover:border-zinc-100 dark:hover:border-zinc-800">
                             <span class="text-xs font-bold">Blur Background Fill</span>
@@ -347,7 +346,7 @@
 
         elements.flipRatioBtn.onclick = () => {
             isFlipped = !isFlipped;
-            if (currentRatio !== 'original') {
+            if (currentRatio !== 'original' && currentRatio !== 'square') {
                 currentRatio = 1 / currentRatio;
                 triggerFullUpdate();
             }
@@ -417,13 +416,9 @@
             renderSlices();
         }
 
-        function drawImageWithRotation(ctx, img, x, y, rotation) {
-            if (rotation === 0) {
-                ctx.drawImage(img, x, y);
-                return;
-            }
+        function drawImageWithRotation(ctx, img, x, y, rotation, totalW, totalH) {
             ctx.save();
-            ctx.translate(img.width / 2, y + img.height / 2);
+            ctx.translate(totalW / 2, y + img.height / 2);
             ctx.rotate(rotation * Math.PI / 180);
             ctx.drawImage(img, -img.width / 2, -img.height / 2);
             ctx.restore();
@@ -431,19 +426,26 @@
 
         function drawPreview(count, sliceW, sliceH) {
             const ctx = elements.previewCanvas.getContext('2d');
-            const totalW = sliceW * count;
-            const totalH = Math.max(originalImage.height, sliceH);
             
+            // Fix: Keep Canvas Dimensions stable relative to original image 
+            // This prevents the "jumping" when slice count changes
+            const totalW = originalImage.width;
+            const totalH = Math.max(originalImage.height, sliceH * (originalImage.width / (sliceW * count)));
+            
+            // We use a internal logic to map the crop box properly
             elements.previewCanvas.width = totalW;
             elements.previewCanvas.height = totalH;
             
             const imgY = ((totalH - originalImage.height) / 2) + offsetY;
-            const captureY = (totalH - sliceH) / 2;
+            
+            // The capture box should always be centered vertically in the canvas space
+            const captureY = (totalH - (sliceH * (originalImage.width / (sliceW * count)))) / 2;
+            const captureH = sliceH * (originalImage.width / (sliceW * count));
 
             ctx.fillStyle = document.documentElement.classList.contains('dark') ? '#000000' : '#ffffff';
             ctx.fillRect(0,0, totalW, totalH);
 
-            if (elements.blurToggle.checked && sliceH > originalImage.height) {
+            if (elements.blurToggle.checked && captureH > originalImage.height) {
                 ctx.save();
                 ctx.filter = 'blur(40px) brightness(0.6)';
                 const scale = Math.max(totalW / originalImage.width, totalH / originalImage.height);
@@ -453,15 +455,17 @@
                 ctx.restore();
             }
 
-            drawImageWithRotation(ctx, originalImage, 0, imgY, currentRotation);
+            drawImageWithRotation(ctx, originalImage, 0, imgY, currentRotation, totalW, totalH);
 
+            // Dividers and Safe Zones
+            const scaledSliceW = totalW / count;
             if (elements.safeZoneToggle.checked) {
                 ctx.save();
                 for (let i = 0; i < count; i++) {
-                    const x = i * sliceW;
+                    const x = i * scaledSliceW;
                     ctx.fillStyle = "rgba(255, 255, 255, 0.08)";
-                    ctx.fillRect(x + sliceW * 0.88, captureY + sliceH * 0.45, sliceW * 0.1, sliceH * 0.4); 
-                    ctx.fillRect(x + sliceW * 0.05, captureY + sliceH * 0.85, sliceW * 0.5, sliceH * 0.1);
+                    ctx.fillRect(x + scaledSliceW * 0.88, captureY + captureH * 0.45, scaledSliceW * 0.1, captureH * 0.4); 
+                    ctx.fillRect(x + scaledSliceW * 0.05, captureY + captureH * 0.85, scaledSliceW * 0.5, captureH * 0.1);
                 }
                 ctx.restore();
             }
@@ -470,13 +474,13 @@
             ctx.lineWidth = totalW / 800;
             ctx.setLineDash([15, 10]);
             for (let i = 1; i < count; i++) {
-                ctx.beginPath(); ctx.moveTo(i * sliceW, 0); ctx.lineTo(i * sliceW, totalH); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(i * scaledSliceW, 0); ctx.lineTo(i * scaledSliceW, totalH); ctx.stroke();
             }
 
             ctx.setLineDash([]);
             ctx.strokeStyle = "#3b82f6";
             ctx.lineWidth = totalW / 400;
-            ctx.strokeRect(0, captureY, totalW, sliceH);
+            ctx.strokeRect(0, captureY, totalW, captureH);
         }
 
         const startDrag = (y) => { isDragging = true; startY = y - offsetY; };
@@ -640,7 +644,10 @@
                 const count = parseInt(elements.sliceRange.value);
                 const sliceW = originalImage.width / count;
                 const sliceH = currentRatio === 'original' ? originalImage.height : sliceW / currentRatio;
-                const totalH = Math.max(originalImage.height, sliceH);
+                
+                // Fix: AI reframe calculation based on current viewport
+                const totalH = Math.max(originalImage.height, sliceH * (originalImage.width / (sliceW * count)));
+                const captureH = sliceH * (originalImage.width / (sliceW * count));
                 
                 offsetY = (totalH / 2) - ((totalH - originalImage.height) / 2 + (originalImage.height * (targetPercent / 100)));
                 triggerFullUpdate();
