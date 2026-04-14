@@ -53,6 +53,15 @@
         }
 
         #exportDropdown.hidden { display: none; }
+
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
     </style>
 </head>
 <body class="bg-gray-50 dark:bg-black min-h-screen text-gray-900 dark:text-gray-100 antialiased overflow-hidden flex flex-col">
@@ -103,7 +112,7 @@
                     <div>
                         <div class="flex justify-between items-center mb-4">
                             <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Number of Slices</label>
-                            <span id="sliceCountDisplay" class="bg-blue-600/10 text-blue-600 px-2 py-0.5 rounded text-xs font-black">3</span>
+                            <input type="number" id="sliceCountInput" value="3" min="2" max="15" class="w-12 bg-blue-600/10 text-blue-600 px-1 py-0.5 rounded text-xs font-black text-center focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all">
                         </div>
                         <input type="range" id="sliceRange" min="2" max="15" value="3" class="w-full h-1.5 bg-gray-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-600">
                     </div>
@@ -111,7 +120,10 @@
                     <div>
                         <div class="flex justify-between items-center mb-4">
                             <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Rotation / Leveling</label>
-                            <span id="rotationDisplay" class="text-xs font-black">0°</span>
+                            <div class="flex items-center">
+                                <input type="number" id="rotationInput" value="0" min="-15" max="15" step="0.5" class="w-12 bg-transparent text-right px-1 py-0.5 rounded text-xs font-black focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all">
+                                <span class="text-xs font-black">°</span>
+                            </div>
                         </div>
                         <input type="range" id="rotationRange" min="-15" max="15" step="0.5" value="0" class="w-full h-1.5 bg-gray-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-600">
                     </div>
@@ -127,7 +139,7 @@
                         <div class="grid grid-cols-2 gap-2">
                             <button class="ratio-btn p-3 text-[10px] font-bold border border-zinc-200 dark:border-zinc-800 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all" data-ratio="0.8">4:5 / 5:4</button>
                             <button class="ratio-btn p-3 text-[10px] font-bold border border-zinc-200 dark:border-zinc-800 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all" data-ratio="1">1:1 Square</button>
-                            <button class="ratio-btn p-3 text-[10px] font-bold border border-zinc-200 dark:border-zinc-800 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all" data-ratio="0.5625">9:16 / 16:9</button>
+                            <button class="ratio-btn p-3 text-[10px] font-bold border border-zinc-200 dark:border-zinc-800 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all active" data-ratio="0.5625">9:16 / 16:9</button>
                             <button class="ratio-btn p-3 text-[10px] font-bold border border-zinc-200 dark:border-zinc-800 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all" data-ratio="original">Original</button>
                         </div>
                     </div>
@@ -145,7 +157,10 @@
                     <div>
                         <div class="flex justify-between items-center mb-4">
                             <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">JPEG Quality</label>
-                            <span id="qualityDisplay" class="text-xs font-black">95%</span>
+                            <div class="flex items-center">
+                                <input type="number" id="qualityInput" value="95" min="1" max="100" class="w-12 bg-transparent text-right px-1 py-0.5 rounded text-xs font-black focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all">
+                                <span class="text-xs font-black">%</span>
+                            </div>
                         </div>
                         <input type="range" id="qualityRange" min="1" max="100" value="95" class="w-full h-1.5 bg-gray-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-600">
                     </div>
@@ -153,7 +168,10 @@
                     <div>
                         <div class="flex justify-between items-center mb-4">
                             <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Seamless Overlap</label>
-                            <span id="overlapDisplay" class="text-xs font-black">0px</span>
+                            <div class="flex items-center">
+                                <input type="number" id="overlapInput" value="0" min="0" max="100" class="w-12 bg-transparent text-right px-1 py-0.5 rounded text-xs font-black focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all">
+                                <span class="text-xs font-black">px</span>
+                            </div>
                         </div>
                         <input type="range" id="overlapRange" min="0" max="100" value="0" class="w-full h-1.5 bg-gray-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-600">
                     </div>
@@ -245,7 +263,7 @@
         let offsetY = 0; 
         let isDragging = false;
         let startY = 0;
-        let currentRatio = 0.8;
+        let currentRatio = 0.5625; // Default 9:16
         let isFlipped = false;
         let currentRotation = 0;
 
@@ -256,13 +274,13 @@
             editorSection: document.getElementById('editorSection'),
             headerUploadBtn: document.getElementById('headerUploadBtn'),
             sliceRange: document.getElementById('sliceRange'),
-            sliceCountDisplay: document.getElementById('sliceCountDisplay'),
+            sliceCountInput: document.getElementById('sliceCountInput'),
             rotationRange: document.getElementById('rotationRange'),
-            rotationDisplay: document.getElementById('rotationDisplay'),
+            rotationInput: document.getElementById('rotationInput'),
             qualityRange: document.getElementById('qualityRange'),
-            qualityDisplay: document.getElementById('qualityDisplay'),
+            qualityInput: document.getElementById('qualityInput'),
             overlapRange: document.getElementById('overlapRange'),
-            overlapDisplay: document.getElementById('overlapDisplay'),
+            overlapInput: document.getElementById('overlapInput'),
             sharpenToggle: document.getElementById('sharpenToggle'),
             blurToggle: document.getElementById('blurToggle'),
             safeZoneToggle: document.getElementById('safeZoneToggle'),
@@ -296,6 +314,20 @@
         };
         window.onclick = () => elements.exportDropdown.classList.add('hidden');
 
+        // Reset Logic on Double Click
+        const addDoubleClickHandler = (rangeEl, inputEl, defaultValue) => {
+            rangeEl.addEventListener('dblclick', () => {
+                rangeEl.value = defaultValue;
+                inputEl.value = defaultValue;
+                triggerFullUpdate();
+                showToast("Reset to default");
+            });
+        };
+        addDoubleClickHandler(elements.sliceRange, elements.sliceCountInput, 3);
+        addDoubleClickHandler(elements.rotationRange, elements.rotationInput, 0);
+        addDoubleClickHandler(elements.qualityRange, elements.qualityInput, 95);
+        addDoubleClickHandler(elements.overlapRange, elements.overlapInput, 0);
+
         // Ratio Handling
         document.querySelectorAll('.ratio-btn').forEach(btn => {
             btn.onclick = () => {
@@ -319,11 +351,29 @@
                 currentRatio = 1 / currentRatio;
                 triggerFullUpdate();
             }
-            showToast(isFlipped ? "Flipped to Landscape" : "Flipped to Portrait");
+            showToast(isFlipped ? "Flipped Aspect Ratio" : "Normal Aspect Ratio");
         };
 
-        // Initialize default ratio
-        document.querySelector('[data-ratio="0.8"]').click();
+        // Input and Range Syncing
+        const syncInputs = (range, input, callback) => {
+            range.addEventListener('input', () => {
+                input.value = range.value;
+                callback();
+            });
+            input.addEventListener('change', () => {
+                let val = parseFloat(input.value);
+                if (isNaN(val)) val = range.min;
+                val = Math.max(range.min, Math.min(range.max, val));
+                input.value = val;
+                range.value = val;
+                callback();
+            });
+        };
+
+        syncInputs(elements.sliceRange, elements.sliceCountInput, triggerFullUpdate);
+        syncInputs(elements.rotationRange, elements.rotationInput, triggerFullUpdate);
+        syncInputs(elements.qualityRange, elements.qualityInput, triggerFullUpdate);
+        syncInputs(elements.overlapRange, elements.overlapInput, triggerFullUpdate);
 
         // Upload Logic
         elements.headerUploadBtn.onclick = () => elements.fileInput.click();
@@ -344,6 +394,7 @@
                     offsetY = 0;
                     currentRotation = 0;
                     elements.rotationRange.value = 0;
+                    elements.rotationInput.value = 0;
                     triggerFullUpdate();
                 };
                 img.src = e.target.result;
@@ -355,10 +406,6 @@
             if (!originalImage) return;
             const sliceCount = parseInt(elements.sliceRange.value);
             currentRotation = parseFloat(elements.rotationRange.value);
-            elements.sliceCountDisplay.textContent = sliceCount;
-            elements.rotationDisplay.textContent = currentRotation + '°';
-            elements.qualityDisplay.textContent = elements.qualityRange.value + '%';
-            elements.overlapDisplay.textContent = elements.overlapRange.value + 'px';
             
             const sliceWidth = originalImage.width / sliceCount;
             const sliceHeight = currentRatio === 'original' ? originalImage.height : sliceWidth / currentRatio;
@@ -393,11 +440,9 @@
             const imgY = ((totalH - originalImage.height) / 2) + offsetY;
             const captureY = (totalH - sliceH) / 2;
 
-            // Background
             ctx.fillStyle = document.documentElement.classList.contains('dark') ? '#000000' : '#ffffff';
             ctx.fillRect(0,0, totalW, totalH);
 
-            // Blur Fill
             if (elements.blurToggle.checked && sliceH > originalImage.height) {
                 ctx.save();
                 ctx.filter = 'blur(40px) brightness(0.6)';
@@ -410,7 +455,6 @@
 
             drawImageWithRotation(ctx, originalImage, 0, imgY, currentRotation);
 
-            // Overlay Safe Zones
             if (elements.safeZoneToggle.checked) {
                 ctx.save();
                 for (let i = 0; i < count; i++) {
@@ -422,7 +466,6 @@
                 ctx.restore();
             }
 
-            // Slice Lines
             ctx.strokeStyle = "rgba(59, 130, 246, 0.4)";
             ctx.lineWidth = totalW / 800;
             ctx.setLineDash([15, 10]);
@@ -430,7 +473,6 @@
                 ctx.beginPath(); ctx.moveTo(i * sliceW, 0); ctx.lineTo(i * sliceW, totalH); ctx.stroke();
             }
 
-            // Capture Frame Bound
             ctx.setLineDash([]);
             ctx.strokeStyle = "#3b82f6";
             ctx.lineWidth = totalW / 400;
@@ -564,6 +606,7 @@
             offsetY = 0; 
             currentRotation = 0; 
             elements.rotationRange.value = 0;
+            elements.rotationInput.value = 0;
             triggerFullUpdate(); 
             showToast("Alignment Reset"); 
         };
@@ -615,7 +658,7 @@
             if (!spin) setTimeout(() => toast.classList.add('translate-x-[200%]'), 3000);
         }
 
-        [elements.sliceRange, elements.rotationRange, elements.qualityRange, elements.blurToggle, elements.safeZoneToggle, elements.overlapRange, elements.sharpenToggle].forEach(el => {
+        [elements.sharpenToggle, elements.blurToggle, elements.safeZoneToggle].forEach(el => {
             el.addEventListener('input', triggerFullUpdate);
         });
 
