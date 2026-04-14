@@ -56,34 +56,34 @@
 <body class="bg-gray-50 dark:bg-black min-h-screen text-gray-900 dark:text-gray-100 antialiased overflow-hidden">
 
     <!-- Header -->
-    <nav class="sticky top-0 z-50 border-b border-gray-200 dark:border-zinc-900 bg-white/80 dark:bg-black/80 backdrop-blur-md px-6 py-3">
+    <nav class="sticky top-0 z-50 border-b border-gray-200 dark:border-zinc-900 bg-white/80 dark:bg-black/80 backdrop-blur-md px-4 py-3 lg:px-6">
         <div class="max-w-[1600px] mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-black text-white italic">P</div>
-                <h1 class="text-xl font-bold tracking-tight">PanoSplitter <span class="text-blue-500">Pro</span></h1>
+            <div class="flex items-center gap-2 lg:gap-3">
+                <div class="w-7 h-7 lg:w-8 lg:h-8 bg-blue-600 rounded-lg flex items-center justify-center font-black text-white italic text-sm lg:text-base">P</div>
+                <h1 class="text-lg lg:text-xl font-bold tracking-tight">PanoSplitter <span class="hidden sm:inline text-blue-500">Pro</span></h1>
             </div>
             
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2 lg:gap-4">
                 <button id="themeToggle" class="p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full transition-colors">
                     <svg id="sunIcon" class="w-5 h-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"></path></svg>
                     <svg id="moonIcon" class="hidden w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
                 </button>
-                <button id="headerUploadBtn" class="flex items-center gap-2 px-4 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-xl text-sm font-bold transition-all">
-                    Replace Photo
+                <button id="headerUploadBtn" class="flex items-center gap-2 px-3 py-1.5 lg:px-4 lg:py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-xl text-xs lg:text-sm font-bold transition-all">
+                    Replace
                 </button>
             </div>
         </div>
     </nav>
 
     <!-- Initial Landing Upload -->
-    <div id="uploadSection" class="max-w-4xl mx-auto mt-20 p-8">
-        <div id="dropZone" class="border-2 border-dashed border-gray-200 dark:border-zinc-800 rounded-[2.5rem] p-20 text-center hover:border-blue-500 hover:bg-blue-50/5 transition-all cursor-pointer group">
+    <div id="uploadSection" class="max-w-4xl mx-auto mt-10 lg:mt-20 p-6 lg:p-8">
+        <div id="dropZone" class="border-2 border-dashed border-gray-200 dark:border-zinc-800 rounded-[2.5rem] p-10 lg:p-20 text-center hover:border-blue-500 hover:bg-blue-50/5 transition-all cursor-pointer group">
             <div class="flex flex-col items-center">
-                <div class="w-20 h-20 bg-blue-600/10 rounded-3xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                <div class="w-16 h-16 lg:w-20 lg:h-20 bg-blue-600/10 rounded-3xl flex items-center justify-center mb-6 lg:mb-8 group-hover:scale-110 transition-transform">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 lg:h-10 lg:w-10 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                 </div>
-                <h2 class="text-3xl font-bold mb-2">Create Seamless Carousels</h2>
-                <p class="text-gray-500 dark:text-zinc-400">Drag your panorama here to begin splitting.</p>
+                <h2 class="text-2xl lg:text-3xl font-bold mb-2">Create Seamless Carousels</h2>
+                <p class="text-gray-500 dark:text-zinc-400 text-sm">Drag your panorama here to begin splitting.</p>
             </div>
         </div>
         <input type="file" id="fileInput" class="hidden" accept="image/*">
@@ -92,9 +92,28 @@
     <!-- Main Editor Interface -->
     <main id="editorSection" class="hidden h-[calc(100vh-65px)] flex flex-col lg:flex-row overflow-hidden">
         
-        <!-- Unified Sidebar -->
-        <aside class="w-full lg:w-80 h-full border-r border-gray-200 dark:border-zinc-900 bg-white dark:bg-black flex flex-col z-20">
-            <div class="flex-1 overflow-y-auto p-6 space-y-10 custom-scrollbar">
+        <!-- Preview Area (On top for mobile) -->
+        <div class="flex-1 bg-zinc-100 dark:bg-zinc-950 flex flex-col relative overflow-hidden order-1 lg:order-2">
+            <div id="canvasWrapper" class="canvas-container p-4 lg:p-16 h-[40vh] lg:h-full">
+                <canvas id="previewCanvas"></canvas>
+            </div>
+
+            <!-- Floating Action Bar (Hidden/Adjusted on small screens to avoid clutter) -->
+            <div class="absolute bottom-4 lg:bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 lg:gap-4 bg-white/90 dark:bg-zinc-900/95 backdrop-blur-xl px-4 py-3 lg:px-6 lg:py-4 rounded-[2rem] border border-gray-200 dark:border-zinc-800 shadow-2xl z-40 w-[90%] lg:w-auto justify-center">
+                <button id="resetBtn" class="p-2 lg:p-3 text-zinc-500 hover:text-red-500 transition-colors" title="Reset Alignment">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                </button>
+                <div class="w-px h-6 bg-zinc-200 dark:bg-zinc-800"></div>
+                <button id="downloadZipBtn" class="flex-1 lg:flex-none px-6 lg:px-10 py-2.5 lg:py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl flex items-center justify-center gap-3 transition-all shadow-xl shadow-blue-600/20 active:scale-95 text-xs lg:text-base">
+                    <span>Export Carousel</span>
+                    <svg class="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Unified Sidebar (On bottom for mobile) -->
+        <aside class="w-full lg:w-80 h-[60vh] lg:h-full border-t lg:border-t-0 lg:border-r border-gray-200 dark:border-zinc-900 bg-white dark:bg-black flex flex-col z-20 order-2 lg:order-1">
+            <div class="flex-1 overflow-y-auto p-4 lg:p-6 space-y-6 lg:space-y-10 custom-scrollbar">
                 
                 <!-- Layout Controls -->
                 <section class="space-y-6">
@@ -180,26 +199,7 @@
             </div>
         </aside>
 
-        <!-- Preview Area -->
-        <div class="flex-1 bg-zinc-100 dark:bg-zinc-950 flex flex-col relative overflow-hidden">
-            <div id="canvasWrapper" class="canvas-container p-6 md:p-16">
-                <canvas id="previewCanvas"></canvas>
-            </div>
-
-            <!-- Floating Action Bar -->
-            <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 bg-white/90 dark:bg-zinc-900/95 backdrop-blur-xl px-6 py-4 rounded-[2rem] border border-gray-200 dark:border-zinc-800 shadow-2xl z-40">
-                <button id="resetBtn" class="p-3 text-zinc-500 hover:text-red-500 transition-colors" title="Reset Alignment">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                </button>
-                <div class="w-px h-6 bg-zinc-200 dark:bg-zinc-800"></div>
-                <button id="downloadZipBtn" class="px-10 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl flex items-center gap-3 transition-all shadow-xl shadow-blue-600/20 active:scale-95">
-                    <span>Export Carousel</span>
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                </button>
-            </div>
-        </div>
-
-        <!-- Mini Preview Strip -->
+        <!-- Mini Preview Strip (Desktop Only) -->
         <div class="absolute right-0 top-0 bottom-0 w-56 bg-white/40 dark:bg-black/40 backdrop-blur-md border-l border-zinc-200 dark:border-zinc-900 p-4 overflow-y-auto hidden xl:block z-10 custom-scrollbar">
             <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-4 text-center">Output Grid</h3>
             <div id="slicesGrid" class="flex flex-col gap-4"></div>
@@ -207,9 +207,9 @@
     </main>
 
     <!-- Notification -->
-    <div id="toast" class="fixed bottom-10 right-10 bg-zinc-950 text-white px-6 py-4 rounded-2xl shadow-2xl translate-x-[200%] transition-transform duration-500 z-[100] flex items-center gap-3 border border-zinc-800 font-bold">
+    <div id="toast" class="fixed bottom-10 right-4 lg:right-10 bg-zinc-950 text-white px-6 py-4 rounded-2xl shadow-2xl translate-x-[200%] transition-transform duration-500 z-[100] flex items-center gap-3 border border-zinc-800 font-bold max-w-[80vw]">
         <div id="toastSpinner" class="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full hidden"></div>
-        <span id="toastMsg">Action complete</span>
+        <span id="toastMsg" class="truncate">Action complete</span>
     </div>
 
     <script>
@@ -280,7 +280,7 @@
                 currentRatio = 1 / currentRatio;
                 triggerFullUpdate();
             }
-            showToast(isFlipped ? "Flipped to Landscape orientation" : "Flipped to Portrait orientation");
+            showToast(isFlipped ? "Flipped to Landscape" : "Flipped to Portrait");
         };
 
         // Initialize default ratio
@@ -382,26 +382,27 @@
             ctx.strokeRect(0, captureY, totalW, sliceH);
         }
 
-        // Mouse Dragging
-        elements.previewCanvas.onmousedown = (e) => { isDragging = true; startY = e.clientY - offsetY; };
-        window.onmousemove = (e) => { 
+        // Dragging Logic
+        const startDrag = (y) => { isDragging = true; startY = y - offsetY; };
+        const moveDrag = (y) => {
             if (isDragging) { 
-                offsetY = e.clientY - startY; 
+                offsetY = y - startY; 
                 const count = parseInt(elements.sliceRange.value);
                 const sliceWidth = originalImage.width / count;
                 const sliceHeight = currentRatio === 'original' ? originalImage.height : sliceWidth / currentRatio;
                 drawPreview(count, sliceWidth, sliceHeight); 
-            } 
+            }
         };
-        window.onmouseup = () => { if (isDragging) { isDragging = false; triggerFullUpdate(); } };
+        const endDrag = () => { if (isDragging) { isDragging = false; triggerFullUpdate(); } };
 
-        function applySmartSharpen(ctx, width, height) {
-            if (!elements.sharpenToggle.checked) return;
-            // Simple canvas sharpening filter
-            ctx.canvas.style.filter = 'contrast(1.05) saturate(1.02)'; 
-            // We use the modern canvas filter property which is supported in most environments
-            ctx.filter = 'contrast(1.05) brightness(1.02)';
-        }
+        elements.previewCanvas.onmousedown = (e) => startDrag(e.clientY);
+        window.onmousemove = (e) => moveDrag(e.clientY);
+        window.onmouseup = endDrag;
+
+        // Touch Support
+        elements.previewCanvas.ontouchstart = (e) => { startDrag(e.touches[0].clientY); e.preventDefault(); };
+        window.ontouchmove = (e) => moveDrag(e.touches[0].clientY);
+        window.ontouchend = endDrag;
 
         function renderSlices() {
             if (!originalImage) return;
@@ -413,7 +414,6 @@
 
             for (let i = 0; i < count; i++) {
                 const canvas = document.createElement('canvas');
-                // Slice width expands by overlap amount
                 canvas.width = sliceW + overlap; 
                 canvas.height = sliceH;
                 const ctx = canvas.getContext('2d');
@@ -428,8 +428,6 @@
 
                 if (elements.sharpenToggle.checked) ctx.filter = 'contrast(1.05) brightness(1.02)';
 
-                // Draw the main image segment
-                // We draw sliceW + overlap from the source image starting at i * sliceW
                 ctx.drawImage(originalImage, i * sliceW, 0, sliceW + overlap, originalImage.height, 0, imgYInsideSlice, sliceW + overlap, originalImage.height);
                 
                 const url = canvas.toDataURL('image/jpeg', 0.8);
