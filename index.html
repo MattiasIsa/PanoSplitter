@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Panorama Splitter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        .canvas-container {
+            max-width: 100%;
+            overflow-x: auto;
+            background: #f3f4f6;
+            border-radius: 0.5rem;
+            padding: 1rem;
+        }
+        canvas {
+            max-width: none;
+            display: block;
+            margin: 0 auto;
+        }
+        .drop-zone {
+            transition: all 0.3s ease;
+        }
+        .drop-zone.drag-over {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen font-sans text-gray-900">
+
+    <div class="max-w-5xl mx-auto px-4 py-8">
+        <header class="text-center mb-10">
+            <h1 class="text-4xl font-extrabold text-gray-900 mb-2">PanoSplitter</h1>
+            <p class="text-gray-600">Cut your wide photos into perfect Instagram seamless carousel slices.</p>
+        </header>
+
+        <!-- Upload Section -->
+        <div id="uploadSection" class="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 text-center">
+            <div id="dropZone" class="drop-zone border-2 border-dashed border-gray-300 rounded-xl p-12 cursor-pointer hover:border-blue-400">
+                <div class="flex flex-col items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <p class="text-lg font-medium text-gray-700">Click to upload or drag & drop</p>
+                    <p class="text-sm text-gray-500 mt-1">High-resolution JPEGs or PNGs supported</p>
+                </div>
+                <input type="file" id="fileInput" class="hidden" accept="image/*">
+            </div>
+        </div>
+
+        <!-- Editor Section -->
+        <div id="editorSection" class="hidden space-y-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Number of Slices (1-10)</label>
+                        <div class="flex items-center space-x-4">
+                            <input type="range" id="sliceRange" min="2" max="10" value="3" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                            <span id="sliceCountDisplay" class="text-xl font-bold text-blue-600 min-w-[1.5rem]">3</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Slice Aspect Ratio</label>
+                        <select id="ratioSelect" class="w-full p-2.5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block">
+                            <option value="1">Square (1:1)</option>
+                            <option value="0.8">Portrait (4:5)</option>
+                            <option value="0.5625">Story (9:16)</option>
+                            <option value="original">Original Height</option>
+                        </select>
+                    </div>
+
+                    <div class="flex items-center space-x-2 py-2.5">
+                        <input type="checkbox" id="blurToggle" class="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 cursor-pointer">
+                        <label for="blurToggle" class="text-sm font-semibold text-gray-700 cursor-pointer">Blurred Background</label>
+                    </div>
+
+                    <div class="flex space-x-2">
+                        <button id="downloadAllBtn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-lg transition duration-200 shadow-md flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                            Download ZIP
+                        </button>
+                        <button id="resetBtn" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2.5 px-4 rounded-lg transition duration-200">
+                            Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+                <h3 class="text-lg font-bold mb-4 flex items-center">
+                    Preview
+                    <span class="ml-2 text-xs font-normal text-gray-500">(Red lines indicate slice cuts)</span>
+                </h3>
+                <div class="canvas-container shadow-inner border border-gray-100">
+                    <canvas id="previewCanvas"></canvas>
+                </div>
+            </div>
+
+            <div id="slicesGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4"></div>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-5 right-5 bg-gray-900 text-white px-6 py-3 rounded-lg shadow-xl translate-y-20 opacity-0 transition-all duration-300 z-50">
+        Processing...
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const dropZone = document.getElementById('dropZone');
+        const uploadSection = document.getElementById('uploadSection');
+        const editorSection = document.getElementById('editorSection');
+        const sliceRange = document.getElementById('sliceRange');
+        const sliceCountDisplay = document.getElementById('sliceCountDisplay');
+        const ratioSelect = document.getElementById('ratioSelect');
+        const blurToggle = document.getElementById('blurToggle');
+        const previewCanvas = document.getElementById('previewCanvas');
+        const slicesGrid = document.getElementById('slicesGrid');
+        const downloadAllBtn = document.getElementById('downloadAllBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const toast = document.getElementById('toast');
+
+        let originalImage = null;
+        let slicesDataUrls = [];
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', handleFileSelect);
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                handleFileSelect();
+            }
+        });
+
+        sliceRange.addEventListener('input', (e) => {
+            sliceCountDisplay.textContent = e.target.value;
+            processImage();
+        });
+
+        ratioSelect.addEventListener('change', processImage);
+        blurToggle.addEventListener('change', processImage);
+
+        resetBtn.addEventListener('click', () => location.reload());
+
+        downloadAllBtn.addEventListener('click', async () => {
+            if (slicesDataUrls.length === 0) return;
+            showToast("Generating ZIP file...");
+            downloadAllBtn.disabled = true;
+
+            try {
+                const zip = new JSZip();
+                slicesDataUrls.forEach((url, index) => {
+                    const imageData = url.split(',')[1];
+                    zip.file(`slice_${index + 1}.jpg`, imageData, {base64: true});
+                });
+
+                const content = await zip.generateAsync({type: "blob"});
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(content);
+                link.download = "panorama_slices.zip";
+                link.click();
+                showToast("ZIP downloaded!");
+            } catch (err) {
+                showToast("Error creating ZIP.");
+            } finally {
+                downloadAllBtn.disabled = false;
+            }
+        });
+
+        function handleFileSelect() {
+            const file = fileInput.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    originalImage = img;
+                    uploadSection.classList.add('hidden');
+                    editorSection.classList.remove('hidden');
+                    processImage();
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function processImage() {
+            if (!originalImage) return;
+            const sliceCount = parseInt(sliceRange.value);
+            const ratioType = ratioSelect.value;
+            const sliceWidth = originalImage.width / sliceCount;
+            let sliceHeight = ratioType === 'original' ? originalImage.height : sliceWidth / parseFloat(ratioType);
+
+            drawPreview(sliceCount, sliceWidth, sliceHeight);
+            generateSlices(sliceCount, sliceWidth, sliceHeight);
+        }
+
+        function drawPreview(count, sliceW, sliceH) {
+            const ctx = previewCanvas.getContext('2d');
+            const totalW = sliceW * count;
+            const totalH = Math.max(originalImage.height, sliceH);
+            
+            previewCanvas.width = totalW;
+            previewCanvas.height = totalH;
+            
+            ctx.clearRect(0, 0, totalW, totalH);
+
+            if (blurToggle.checked && sliceH > originalImage.height) {
+                // Draw blurred background on preview
+                ctx.save();
+                ctx.filter = 'blur(20px)';
+                // Scale image to cover the canvas
+                const scale = Math.max(totalW / originalImage.width, totalH / originalImage.height);
+                const drawW = originalImage.width * scale;
+                const drawH = originalImage.height * scale;
+                ctx.drawImage(originalImage, (totalW - drawW) / 2, (totalH - drawH) / 2, drawW, drawH);
+                ctx.restore();
+                
+                // Darken blur slightly for contrast
+                ctx.fillStyle = 'rgba(0,0,0,0.1)';
+                ctx.fillRect(0,0, totalW, totalH);
+            }
+
+            const imgY = (totalH - originalImage.height) / 2;
+            ctx.drawImage(originalImage, 0, imgY);
+
+            // Red Slice Lines
+            ctx.strokeStyle = '#ef4444';
+            ctx.lineWidth = Math.max(4, totalW / 200);
+            ctx.setLineDash([20, 10]);
+            for (let i = 1; i < count; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * sliceW, 0);
+                ctx.lineTo(i * sliceW, totalH);
+                ctx.stroke();
+            }
+
+            // Blue Capture Box
+            ctx.setLineDash([]);
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = 2;
+            const captureY = (totalH - sliceH) / 2;
+            ctx.strokeRect(0, captureY, totalW, sliceH);
+        }
+
+        function generateSlices(count, sliceW, sliceH) {
+            slicesGrid.innerHTML = '';
+            slicesDataUrls = [];
+
+            for (let i = 0; i < count; i++) {
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = sliceW;
+                tempCanvas.height = sliceH;
+                const tCtx = tempCanvas.getContext('2d');
+
+                // Blurred Background
+                if (blurToggle.checked && sliceH > originalImage.height) {
+                    tCtx.save();
+                    tCtx.filter = 'blur(40px)';
+                    // Scale to cover this specific slice
+                    const scale = Math.max(sliceW / originalImage.width, sliceH / originalImage.height);
+                    const drawW = originalImage.width * scale;
+                    const drawH = originalImage.height * scale;
+                    // Draw centered
+                    tCtx.drawImage(originalImage, (sliceW - drawW) / 2, (sliceH - drawH) / 2, drawW, drawH);
+                    tCtx.restore();
+                    // Subtle overlay
+                    tCtx.fillStyle = 'rgba(0,0,0,0.15)';
+                    tCtx.fillRect(0, 0, sliceW, sliceH);
+                } else {
+                    tCtx.fillStyle = "white"; 
+                    tCtx.fillRect(0, 0, sliceW, sliceH);
+                }
+                
+                // Draw Sharp Fragment
+                tCtx.drawImage(
+                    originalImage, 
+                    i * sliceW, 0, sliceW, originalImage.height,
+                    0, (sliceH - originalImage.height) / 2, sliceW, originalImage.height
+                );
+
+                const dataUrl = tempCanvas.toDataURL('image/jpeg', 0.92);
+                slicesDataUrls.push(dataUrl);
+
+                const wrapper = document.createElement('div');
+                wrapper.className = "bg-white p-2 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition cursor-pointer";
+                wrapper.innerHTML = `
+                    <img src="${dataUrl}" class="w-full h-auto rounded mb-2">
+                    <div class="text-[10px] font-bold text-gray-400 uppercase text-center">Slice ${i + 1}</div>
+                `;
+                wrapper.onclick = (e) => {
+                    e.stopPropagation();
+                    const link = document.createElement('a');
+                    link.download = `slice_${i+1}.jpg`;
+                    link.href = dataUrl;
+                    link.click();
+                };
+                slicesGrid.appendChild(wrapper);
+            }
+        }
+
+        function showToast(msg) {
+            toast.textContent = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
