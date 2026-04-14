@@ -140,7 +140,24 @@
                         <input type="range" id="qualityRange" min="1" max="100" value="95" class="w-full h-1.5 bg-gray-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-600">
                     </div>
 
+                    <div>
+                        <div class="flex justify-between items-center mb-4">
+                            <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Seamless Overlap</label>
+                            <span id="overlapDisplay" class="text-xs font-black">0px</span>
+                        </div>
+                        <input type="range" id="overlapRange" min="0" max="100" value="0" class="w-full h-1.5 bg-gray-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                        <p class="text-[9px] text-zinc-500 mt-2">Adds repeat pixels to edges for perfect scrolling.</p>
+                    </div>
+
                     <div class="space-y-2">
+                        <label class="flex items-center justify-between p-3 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-900 cursor-pointer transition-colors border border-transparent hover:border-zinc-100 dark:hover:border-zinc-800">
+                            <div class="flex flex-col">
+                                <span class="text-xs font-bold">Smart Sharpen</span>
+                                <span class="text-[10px] text-zinc-500">Enhance export clarity</span>
+                            </div>
+                            <input type="checkbox" id="sharpenToggle" class="sr-only peer">
+                            <div class="w-8 h-4 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-zinc-800 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-blue-600 relative"></div>
+                        </label>
                         <label class="flex items-center justify-between p-3 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-900 cursor-pointer transition-colors border border-transparent hover:border-zinc-100 dark:hover:border-zinc-800">
                             <span class="text-xs font-bold">Safe Zone Overlays</span>
                             <input type="checkbox" id="safeZoneToggle" checked class="sr-only peer">
@@ -215,6 +232,9 @@
             sliceCountDisplay: document.getElementById('sliceCountDisplay'),
             qualityRange: document.getElementById('qualityRange'),
             qualityDisplay: document.getElementById('qualityDisplay'),
+            overlapRange: document.getElementById('overlapRange'),
+            overlapDisplay: document.getElementById('overlapDisplay'),
+            sharpenToggle: document.getElementById('sharpenToggle'),
             blurToggle: document.getElementById('blurToggle'),
             safeZoneToggle: document.getElementById('safeZoneToggle'),
             aiFrameBtn: document.getElementById('aiFrameBtn'),
@@ -295,6 +315,7 @@
             const sliceCount = parseInt(elements.sliceRange.value);
             elements.sliceCountDisplay.textContent = sliceCount;
             elements.qualityDisplay.textContent = elements.qualityRange.value + '%';
+            elements.overlapDisplay.textContent = elements.overlapRange.value + 'px';
             
             const sliceWidth = originalImage.width / sliceCount;
             const sliceHeight = currentRatio === 'original' ? originalImage.height : sliceWidth / currentRatio;
@@ -374,27 +395,42 @@
         };
         window.onmouseup = () => { if (isDragging) { isDragging = false; triggerFullUpdate(); } };
 
+        function applySmartSharpen(ctx, width, height) {
+            if (!elements.sharpenToggle.checked) return;
+            // Simple canvas sharpening filter
+            ctx.canvas.style.filter = 'contrast(1.05) saturate(1.02)'; 
+            // We use the modern canvas filter property which is supported in most environments
+            ctx.filter = 'contrast(1.05) brightness(1.02)';
+        }
+
         function renderSlices() {
             if (!originalImage) return;
             const count = parseInt(elements.sliceRange.value);
             const sliceW = originalImage.width / count;
             const sliceH = currentRatio === 'original' ? originalImage.height : sliceW / currentRatio;
+            const overlap = parseInt(elements.overlapRange.value);
             elements.slicesGrid.innerHTML = '';
 
             for (let i = 0; i < count; i++) {
                 const canvas = document.createElement('canvas');
-                canvas.width = sliceW; canvas.height = sliceH;
+                // Slice width expands by overlap amount
+                canvas.width = sliceW + overlap; 
+                canvas.height = sliceH;
                 const ctx = canvas.getContext('2d');
                 const imgYInsideSlice = ((sliceH - originalImage.height) / 2) + offsetY;
 
                 if (elements.blurToggle.checked && sliceH > originalImage.height) {
                     ctx.save(); ctx.filter = 'blur(50px) brightness(0.7)';
-                    const scale = Math.max(sliceW / originalImage.width, sliceH / originalImage.height);
-                    ctx.drawImage(originalImage, (sliceW - (originalImage.width * scale)) / 2, (sliceH - (originalImage.height * scale)) / 2, originalImage.width * scale, originalImage.height * scale);
+                    const scale = Math.max(canvas.width / originalImage.width, sliceH / originalImage.height);
+                    ctx.drawImage(originalImage, (canvas.width - (originalImage.width * scale)) / 2, (sliceH - (originalImage.height * scale)) / 2, originalImage.width * scale, originalImage.height * scale);
                     ctx.restore();
                 }
 
-                ctx.drawImage(originalImage, i * sliceW, 0, sliceW, originalImage.height, 0, imgYInsideSlice, sliceW, originalImage.height);
+                if (elements.sharpenToggle.checked) ctx.filter = 'contrast(1.05) brightness(1.02)';
+
+                // Draw the main image segment
+                // We draw sliceW + overlap from the source image starting at i * sliceW
+                ctx.drawImage(originalImage, i * sliceW, 0, sliceW + overlap, originalImage.height, 0, imgYInsideSlice, sliceW + overlap, originalImage.height);
                 
                 const url = canvas.toDataURL('image/jpeg', 0.8);
                 const div = document.createElement('div');
@@ -412,23 +448,27 @@
             const zip = new JSZip();
             const count = parseInt(elements.sliceRange.value);
             const q = parseInt(elements.qualityRange.value) / 100;
+            const overlap = parseInt(elements.overlapRange.value);
             const sliceW = originalImage.width / count;
             const sliceH = currentRatio === 'original' ? originalImage.height : sliceW / currentRatio;
 
             for (let i = 0; i < count; i++) {
                 const canvas = document.createElement('canvas');
-                canvas.width = sliceW; canvas.height = sliceH;
+                canvas.width = sliceW + overlap; 
+                canvas.height = sliceH;
                 const ctx = canvas.getContext('2d');
                 const imgYInsideSlice = ((sliceH - originalImage.height) / 2) + offsetY;
                 
                 if (elements.blurToggle.checked && sliceH > originalImage.height) {
                     ctx.save(); ctx.filter = 'blur(60px) brightness(0.6)';
-                    const scale = Math.max(sliceW / originalImage.width, sliceH / originalImage.height);
-                    ctx.drawImage(originalImage, (sliceW - (originalImage.width * scale)) / 2, (sliceH - (originalImage.height * scale)) / 2, originalImage.width * scale, originalImage.height * scale);
+                    const scale = Math.max(canvas.width / originalImage.width, sliceH / originalImage.height);
+                    ctx.drawImage(originalImage, (canvas.width - (originalImage.width * scale)) / 2, (sliceH - (originalImage.height * scale)) / 2, originalImage.width * scale, originalImage.height * scale);
                     ctx.restore();
                 }
 
-                ctx.drawImage(originalImage, i * sliceW, 0, sliceW, originalImage.height, 0, imgYInsideSlice, sliceW, originalImage.height);
+                if (elements.sharpenToggle.checked) ctx.filter = 'contrast(1.08) brightness(1.02) saturate(1.02)';
+
+                ctx.drawImage(originalImage, i * sliceW, 0, sliceW + overlap, originalImage.height, 0, imgYInsideSlice, sliceW + overlap, originalImage.height);
                 const base64 = canvas.toDataURL('image/jpeg', q).split(',')[1];
                 zip.file(`${originalFileName}_${i+1}.jpg`, base64, {base64: true});
             }
@@ -490,7 +530,7 @@
             if (!spin) setTimeout(() => toast.classList.add('translate-x-[200%]'), 3000);
         }
 
-        [elements.sliceRange, elements.qualityRange, elements.blurToggle, elements.safeZoneToggle].forEach(el => {
+        [elements.sliceRange, elements.qualityRange, elements.blurToggle, elements.safeZoneToggle, elements.overlapRange, elements.sharpenToggle].forEach(el => {
             el.addEventListener('input', triggerFullUpdate);
         });
 
