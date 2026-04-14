@@ -80,7 +80,7 @@
         <div id="dropZone" class="border-2 border-dashed border-gray-200 dark:border-zinc-800 rounded-[2.5rem] p-10 lg:p-20 text-center hover:border-blue-500 hover:bg-blue-50/5 transition-all cursor-pointer group">
             <div class="flex flex-col items-center">
                 <div class="w-16 h-16 lg:w-20 lg:h-20 bg-blue-600/10 rounded-3xl flex items-center justify-center mb-6 lg:mb-8 group-hover:scale-110 transition-transform">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 lg:h-10 lg:w-10 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 lg:h-10 lg:w-10 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2-2v12a2 2 0 002 2z" /></svg>
                 </div>
                 <h2 class="text-2xl lg:text-3xl font-bold mb-2">Create Seamless Carousels</h2>
                 <p class="text-gray-500 dark:text-zinc-400 text-sm">Drag your panorama here to begin splitting.</p>
@@ -92,13 +92,12 @@
     <!-- Main Editor Interface -->
     <main id="editorSection" class="hidden h-[calc(100vh-65px)] flex flex-col lg:flex-row overflow-hidden">
         
-        <!-- Preview Area (On top for mobile) -->
+        <!-- Preview Area -->
         <div class="flex-1 bg-zinc-100 dark:bg-zinc-950 flex flex-col relative overflow-hidden order-1 lg:order-2">
             <div id="canvasWrapper" class="canvas-container p-4 lg:p-16 h-[40vh] lg:h-full">
                 <canvas id="previewCanvas"></canvas>
             </div>
 
-            <!-- Floating Action Bar (Hidden/Adjusted on small screens to avoid clutter) -->
             <div class="absolute bottom-4 lg:bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 lg:gap-4 bg-white/90 dark:bg-zinc-900/95 backdrop-blur-xl px-4 py-3 lg:px-6 lg:py-4 rounded-[2rem] border border-gray-200 dark:border-zinc-800 shadow-2xl z-40 w-[90%] lg:w-auto justify-center">
                 <button id="resetBtn" class="p-2 lg:p-3 text-zinc-500 hover:text-red-500 transition-colors" title="Reset Alignment">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
@@ -111,9 +110,9 @@
             </div>
         </div>
 
-        <!-- Unified Sidebar (On bottom for mobile) -->
+        <!-- Unified Sidebar -->
         <aside class="w-full lg:w-80 h-[60vh] lg:h-full border-t lg:border-t-0 lg:border-r border-gray-200 dark:border-zinc-900 bg-white dark:bg-black flex flex-col z-20 order-2 lg:order-1">
-            <div class="flex-1 overflow-y-auto p-4 lg:p-6 space-y-6 lg:space-y-10 custom-scrollbar">
+            <div class="flex-1 overflow-y-auto p-4 lg:p-6 space-y-6 lg:space-y-8 custom-scrollbar">
                 
                 <!-- Layout Controls -->
                 <section class="space-y-6">
@@ -123,6 +122,14 @@
                             <span id="sliceCountDisplay" class="bg-blue-600/10 text-blue-600 px-2 py-0.5 rounded text-xs font-black">3</span>
                         </div>
                         <input type="range" id="sliceRange" min="2" max="15" value="3" class="w-full h-1.5 bg-gray-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between items-center mb-4">
+                            <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Rotation / Leveling</label>
+                            <span id="rotationDisplay" class="text-xs font-black">0°</span>
+                        </div>
+                        <input type="range" id="rotationRange" min="-15" max="15" step="0.5" value="0" class="w-full h-1.5 bg-gray-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-600">
                     </div>
 
                     <div>
@@ -165,7 +172,6 @@
                             <span id="overlapDisplay" class="text-xs font-black">0px</span>
                         </div>
                         <input type="range" id="overlapRange" min="0" max="100" value="0" class="w-full h-1.5 bg-gray-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-600">
-                        <p class="text-[9px] text-zinc-500 mt-2">Adds repeat pixels to edges for perfect scrolling.</p>
                     </div>
 
                     <div class="space-y-2">
@@ -221,6 +227,7 @@
         let startY = 0;
         let currentRatio = 0.8;
         let isFlipped = false;
+        let currentRotation = 0;
 
         const elements = {
             fileInput: document.getElementById('fileInput'),
@@ -230,6 +237,8 @@
             headerUploadBtn: document.getElementById('headerUploadBtn'),
             sliceRange: document.getElementById('sliceRange'),
             sliceCountDisplay: document.getElementById('sliceCountDisplay'),
+            rotationRange: document.getElementById('rotationRange'),
+            rotationDisplay: document.getElementById('rotationDisplay'),
             qualityRange: document.getElementById('qualityRange'),
             qualityDisplay: document.getElementById('qualityDisplay'),
             overlapRange: document.getElementById('overlapRange'),
@@ -303,6 +312,8 @@
                     elements.uploadSection.classList.add('hidden');
                     elements.editorSection.classList.remove('hidden');
                     offsetY = 0;
+                    currentRotation = 0;
+                    elements.rotationRange.value = 0;
                     triggerFullUpdate();
                 };
                 img.src = e.target.result;
@@ -313,7 +324,9 @@
         function triggerFullUpdate() {
             if (!originalImage) return;
             const sliceCount = parseInt(elements.sliceRange.value);
+            currentRotation = parseFloat(elements.rotationRange.value);
             elements.sliceCountDisplay.textContent = sliceCount;
+            elements.rotationDisplay.textContent = currentRotation + '°';
             elements.qualityDisplay.textContent = elements.qualityRange.value + '%';
             elements.overlapDisplay.textContent = elements.overlapRange.value + 'px';
             
@@ -325,6 +338,18 @@
             
             drawPreview(sliceCount, sliceWidth, sliceHeight);
             renderSlices();
+        }
+
+        function drawImageWithRotation(ctx, img, x, y, rotation) {
+            if (rotation === 0) {
+                ctx.drawImage(img, x, y);
+                return;
+            }
+            ctx.save();
+            ctx.translate(img.width / 2, y + img.height / 2);
+            ctx.rotate(rotation * Math.PI / 180);
+            ctx.drawImage(img, -img.width / 2, -img.height / 2);
+            ctx.restore();
         }
 
         function drawPreview(count, sliceW, sliceH) {
@@ -347,11 +372,13 @@
                 ctx.save();
                 ctx.filter = 'blur(40px) brightness(0.6)';
                 const scale = Math.max(totalW / originalImage.width, totalH / originalImage.height);
-                ctx.drawImage(originalImage, (totalW - (originalImage.width * scale)) / 2, (totalH - (originalImage.height * scale)) / 2, originalImage.width * scale, originalImage.height * scale);
+                ctx.translate(totalW/2, totalH/2);
+                ctx.rotate(currentRotation * Math.PI / 180);
+                ctx.drawImage(originalImage, -(originalImage.width * scale) / 2, -(originalImage.height * scale) / 2, originalImage.width * scale, originalImage.height * scale);
                 ctx.restore();
             }
 
-            ctx.drawImage(originalImage, 0, imgY);
+            drawImageWithRotation(ctx, originalImage, 0, imgY, currentRotation);
 
             // Overlay Safe Zones
             if (elements.safeZoneToggle.checked) {
@@ -382,7 +409,6 @@
             ctx.strokeRect(0, captureY, totalW, sliceH);
         }
 
-        // Dragging Logic
         const startDrag = (y) => { isDragging = true; startY = y - offsetY; };
         const moveDrag = (y) => {
             if (isDragging) { 
@@ -399,7 +425,6 @@
         window.onmousemove = (e) => moveDrag(e.clientY);
         window.onmouseup = endDrag;
 
-        // Touch Support
         elements.previewCanvas.ontouchstart = (e) => { startDrag(e.touches[0].clientY); e.preventDefault(); };
         window.ontouchmove = (e) => moveDrag(e.touches[0].clientY);
         window.ontouchend = endDrag;
@@ -422,21 +447,42 @@
                 if (elements.blurToggle.checked && sliceH > originalImage.height) {
                     ctx.save(); ctx.filter = 'blur(50px) brightness(0.7)';
                     const scale = Math.max(canvas.width / originalImage.width, sliceH / originalImage.height);
-                    ctx.drawImage(originalImage, (canvas.width - (originalImage.width * scale)) / 2, (sliceH - (originalImage.height * scale)) / 2, originalImage.width * scale, originalImage.height * scale);
+                    ctx.translate(canvas.width/2, sliceH/2);
+                    ctx.rotate(currentRotation * Math.PI / 180);
+                    ctx.drawImage(originalImage, -(originalImage.width * scale) / 2, -(originalImage.height * scale) / 2, originalImage.width * scale, originalImage.height * scale);
                     ctx.restore();
                 }
 
                 if (elements.sharpenToggle.checked) ctx.filter = 'contrast(1.05) brightness(1.02)';
 
-                ctx.drawImage(originalImage, i * sliceW, 0, sliceW + overlap, originalImage.height, 0, imgYInsideSlice, sliceW + overlap, originalImage.height);
+                // Draw full width at rotation then offset
+                ctx.save();
+                ctx.translate(-i * sliceW, imgYInsideSlice);
+                ctx.translate(originalImage.width/2, originalImage.height/2);
+                ctx.rotate(currentRotation * Math.PI / 180);
+                ctx.drawImage(originalImage, -originalImage.width/2, -originalImage.height/2);
+                ctx.restore();
                 
                 const url = canvas.toDataURL('image/jpeg', 0.8);
                 const div = document.createElement('div');
-                div.className = "group relative rounded-lg overflow-hidden border border-black/10 dark:border-white/10 shadow hover:border-blue-500 transition-all cursor-pointer";
+                div.className = "group relative rounded-lg overflow-hidden border border-black/10 dark:border-white/10 shadow hover:border-blue-500 transition-all";
                 div.innerHTML = `
                     <img src="${url}" class="w-full h-auto">
                     <div class="absolute top-1 left-1 bg-black/60 text-[8px] px-1.5 py-0.5 rounded text-white font-bold">${i+1}</div>
+                    <button class="dl-single-btn absolute bottom-1 right-1 bg-blue-600 hover:bg-blue-700 text-white p-1 rounded transition-opacity opacity-0 group-hover:opacity-100" title="Download Slice ${i+1}">
+                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    </button>
                 `;
+                
+                div.querySelector('.dl-single-btn').onclick = () => {
+                    const q = parseInt(elements.qualityRange.value) / 100;
+                    const link = document.createElement('a');
+                    link.href = canvas.toDataURL('image/jpeg', q);
+                    link.download = `${originalFileName}_slice_${i+1}.jpg`;
+                    link.click();
+                    showToast(`Slice ${i+1} saved`);
+                };
+
                 elements.slicesGrid.appendChild(div);
             }
         }
@@ -460,13 +506,21 @@
                 if (elements.blurToggle.checked && sliceH > originalImage.height) {
                     ctx.save(); ctx.filter = 'blur(60px) brightness(0.6)';
                     const scale = Math.max(canvas.width / originalImage.width, sliceH / originalImage.height);
-                    ctx.drawImage(originalImage, (canvas.width - (originalImage.width * scale)) / 2, (sliceH - (originalImage.height * scale)) / 2, originalImage.width * scale, originalImage.height * scale);
+                    ctx.translate(canvas.width/2, sliceH/2);
+                    ctx.rotate(currentRotation * Math.PI / 180);
+                    ctx.drawImage(originalImage, -(originalImage.width * scale) / 2, -(originalImage.height * scale) / 2, originalImage.width * scale, originalImage.height * scale);
                     ctx.restore();
                 }
 
                 if (elements.sharpenToggle.checked) ctx.filter = 'contrast(1.08) brightness(1.02) saturate(1.02)';
 
-                ctx.drawImage(originalImage, i * sliceW, 0, sliceW + overlap, originalImage.height, 0, imgYInsideSlice, sliceW + overlap, originalImage.height);
+                ctx.save();
+                ctx.translate(-i * sliceW, imgYInsideSlice);
+                ctx.translate(originalImage.width/2, originalImage.height/2);
+                ctx.rotate(currentRotation * Math.PI / 180);
+                ctx.drawImage(originalImage, -originalImage.width/2, -originalImage.height/2);
+                ctx.restore();
+
                 const base64 = canvas.toDataURL('image/jpeg', q).split(',')[1];
                 zip.file(`${originalFileName}_${i+1}.jpg`, base64, {base64: true});
             }
@@ -479,7 +533,13 @@
             showToast("Export Ready");
         };
 
-        elements.resetBtn.onclick = () => { offsetY = 0; triggerFullUpdate(); showToast("Alignment Reset"); };
+        elements.resetBtn.onclick = () => { 
+            offsetY = 0; 
+            currentRotation = 0; 
+            elements.rotationRange.value = 0;
+            triggerFullUpdate(); 
+            showToast("Alignment Reset"); 
+        };
 
         elements.aiFrameBtn.onclick = async () => {
             if (!originalImage) return;
@@ -528,7 +588,7 @@
             if (!spin) setTimeout(() => toast.classList.add('translate-x-[200%]'), 3000);
         }
 
-        [elements.sliceRange, elements.qualityRange, elements.blurToggle, elements.safeZoneToggle, elements.overlapRange, elements.sharpenToggle].forEach(el => {
+        [elements.sliceRange, elements.rotationRange, elements.qualityRange, elements.blurToggle, elements.safeZoneToggle, elements.overlapRange, elements.sharpenToggle].forEach(el => {
             el.addEventListener('input', triggerFullUpdate);
         });
 
