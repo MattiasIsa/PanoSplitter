@@ -11,16 +11,13 @@
             darkMode: 'class',
             theme: {
                 extend: {
-                    colors: {
-                        zinc: { 950: '#09090b' }
-                    }
+                    colors: { zinc: { 950: '#09090b' } }
                 }
             }
         }
     </script>
     <style>
         .dark body { background-color: #000000; }
-        
         .canvas-container {
             width: 100%;
             height: 100%;
@@ -31,643 +28,300 @@
             touch-action: none;
             position: relative;
             overflow: hidden;
+            background-image: 
+                radial-gradient(#27272a 1px, transparent 1px),
+                radial-gradient(#27272a 1px, transparent 1px);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
         }
-        
         .canvas-container:active { cursor: grabbing; }
-        
         canvas {
-            max-width: 100%;
-            max-height: 100%;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            max-width: 95%;
+            max-height: 95%;
+            box-shadow: 0 0 100px rgba(0,0,0,0.5);
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #27272a; border-radius: 10px; }
-
         .ratio-btn.active {
             background-color: #3b82f6;
             color: white;
             border-color: #3b82f6;
         }
-
-        #exportDropdown.hidden { display: none; }
-
-        input[type="number"]::-webkit-inner-spin-button,
-        input[type="number"]::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        input[type="number"] {
-            -moz-appearance: textfield;
-        }
+        input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
     </style>
 </head>
 <body class="bg-gray-50 dark:bg-black min-h-screen text-gray-900 dark:text-gray-100 antialiased overflow-hidden flex flex-col">
 
     <!-- Header -->
-    <nav class="relative z-[60] border-b border-gray-200 dark:border-zinc-900 bg-white/90 dark:bg-black/90 backdrop-blur-md px-4 py-3 lg:px-6 shrink-0">
+    <nav class="relative z-[60] border-b border-gray-200 dark:border-zinc-900 bg-white/90 dark:bg-black/90 backdrop-blur-md px-4 py-3 shrink-0">
         <div class="max-w-full mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-2 lg:gap-3">
-                <div class="w-7 h-7 lg:w-8 lg:h-8 bg-blue-600 rounded-lg flex items-center justify-center font-black text-white italic text-sm lg:text-base">P</div>
-                <h1 class="text-lg lg:text-xl font-bold tracking-tight">PanoSplitter <span class="hidden sm:inline text-blue-500">Pro</span></h1>
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-black text-white italic">P</div>
+                <h1 class="text-xl font-bold tracking-tight">PanoSplitter <span class="text-blue-500">Pro</span></h1>
             </div>
-            
-            <div class="flex items-center gap-2 lg:gap-4">
-                <button id="themeToggle" class="p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full transition-colors">
+            <div class="flex items-center gap-4">
+                <button id="themeToggle" class="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full">
                     <svg id="sunIcon" class="w-5 h-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1-1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"></path></svg>
-                    <svg id="moonIcon" class="hidden w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
                 </button>
-                <button id="headerUploadBtn" class="flex items-center gap-2 px-3 py-1.5 lg:px-4 lg:py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-xl text-xs lg:text-sm font-bold transition-all">
-                    Replace
-                </button>
+                <button id="headerUploadBtn" class="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-xl text-sm font-bold transition-all">Replace Image</button>
             </div>
         </div>
     </nav>
 
-    <!-- Initial Landing Upload -->
-    <div id="uploadSection" class="flex-1 flex items-center justify-center p-6 lg:p-8">
-        <div id="dropZone" class="max-w-4xl w-full border-2 border-dashed border-gray-200 dark:border-zinc-800 rounded-[2.5rem] p-10 lg:p-20 text-center hover:border-blue-500 hover:bg-blue-50/5 transition-all cursor-pointer group">
-            <div class="flex flex-col items-center">
-                <div class="w-16 h-16 lg:w-20 lg:h-20 bg-blue-600/10 rounded-3xl flex items-center justify-center mb-6 lg:mb-8 group-hover:scale-110 transition-transform">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 lg:h-10 lg:w-10 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2-2v12a2 2 0 002 2z" /></svg>
-                </div>
-                <h2 class="text-2xl lg:text-3xl font-bold mb-2">Create Seamless Carousels</h2>
-                <p class="text-gray-500 dark:text-zinc-400 text-sm">Drag your panorama here to begin splitting.</p>
-            </div>
+    <!-- Main Container -->
+    <div id="uploadSection" class="flex-1 flex items-center justify-center p-8">
+        <div id="dropZone" class="max-w-4xl w-full border-2 border-dashed border-zinc-800 rounded-[2.5rem] p-20 text-center hover:border-blue-500 hover:bg-blue-50/5 transition-all cursor-pointer">
+            <h2 class="text-3xl font-bold mb-2">Drop Panorama Here</h2>
+            <p class="text-zinc-500">Works best with ultra-wide photos</p>
         </div>
         <input type="file" id="fileInput" class="hidden" accept="image/*">
     </div>
 
-    <!-- Main Editor Interface -->
-    <main id="editorSection" class="hidden flex-1 flex flex-col lg:flex-row overflow-hidden relative">
-        
-        <!-- Sidebar Controls -->
-        <aside class="w-full lg:w-80 h-auto lg:h-full border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-zinc-900 bg-white dark:bg-black flex flex-col z-20 shrink-0">
-            <div class="flex-1 overflow-y-auto p-4 lg:p-6 space-y-6 lg:space-y-8 custom-scrollbar">
-                
-                <!-- Layout Controls -->
-                <section class="space-y-6">
-                    <div>
-                        <div class="flex justify-between items-center mb-4">
-                            <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Number of Slices</label>
-                            <input type="number" id="sliceCountInput" value="3" min="2" max="15" class="w-12 bg-blue-600/10 text-blue-600 px-1 py-0.5 rounded text-xs font-black text-center focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all">
-                        </div>
-                        <input type="range" id="sliceRange" min="2" max="15" value="3" class="w-full h-1.5 bg-gray-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-600">
-                    </div>
-
-                    <div>
-                        <div class="flex justify-between items-center mb-4">
-                            <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Rotation / Leveling</label>
-                            <div class="flex items-center">
-                                <input type="number" id="rotationInput" value="0" min="-15" max="15" step="0.5" class="w-12 bg-transparent text-right px-1 py-0.5 rounded text-xs font-black focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all">
-                                <span class="text-xs font-black">°</span>
-                            </div>
-                        </div>
-                        <input type="range" id="rotationRange" min="-15" max="15" step="0.5" value="0" class="w-full h-1.5 bg-gray-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-600">
-                    </div>
-
-                    <div>
-                        <div class="flex justify-between items-center mb-4">
-                            <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Aspect Ratio</label>
-                            <button id="flipRatioBtn" class="text-[10px] font-bold text-blue-500 hover:text-blue-400 flex items-center gap-1 uppercase tracking-widest transition-colors">
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path></svg>
-                                Flip
-                            </button>
-                        </div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <button class="ratio-btn p-3 text-[10px] font-bold border border-zinc-200 dark:border-zinc-800 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all" data-ratio="0.8">4:5 / 5:4</button>
-                            <button class="ratio-btn p-3 text-[10px] font-bold border border-zinc-200 dark:border-zinc-800 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all" data-ratio="1">1:1 Square</button>
-                            <button class="ratio-btn p-3 text-[10px] font-bold border border-zinc-200 dark:border-zinc-800 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all active" data-ratio="0.5625">9:16 / 16:9</button>
-                            <button class="ratio-btn p-3 text-[10px] font-bold border border-zinc-200 dark:border-zinc-800 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all" data-ratio="original">Original</button>
-                        </div>
-                    </div>
-
-                    <button id="aiFrameBtn" class="w-full py-3 bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-sm">
-                        <svg class="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path d="M12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732l-3.354 1.935-1.18 4.455a1 1 0 01-1.933 0L9.854 12.8 6.5 10.866a1 1 0 010-1.732l3.354-1.935 1.18-4.455A1 1 0 0112 2z" /></svg>
-                        AI Auto-Frame
-                    </button>
-                </section>
-
-                <div class="h-px bg-gray-100 dark:bg-zinc-900"></div>
-
-                <!-- Process Controls -->
-                <section class="space-y-6">
-                    <div>
-                        <div class="flex justify-between items-center mb-4">
-                            <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">JPEG Quality</label>
-                            <div class="flex items-center">
-                                <input type="number" id="qualityInput" value="95" min="1" max="100" class="w-12 bg-transparent text-right px-1 py-0.5 rounded text-xs font-black focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all">
-                                <span class="text-xs font-black">%</span>
-                            </div>
-                        </div>
-                        <input type="range" id="qualityRange" min="1" max="100" value="95" class="w-full h-1.5 bg-gray-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-600">
-                    </div>
-
-                    <div>
-                        <div class="flex justify-between items-center mb-4">
-                            <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Seamless Overlap</label>
-                            <div class="flex items-center">
-                                <input type="number" id="overlapInput" value="0" min="0" max="100" class="w-12 bg-transparent text-right px-1 py-0.5 rounded text-xs font-black focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all">
-                                <span class="text-xs font-black">px</span>
-                            </div>
-                        </div>
-                        <input type="range" id="overlapRange" min="0" max="100" value="0" class="w-full h-1.5 bg-gray-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-600">
-                    </div>
-
-                    <div class="space-y-2">
-                        <label class="flex items-center justify-between p-3 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-900 cursor-pointer transition-colors border border-transparent hover:border-zinc-100 dark:hover:border-zinc-800">
-                            <div class="flex flex-col">
-                                <span class="text-xs font-bold">Smart Sharpen</span>
-                                <span class="text-[10px] text-zinc-500">Enhance export clarity</span>
-                            </div>
-                            <input type="checkbox" id="sharpenToggle" class="sr-only peer">
-                            <div class="w-8 h-4 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-zinc-800 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-blue-600 relative"></div>
-                        </label>
-                        <label class="flex items-center justify-between p-3 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-900 cursor-pointer transition-colors border border-transparent hover:border-zinc-100 dark:hover:border-zinc-800">
-                            <span class="text-xs font-bold">Safe Zone Overlays</span>
-                            <input type="checkbox" id="safeZoneToggle" checked class="sr-only peer">
-                            <div class="w-8 h-4 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-zinc-800 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left....[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-blue-600 relative"></div>
-                        </label>
-                        <label class="flex items-center justify-between p-3 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-900 cursor-pointer transition-colors border border-transparent hover:border-zinc-100 dark:hover:border-zinc-800">
-                            <span class="text-xs font-bold">Blur Background Fill</span>
-                            <input type="checkbox" id="blurToggle" class="sr-only peer">
-                            <div class="w-8 h-4 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-zinc-800 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-blue-600 relative"></div>
-                        </label>
-                    </div>
-                </section>
-            </div>
-
-            <div class="p-6 border-t border-gray-100 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-950/50 shrink-0">
-                <div id="statsPanel" class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest flex flex-col gap-1">
-                    <div class="flex justify-between"><span>Slice Size:</span> <span id="resText" class="text-zinc-900 dark:text-zinc-100">0 x 0</span></div>
-                    <div class="flex justify-between"><span>Total Width:</span> <span id="totalResText" class="text-zinc-900 dark:text-zinc-100">0 px</span></div>
+    <main id="editorSection" class="hidden flex-1 flex flex-col lg:flex-row overflow-hidden">
+        <!-- Left Sidebar -->
+        <aside class="w-full lg:w-80 border-r border-zinc-200 dark:border-zinc-900 bg-white dark:bg-black p-6 space-y-8 overflow-y-auto">
+            <section>
+                <div class="flex justify-between items-center mb-4">
+                    <label class="text-xs font-bold text-zinc-400 uppercase tracking-widest">Slices</label>
+                    <span id="sliceVal" class="text-blue-500 font-black">3</span>
                 </div>
+                <input type="range" id="sliceRange" min="2" max="10" value="3" class="w-full accent-blue-600">
+            </section>
+
+            <section>
+                <label class="text-xs font-bold text-zinc-400 uppercase tracking-widest block mb-4">Aspect Ratio</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <button class="ratio-btn p-3 text-[10px] font-bold border border-zinc-800 rounded-xl active" data-ratio="0.8">4:5 Portrait</button>
+                    <button class="ratio-btn p-3 text-[10px] font-bold border border-zinc-800 rounded-xl" data-ratio="1">1:1 Square</button>
+                    <button class="ratio-btn p-3 text-[10px] font-bold border border-zinc-800 rounded-xl" data-ratio="1.77">16:9 Wide</button>
+                    <button class="ratio-btn p-3 text-[10px] font-bold border border-zinc-800 rounded-xl" data-ratio="original">Original</button>
+                </div>
+            </section>
+
+            <section>
+                <div class="flex justify-between items-center mb-4">
+                    <label class="text-xs font-bold text-zinc-400 uppercase tracking-widest">Rotation</label>
+                    <span id="rotVal" class="text-zinc-500 font-bold">0°</span>
+                </div>
+                <input type="range" id="rotationRange" min="-10" max="10" step="0.1" value="0" class="w-full accent-blue-600">
+            </section>
+
+            <div class="pt-6 border-t border-zinc-900">
+                <button id="aiFrameBtn" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-600/20 active:scale-95 transition-all">AI Auto-Center</button>
             </div>
         </aside>
 
-        <!-- Preview Area -->
-        <div class="flex-1 bg-zinc-100 dark:bg-zinc-950 flex flex-col relative overflow-hidden z-10">
-            <div id="canvasWrapper" class="canvas-container p-4 lg:p-16 h-full">
+        <!-- Preview -->
+        <div class="flex-1 bg-zinc-950 flex flex-col relative">
+            <div class="canvas-container">
                 <canvas id="previewCanvas"></canvas>
             </div>
-
-            <!-- Export Control Area -->
-            <div class="absolute bottom-4 lg:bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 lg:gap-4 bg-white/90 dark:bg-zinc-900/95 backdrop-blur-xl px-4 py-3 lg:px-6 lg:py-4 rounded-[2rem] border border-gray-200 dark:border-zinc-800 shadow-2xl z-40 w-[90%] lg:w-auto justify-center">
-                <button id="resetBtn" class="p-2 lg:p-3 text-zinc-500 hover:text-red-500 transition-colors" title="Reset Alignment">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+            
+            <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 bg-zinc-900/90 backdrop-blur-xl px-6 py-4 rounded-[2rem] border border-zinc-800">
+                <button id="downloadZipBtn" class="flex items-center gap-2 bg-white text-black px-6 py-2 rounded-xl font-bold hover:bg-zinc-200 transition-all">
+                    <span>Export Carousel</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                 </button>
-                <div class="w-px h-6 bg-zinc-200 dark:bg-zinc-800"></div>
-                
-                <div class="relative group">
-                    <button id="mainExportBtn" class="px-6 lg:px-10 py-2.5 lg:py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl flex items-center justify-center gap-3 transition-all shadow-xl shadow-blue-600/20 active:scale-95 text-xs lg:text-base">
-                        <span>Export Carousel</span>
-                        <svg class="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                    
-                    <!-- Dropdown Menu -->
-                    <div id="exportDropdown" class="hidden absolute bottom-full left-0 right-0 mb-2 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-2xl overflow-hidden py-2 z-50">
-                        <button id="downloadZipBtn" class="w-full text-left px-5 py-3 hover:bg-gray-50 dark:hover:bg-zinc-800 text-xs lg:text-sm font-bold flex items-center gap-3 transition-colors">
-                            <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                            Download as .ZIP
-                        </button>
-                        <button id="downloadJpegsBtn" class="w-full text-left px-5 py-3 hover:bg-gray-50 dark:hover:bg-zinc-800 text-xs lg:text-sm font-bold flex items-center gap-3 transition-colors border-t border-gray-100 dark:border-zinc-800">
-                            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2-2v12a2 2 0 002 2z"></path></svg>
-                            Download Individual JPEGs
-                        </button>
-                    </div>
-                </div>
             </div>
-        </div>
-
-        <!-- Output Grid Sidebar -->
-        <div class="hidden xl:flex w-64 bg-white/40 dark:bg-black/40 backdrop-blur-md border-l border-zinc-200 dark:border-zinc-900 flex-col shrink-0 z-30">
-            <div class="p-4 border-b border-zinc-200/50 dark:border-zinc-800/50 shrink-0">
-                <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 text-center">Output Grid</h3>
-            </div>
-            <div id="slicesGrid" class="flex-1 overflow-y-auto p-4 flex flex-col gap-4 custom-scrollbar"></div>
         </div>
     </main>
 
-    <!-- Notification -->
-    <div id="toast" class="fixed bottom-10 right-4 lg:right-10 bg-zinc-950 text-white px-6 py-4 rounded-2xl shadow-2xl translate-x-[200%] transition-transform duration-500 z-[100] flex items-center gap-3 border border-zinc-800 font-bold max-w-[80vw]">
-        <div id="toastSpinner" class="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full hidden"></div>
-        <span id="toastMsg" class="truncate">Action complete</span>
-    </div>
+    <div id="toast" class="fixed bottom-10 right-10 bg-white text-black px-6 py-4 rounded-2xl shadow-2xl translate-x-[200%] transition-transform duration-500 z-[100] font-bold"></div>
 
     <script>
-        const apiKey = ""; 
+        const apiKey = "";
         let originalImage = null;
-        let originalFileName = "panorama";
-        let offsetY = 0; 
+        let offsetY = 0;
         let isDragging = false;
         let startY = 0;
-        let currentRatio = 0.5625; // Default 9:16
-        let isFlipped = false;
-        let currentRotation = 0;
+        let currentRatio = 0.8; 
+        let rotation = 0;
+        let slices = 3;
 
-        const elements = {
-            fileInput: document.getElementById('fileInput'),
-            dropZone: document.getElementById('dropZone'),
-            uploadSection: document.getElementById('uploadSection'),
-            editorSection: document.getElementById('editorSection'),
-            headerUploadBtn: document.getElementById('headerUploadBtn'),
-            sliceRange: document.getElementById('sliceRange'),
-            sliceCountInput: document.getElementById('sliceCountInput'),
-            rotationRange: document.getElementById('rotationRange'),
-            rotationInput: document.getElementById('rotationInput'),
-            qualityRange: document.getElementById('qualityRange'),
-            qualityInput: document.getElementById('qualityInput'),
-            overlapRange: document.getElementById('overlapRange'),
-            overlapInput: document.getElementById('overlapInput'),
-            sharpenToggle: document.getElementById('sharpenToggle'),
-            blurToggle: document.getElementById('blurToggle'),
-            safeZoneToggle: document.getElementById('safeZoneToggle'),
-            aiFrameBtn: document.getElementById('aiFrameBtn'),
-            previewCanvas: document.getElementById('previewCanvas'),
-            slicesGrid: document.getElementById('slicesGrid'),
-            mainExportBtn: document.getElementById('mainExportBtn'),
-            exportDropdown: document.getElementById('exportDropdown'),
-            downloadZipBtn: document.getElementById('downloadZipBtn'),
-            downloadJpegsBtn: document.getElementById('downloadJpegsBtn'),
-            resText: document.getElementById('resText'),
-            totalResText: document.getElementById('totalResText'),
-            resetBtn: document.getElementById('resetBtn'),
-            themeToggle: document.getElementById('themeToggle'),
-            flipRatioBtn: document.getElementById('flipRatioBtn')
+        const cvs = document.getElementById('previewCanvas');
+        const ctx = cvs.getContext('2d');
+
+        // Setup listeners
+        document.getElementById('fileInput').onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const img = new Image();
+                img.onload = () => {
+                    originalImage = img;
+                    document.getElementById('uploadSection').classList.add('hidden');
+                    document.getElementById('editorSection').classList.remove('hidden');
+                    resetState();
+                    draw();
+                };
+                img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
         };
 
-        // Theme Toggle
-        elements.themeToggle.addEventListener('click', () => {
-            document.documentElement.classList.toggle('dark');
-            const isDark = document.documentElement.classList.contains('dark');
-            document.getElementById('sunIcon').classList.toggle('hidden', !isDark);
-            document.getElementById('moonIcon').classList.toggle('hidden', isDark);
-            if (originalImage) triggerFullUpdate();
-        });
+        document.getElementById('dropZone').onclick = () => document.getElementById('fileInput').click();
+        document.getElementById('headerUploadBtn').onclick = () => document.getElementById('fileInput').click();
 
-        // Toggle Export Dropdown
-        elements.mainExportBtn.onclick = (e) => {
-            e.stopPropagation();
-            elements.exportDropdown.classList.toggle('hidden');
+        function resetState() {
+            offsetY = 0;
+            rotation = 0;
+            slices = 3;
+            document.getElementById('sliceRange').value = 3;
+            document.getElementById('rotationRange').value = 0;
+        }
+
+        document.getElementById('sliceRange').oninput = (e) => {
+            slices = parseInt(e.target.value);
+            document.getElementById('sliceVal').textContent = slices;
+            draw();
         };
-        window.onclick = () => elements.exportDropdown.classList.add('hidden');
 
-        // Reset Logic on Double Click
-        const addDoubleClickHandler = (rangeEl, inputEl, defaultValue) => {
-            rangeEl.addEventListener('dblclick', () => {
-                rangeEl.value = defaultValue;
-                inputEl.value = defaultValue;
-                triggerFullUpdate();
-                showToast("Reset to default");
-            });
+        document.getElementById('rotationRange').oninput = (e) => {
+            rotation = parseFloat(e.target.value);
+            document.getElementById('rotVal').textContent = rotation + '°';
+            draw();
         };
-        addDoubleClickHandler(elements.sliceRange, elements.sliceCountInput, 3);
-        addDoubleClickHandler(elements.rotationRange, elements.rotationInput, 0);
-        addDoubleClickHandler(elements.qualityRange, elements.qualityInput, 95);
-        addDoubleClickHandler(elements.overlapRange, elements.overlapInput, 0);
 
-        // Ratio Handling
         document.querySelectorAll('.ratio-btn').forEach(btn => {
             btn.onclick = () => {
                 document.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                
-                const raw = btn.dataset.ratio;
-                if (raw === 'original') {
-                    currentRatio = 'original';
-                } else {
-                    currentRatio = parseFloat(raw);
-                    if (isFlipped) currentRatio = 1 / currentRatio;
-                }
-                triggerFullUpdate();
+                currentRatio = btn.dataset.ratio === 'original' ? 'original' : parseFloat(btn.dataset.ratio);
+                draw();
             };
         });
 
-        elements.flipRatioBtn.onclick = () => {
-            isFlipped = !isFlipped;
-            if (currentRatio !== 'original' && currentRatio !== 'square') {
-                currentRatio = 1 / currentRatio;
-                triggerFullUpdate();
-            }
-            showToast(isFlipped ? "Flipped Aspect Ratio" : "Normal Aspect Ratio");
-        };
-
-        // Input and Range Syncing
-        const syncInputs = (range, input, callback) => {
-            range.addEventListener('input', () => {
-                input.value = range.value;
-                callback();
-            });
-            input.addEventListener('change', () => {
-                let val = parseFloat(input.value);
-                if (isNaN(val)) val = range.min;
-                val = Math.max(range.min, Math.min(range.max, val));
-                input.value = val;
-                range.value = val;
-                callback();
-            });
-        };
-
-        syncInputs(elements.sliceRange, elements.sliceCountInput, triggerFullUpdate);
-        syncInputs(elements.rotationRange, elements.rotationInput, triggerFullUpdate);
-        syncInputs(elements.qualityRange, elements.qualityInput, triggerFullUpdate);
-        syncInputs(elements.overlapRange, elements.overlapInput, triggerFullUpdate);
-
-        // Upload Logic
-        elements.headerUploadBtn.onclick = () => elements.fileInput.click();
-        elements.dropZone.onclick = () => elements.fileInput.click();
-        elements.fileInput.onchange = (e) => handleFiles(e.target.files);
-
-        function handleFiles(files) {
-            const file = files[0];
-            if (!file) return;
-            originalFileName = file.name.split('.').slice(0, -1).join('.') || "panorama";
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const img = new Image();
-                img.onload = () => {
-                    originalImage = img;
-                    elements.uploadSection.classList.add('hidden');
-                    elements.editorSection.classList.remove('hidden');
-                    offsetY = 0;
-                    currentRotation = 0;
-                    elements.rotationRange.value = 0;
-                    elements.rotationInput.value = 0;
-                    triggerFullUpdate();
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function triggerFullUpdate() {
+        // Viewport Logic
+        function draw() {
             if (!originalImage) return;
-            const sliceCount = parseInt(elements.sliceRange.value);
-            currentRotation = parseFloat(elements.rotationRange.value);
-            
-            const sliceWidth = originalImage.width / sliceCount;
+
+            // 1. Calculate the target dimensions for the "Total Crop Area"
+            // The Crop Area is 'slices' wide and 1 'slice' high.
+            const sliceWidth = originalImage.width / slices;
             const sliceHeight = currentRatio === 'original' ? originalImage.height : sliceWidth / currentRatio;
             
-            elements.resText.textContent = `${Math.round(sliceWidth)} x ${Math.round(sliceHeight)}`;
-            elements.totalResText.textContent = `${Math.round(sliceWidth * sliceCount)} px`;
-            
-            drawPreview(sliceCount, sliceWidth, sliceHeight);
-            renderSlices();
-        }
+            const totalCropWidth = originalImage.width;
+            const totalCropHeight = sliceHeight;
 
-        function drawImageWithRotation(ctx, img, x, y, rotation, totalW, totalH) {
+            // 2. Set Canvas Size to accommodate the image AND the crop area
+            // We use the image width as the base scale
+            cvs.width = originalImage.width;
+            cvs.height = Math.max(originalImage.height, totalCropHeight) * 1.2; // Extra padding
+
+            ctx.clearRect(0, 0, cvs.width, cvs.height);
+            
+            // 3. Draw Image (Centered with Offset)
             ctx.save();
-            ctx.translate(totalW / 2, y + img.height / 2);
+            ctx.translate(cvs.width/2, cvs.height/2 + offsetY);
             ctx.rotate(rotation * Math.PI / 180);
-            ctx.drawImage(img, -img.width / 2, -img.height / 2);
-            ctx.restore();
-        }
-
-        function drawPreview(count, sliceW, sliceH) {
-            const ctx = elements.previewCanvas.getContext('2d');
-            
-            // Fix: Keep Canvas Dimensions stable relative to original image 
-            // This prevents the "jumping" when slice count changes
-            const totalW = originalImage.width;
-            const totalH = Math.max(originalImage.height, sliceH * (originalImage.width / (sliceW * count)));
-            
-            // We use a internal logic to map the crop box properly
-            elements.previewCanvas.width = totalW;
-            elements.previewCanvas.height = totalH;
-            
-            const imgY = ((totalH - originalImage.height) / 2) + offsetY;
-            
-            // The capture box should always be centered vertically in the canvas space
-            const captureY = (totalH - (sliceH * (originalImage.width / (sliceW * count)))) / 2;
-            const captureH = sliceH * (originalImage.width / (sliceW * count));
-
-            ctx.fillStyle = document.documentElement.classList.contains('dark') ? '#000000' : '#ffffff';
-            ctx.fillRect(0,0, totalW, totalH);
-
-            if (elements.blurToggle.checked && captureH > originalImage.height) {
-                ctx.save();
-                ctx.filter = 'blur(40px) brightness(0.6)';
-                const scale = Math.max(totalW / originalImage.width, totalH / originalImage.height);
-                ctx.translate(totalW/2, totalH/2);
-                ctx.rotate(currentRotation * Math.PI / 180);
-                ctx.drawImage(originalImage, -(originalImage.width * scale) / 2, -(originalImage.height * scale) / 2, originalImage.width * scale, originalImage.height * scale);
-                ctx.restore();
-            }
-
-            drawImageWithRotation(ctx, originalImage, 0, imgY, currentRotation, totalW, totalH);
-
-            // Dividers and Safe Zones
-            const scaledSliceW = totalW / count;
-            if (elements.safeZoneToggle.checked) {
-                ctx.save();
-                for (let i = 0; i < count; i++) {
-                    const x = i * scaledSliceW;
-                    ctx.fillStyle = "rgba(255, 255, 255, 0.08)";
-                    ctx.fillRect(x + scaledSliceW * 0.88, captureY + captureH * 0.45, scaledSliceW * 0.1, captureH * 0.4); 
-                    ctx.fillRect(x + scaledSliceW * 0.05, captureY + captureH * 0.85, scaledSliceW * 0.5, captureH * 0.1);
-                }
-                ctx.restore();
-            }
-
-            ctx.strokeStyle = "rgba(59, 130, 246, 0.4)";
-            ctx.lineWidth = totalW / 800;
-            ctx.setLineDash([15, 10]);
-            for (let i = 1; i < count; i++) {
-                ctx.beginPath(); ctx.moveTo(i * scaledSliceW, 0); ctx.lineTo(i * scaledSliceW, totalH); ctx.stroke();
-            }
-
-            ctx.setLineDash([]);
-            ctx.strokeStyle = "#3b82f6";
-            ctx.lineWidth = totalW / 400;
-            ctx.strokeRect(0, captureY, totalW, captureH);
-        }
-
-        const startDrag = (y) => { isDragging = true; startY = y - offsetY; };
-        const moveDrag = (y) => {
-            if (isDragging) { 
-                offsetY = y - startY; 
-                const count = parseInt(elements.sliceRange.value);
-                const sliceWidth = originalImage.width / count;
-                const sliceHeight = currentRatio === 'original' ? originalImage.height : sliceWidth / currentRatio;
-                drawPreview(count, sliceWidth, sliceHeight); 
-            }
-        };
-        const endDrag = () => { if (isDragging) { isDragging = false; triggerFullUpdate(); } };
-
-        elements.previewCanvas.onmousedown = (e) => startDrag(e.clientY);
-        window.onmousemove = (e) => moveDrag(e.clientY);
-        window.onmouseup = endDrag;
-
-        elements.previewCanvas.ontouchstart = (e) => { startDrag(e.touches[0].clientY); e.preventDefault(); };
-        window.ontouchmove = (e) => moveDrag(e.touches[0].clientY);
-        window.ontouchend = endDrag;
-
-        function renderSlices() {
-            if (!originalImage) return;
-            const count = parseInt(elements.sliceRange.value);
-            const sliceW = originalImage.width / count;
-            const sliceH = currentRatio === 'original' ? originalImage.height : sliceW / currentRatio;
-            const overlap = parseInt(elements.overlapRange.value);
-            elements.slicesGrid.innerHTML = '';
-
-            for (let i = 0; i < count; i++) {
-                const canvas = generateSliceCanvas(i, sliceW, sliceH, overlap);
-                const url = canvas.toDataURL('image/jpeg', 0.8);
-                const div = document.createElement('div');
-                div.className = "group relative rounded-lg overflow-hidden border border-black/10 dark:border-white/10 shadow hover:border-blue-500 transition-all shrink-0";
-                div.innerHTML = `
-                    <img src="${url}" class="w-full h-auto">
-                    <div class="absolute top-1 left-1 bg-black/60 text-[8px] px-1.5 py-0.5 rounded text-white font-bold">${i+1}</div>
-                    <button class="dl-single-btn absolute bottom-1 right-1 bg-blue-600 hover:bg-blue-700 text-white p-1 rounded transition-opacity opacity-0 group-hover:opacity-100" title="Download Slice ${i+1}">
-                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                    </button>
-                `;
-                
-                div.querySelector('.dl-single-btn').onclick = () => {
-                    downloadCanvasAsJpeg(canvas, `${originalFileName}_slice_${i+1}.jpg`);
-                };
-
-                elements.slicesGrid.appendChild(div);
-            }
-        }
-
-        function generateSliceCanvas(index, sliceW, sliceH, overlap) {
-            const canvas = document.createElement('canvas');
-            canvas.width = sliceW + overlap; 
-            canvas.height = sliceH;
-            const ctx = canvas.getContext('2d');
-            const imgYInsideSlice = ((sliceH - originalImage.height) / 2) + offsetY;
-
-            if (elements.blurToggle.checked && sliceH > originalImage.height) {
-                ctx.save(); ctx.filter = 'blur(60px) brightness(0.6)';
-                const scale = Math.max(canvas.width / originalImage.width, sliceH / originalImage.height);
-                ctx.translate(canvas.width/2, sliceH/2);
-                ctx.rotate(currentRotation * Math.PI / 180);
-                ctx.drawImage(originalImage, -(originalImage.width * scale) / 2, -(originalImage.height * scale) / 2, originalImage.width * scale, originalImage.height * scale);
-                ctx.restore();
-            }
-
-            if (elements.sharpenToggle.checked) ctx.filter = 'contrast(1.08) brightness(1.02) saturate(1.02)';
-
-            ctx.save();
-            ctx.translate(-index * sliceW, imgYInsideSlice);
-            ctx.translate(originalImage.width/2, originalImage.height/2);
-            ctx.rotate(currentRotation * Math.PI / 180);
             ctx.drawImage(originalImage, -originalImage.width/2, -originalImage.height/2);
             ctx.restore();
-            return canvas;
+
+            // 4. Draw Overlay UI
+            const cropY = (cvs.height - totalCropHeight) / 2;
+
+            // Darken outside
+            ctx.fillStyle = 'rgba(0,0,0,0.6)';
+            ctx.fillRect(0, 0, cvs.width, cropY);
+            ctx.fillRect(0, cropY + totalCropHeight, cvs.width, cvs.height);
+
+            // Blue Frame
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = cvs.width / 200;
+            ctx.strokeRect(0, cropY, cvs.width, totalCropHeight);
+
+            // Dividers
+            ctx.setLineDash([cvs.width/100, cvs.width/100]);
+            ctx.lineWidth = cvs.width / 400;
+            for(let i=1; i<slices; i++) {
+                const x = (cvs.width / slices) * i;
+                ctx.beginPath();
+                ctx.moveTo(x, cropY);
+                ctx.lineTo(x, cropY + totalCropHeight);
+                ctx.stroke();
+            }
         }
 
-        function downloadCanvasAsJpeg(canvas, name) {
-            const q = parseInt(elements.qualityRange.value) / 100;
-            const link = document.createElement('a');
-            link.href = canvas.toDataURL('image/jpeg', q);
-            link.download = name;
-            link.click();
-            showToast(`${name} saved`);
-        }
-
-        elements.downloadZipBtn.onclick = async () => {
-            showToast("Generating ZIP archive...", true);
-            const zip = new JSZip();
-            const count = parseInt(elements.sliceRange.value);
-            const q = parseInt(elements.qualityRange.value) / 100;
-            const overlap = parseInt(elements.overlapRange.value);
-            const sliceW = originalImage.width / count;
-            const sliceH = currentRatio === 'original' ? originalImage.height : sliceW / currentRatio;
-
-            for (let i = 0; i < count; i++) {
-                const canvas = generateSliceCanvas(i, sliceW, sliceH, overlap);
-                const base64 = canvas.toDataURL('image/jpeg', q).split(',')[1];
-                zip.file(`${originalFileName}_${i+1}.jpg`, base64, {base64: true});
-            }
-
-            const content = await zip.generateAsync({type: "blob"});
-            const l = document.createElement('a');
-            l.href = URL.createObjectURL(content);
-            l.download = `${originalFileName}_carousel.zip`;
-            l.click();
-            showToast("ZIP Export Ready");
+        // Drag Logic
+        cvs.onmousedown = (e) => { isDragging = true; startY = e.clientY - offsetY; };
+        window.onmousemove = (e) => { 
+            if(isDragging) { 
+                offsetY = e.clientY - startY; 
+                draw(); 
+            } 
         };
+        window.onmouseup = () => { isDragging = false; };
 
-        elements.downloadJpegsBtn.onclick = () => {
-            const count = parseInt(elements.sliceRange.value);
-            const overlap = parseInt(elements.overlapRange.value);
-            const sliceW = originalImage.width / count;
-            const sliceH = currentRatio === 'original' ? originalImage.height : sliceW / currentRatio;
+        // AI Logic
+        document.getElementById('aiFrameBtn').onclick = async () => {
+            const t = document.getElementById('toast');
+            t.textContent = "AI Analyzing Focal Points...";
+            t.classList.remove('translate-x-[200%]');
 
-            showToast(`Downloading ${count} files...`);
-            for (let i = 0; i < count; i++) {
-                const canvas = generateSliceCanvas(i, sliceW, sliceH, overlap);
-                setTimeout(() => {
-                    downloadCanvasAsJpeg(canvas, `${originalFileName}_${i+1}.jpg`);
-                }, i * 150);
-            }
-        };
-
-        elements.resetBtn.onclick = () => { 
-            offsetY = 0; 
-            currentRotation = 0; 
-            elements.rotationRange.value = 0;
-            elements.rotationInput.value = 0;
-            triggerFullUpdate(); 
-            showToast("Alignment Reset"); 
-        };
-
-        elements.aiFrameBtn.onclick = async () => {
-            if (!originalImage) return;
-            showToast("AI Scanning Perspective...", true);
-            const thumbCanvas = document.createElement('canvas');
-            thumbCanvas.width = 1000;
-            thumbCanvas.height = (originalImage.height / originalImage.width) * 1000;
-            thumbCanvas.getContext('2d').drawImage(originalImage, 0, 0, thumbCanvas.width, thumbCanvas.height);
-            const base64Image = thumbCanvas.toDataURL('image/jpeg', 0.5).split(',')[1];
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = 800;
+            tempCanvas.height = (originalImage.height / originalImage.width) * 800;
+            tempCanvas.getContext('2d').drawImage(originalImage, 0,0,800,tempCanvas.height);
+            const b64 = tempCanvas.toDataURL('image/jpeg', 0.6).split(',')[1];
 
             try {
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         contents: [{
-                            role: "user",
-                            parts: [{ text: "Analyze this image and find the horizontal band where the primary subject or most interesting visual data is located. Return a JSON: {'subject_vertical_center_percent': 0-100}" }, { inlineData: { mimeType: "image/jpeg", data: base64Image } }]
+                            parts: [
+                                {text: "Analyze image. Return JSON: {center_y_percent: 0-100} representing the most important horizontal slice center."},
+                                {inlineData: {mimeType: "image/jpeg", data: b64}}
+                            ]
                         }],
                         generationConfig: { responseMimeType: "application/json" }
                     })
                 });
-
-                const data = await response.json();
-                const result = JSON.parse(data.candidates?.[0]?.content?.parts?.[0]?.text || "{}");
-                const targetPercent = result.subject_vertical_center_percent || 50;
-
-                const count = parseInt(elements.sliceRange.value);
-                const sliceW = originalImage.width / count;
-                const sliceH = currentRatio === 'original' ? originalImage.height : sliceW / currentRatio;
+                const json = await res.json();
+                const data = JSON.parse(json.candidates[0].content.parts[0].text);
                 
-                // Fix: AI reframe calculation based on current viewport
-                const totalH = Math.max(originalImage.height, sliceH * (originalImage.width / (sliceW * count)));
-                const captureH = sliceH * (originalImage.width / (sliceW * count));
+                // Animate to position
+                const targetY = (originalImage.height / 2) - (originalImage.height * (data.center_y_percent / 100));
+                offsetY = targetY;
+                draw();
                 
-                offsetY = (totalH / 2) - ((totalH - originalImage.height) / 2 + (originalImage.height * (targetPercent / 100)));
-                triggerFullUpdate();
-                showToast("AI Auto-reframed");
-            } catch (err) {
-                showToast("AI Reframe Error");
+                t.textContent = "AI Re-centered!";
+                setTimeout(() => t.classList.add('translate-x-[200%]'), 2000);
+            } catch (e) {
+                t.textContent = "AI Analysis Failed";
+                setTimeout(() => t.classList.add('translate-x-[200%]'), 2000);
             }
         };
 
-        function showToast(msg, spin = false) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toastMsg').textContent = msg;
-            document.getElementById('toastSpinner').classList.toggle('hidden', !spin);
-            toast.classList.remove('translate-x-[200%]');
-            if (!spin) setTimeout(() => toast.classList.add('translate-x-[200%]'), 3000);
-        }
+        // ZIP Export
+        document.getElementById('downloadZipBtn').onclick = async () => {
+            const zip = new JSZip();
+            const sliceW = originalImage.width / slices;
+            const sliceH = currentRatio === 'original' ? originalImage.height : sliceW / currentRatio;
 
-        [elements.sharpenToggle, elements.blurToggle, elements.safeZoneToggle].forEach(el => {
-            el.addEventListener('input', triggerFullUpdate);
-        });
+            for(let i=0; i<slices; i++) {
+                const out = document.createElement('canvas');
+                out.width = sliceW;
+                out.height = sliceH;
+                const octx = out.getContext('2d');
+                
+                octx.save();
+                octx.translate(-i * sliceW, (sliceH - originalImage.height)/2 + offsetY);
+                octx.translate(originalImage.width/2, originalImage.height/2);
+                octx.rotate(rotation * Math.PI / 180);
+                octx.drawImage(originalImage, -originalImage.width/2, -originalImage.height/2);
+                octx.restore();
+                
+                const data = out.toDataURL('image/jpeg', 0.95).split(',')[1];
+                zip.file(`slice_${i+1}.jpg`, data, {base64: true});
+            }
+
+            const content = await zip.generateAsync({type: "blob"});
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(content);
+            link.download = "carousel_slices.zip";
+            link.click();
+        };
 
     </script>
 </body>
