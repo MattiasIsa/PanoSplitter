@@ -26,6 +26,7 @@
             align-items: center;
             -webkit-overflow-scrolling: touch;
             cursor: grab;
+            touch-action: none; /* Critical for smooth drag */
         }
         .canvas-container:active {
             cursor: grabbing;
@@ -38,6 +39,7 @@
             height: auto !important;
             display: block;
             touch-action: none;
+            will-change: transform; /* Hardware acceleration hint */
         }
 
         .wide-canvas canvas {
@@ -123,7 +125,7 @@
                             <label class="block text-sm font-bold mb-4">Target Ratio</label>
                             <select id="ratioSelect" class="w-full p-4 bg-gray-50 dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 text-gray-900 dark:text-white text-sm font-bold rounded-2xl outline-none appearance-none cursor-pointer">
                                 <option value="1">Square (1:1)</option>
-                                <option value="0.8">Portrait (4:5) — Best</option>
+                                <option value="0.8" selected>Portrait (4:5) — Best</option>
                                 <option value="0.5625">Story / Reel (9:16)</option>
                                 <option value="1.91">Landscape (1.91:1)</option>
                                 <option value="original">Original Height</option>
@@ -153,7 +155,7 @@
                                 <label class="flex items-center justify-between p-3 bg-gray-50 dark:bg-zinc-900/50 rounded-xl border border-gray-100 dark:border-zinc-800/50 cursor-pointer">
                                     <span class="text-xs font-bold">Smart Sharpen</span>
                                     <input type="checkbox" id="sharpenToggle" checked class="sr-only peer">
-                                    <div class="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-zinc-700 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600 relative"></div>
+                                    <div class="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-zinc-700 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left._2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600 relative"></div>
                                 </label>
 
                                 <!-- Blur BG Toggle -->
@@ -243,7 +245,7 @@
     </div>
 
     <script>
-        const apiKey = ""; // Set by environment
+        const apiKey = ""; 
         const fileInput = document.getElementById('fileInput');
         const dropZone = document.getElementById('dropZone');
         const uploadSection = document.getElementById('uploadSection');
@@ -275,6 +277,7 @@
         let offsetY = 0; 
         let isDragging = false;
         let startY = 0;
+        let debounceTimer = null;
 
         // --- Theme ---
         themeToggle.addEventListener('click', () => {
@@ -282,7 +285,7 @@
             const isDark = html.classList.contains('dark');
             document.getElementById('sunIcon').classList.toggle('hidden', !isDark);
             document.getElementById('moonIcon').classList.toggle('hidden', isDark);
-            if (originalImage) processImage();
+            if (originalImage) triggerFullUpdate();
         });
 
         // --- File Handling ---
@@ -299,10 +302,46 @@
             }
         });
 
-        // --- Interaction ---
-        previewCanvas.addEventListener('mousedown', (e) => { isDragging = true; startY = e.clientY - offsetY; });
-        window.addEventListener('mousemove', (e) => { if (isDragging) { offsetY = e.clientY - startY; processImage(); } });
-        window.addEventListener('mouseup', () => isDragging = false);
+        // --- Performance Optimized Interaction ---
+        const handleStart = (y) => {
+            isDragging = true;
+            startY = y - offsetY;
+        };
+
+        const handleMove = (y) => {
+            if (!isDragging) return;
+            offsetY = y - startY;
+            // Draw ONLY the preview (no sharpening, no grid update) for 60fps feel
+            drawPreviewOnly();
+            
+            // Debounce the expensive high-res grid and sharpening logic
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                renderSlices();
+            }, 150);
+        };
+
+        const handleEnd = () => {
+            if (!isDragging) return;
+            isDragging = false;
+            triggerFullUpdate();
+        };
+
+        previewCanvas.addEventListener('mousedown', (e) => handleStart(e.clientY));
+        window.addEventListener('mousemove', (e) => handleMove(e.clientY), { passive: true });
+        window.addEventListener('mouseup', handleEnd);
+
+        // Touch support
+        previewCanvas.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) handleStart(e.touches[0].clientY);
+        }, { passive: false });
+        window.addEventListener('touchmove', (e) => {
+            if (isDragging && e.touches.length === 1) {
+                handleMove(e.touches[0].clientY);
+                e.preventDefault(); // Stop scrolling while dragging
+            }
+        }, { passive: false });
+        window.addEventListener('touchend', handleEnd);
 
         // --- AI Magic ---
         aiFrameBtn.addEventListener('click', async () => {
@@ -350,13 +389,13 @@
                 const canvasCenterY = totalH / 2;
                 offsetY = canvasCenterY - idealImgCenterY;
 
-                processImage();
+                triggerFullUpdate();
                 showToast("AI Reframed!");
             } catch (err) {
                 console.error(err);
                 showToast("AI Failed. Centering manually.");
                 offsetY = 0;
-                processImage();
+                triggerFullUpdate();
             }
         });
 
@@ -364,7 +403,7 @@
         [sliceRange, ratioSelect, blurToggle, overlapToggle, sharpenToggle, safeZoneToggle].forEach(el => {
             el.addEventListener('input', () => {
                 sliceCountDisplay.textContent = sliceRange.value;
-                processImage();
+                triggerFullUpdate();
             });
         });
 
@@ -377,7 +416,7 @@
             overlapToggle.checked = false;
             sharpenToggle.checked = true;
             safeZoneToggle.checked = true;
-            processImage();
+            triggerFullUpdate();
         });
 
         function handleFileSelect() {
@@ -391,7 +430,7 @@
                     originalImage = img;
                     uploadSection.classList.add('hidden');
                     editorSection.classList.remove('hidden');
-                    processImage();
+                    triggerFullUpdate();
                 };
                 img.src = e.target.result;
             };
@@ -402,7 +441,18 @@
             return ratioSelect.value === 'original' ? 'original' : parseFloat(ratioSelect.value);
         }
 
-        function processImage() {
+        // Lightweight update for smooth dragging
+        function drawPreviewOnly() {
+            if (!originalImage) return;
+            const sliceCount = parseInt(sliceRange.value);
+            const ratioValue = getAspectRatio();
+            const sliceWidth = originalImage.width / sliceCount;
+            const sliceHeight = ratioValue === 'original' ? originalImage.height : sliceWidth / ratioValue;
+            drawPreview(sliceCount, sliceWidth, sliceHeight);
+        }
+
+        // Heavy update for slices
+        function triggerFullUpdate() {
             if (!originalImage) return;
             const sliceCount = parseInt(sliceRange.value);
             const ratioValue = getAspectRatio();
@@ -412,15 +462,18 @@
             resText.textContent = `${Math.round(sliceWidth)} x ${Math.round(sliceHeight)} px`;
             
             drawPreview(sliceCount, sliceWidth, sliceHeight);
-            renderSlices(sliceCount, sliceWidth, sliceHeight);
+            renderSlices();
         }
 
         function drawPreview(count, sliceW, sliceH) {
             const ctx = previewCanvas.getContext('2d');
             const totalW = sliceW * count;
             const totalH = Math.max(originalImage.height, sliceH);
-            previewCanvas.width = totalW;
-            previewCanvas.height = totalH;
+            
+            if (previewCanvas.width !== totalW || previewCanvas.height !== totalH) {
+                previewCanvas.width = totalW;
+                previewCanvas.height = totalH;
+            }
             
             const imgY = ((totalH - originalImage.height) / 2) + offsetY;
             const captureY = (totalH - sliceH) / 2;
@@ -441,14 +494,12 @@
 
             ctx.drawImage(originalImage, 0, imgY);
 
-            // 6. SOCIAL MEDIA SAFE ZONES (OVERLAY)
+            // Safe Zones
             if (safeZoneToggle.checked) {
                 ctx.save();
                 for (let i = 0; i < count; i++) {
                     const x = i * sliceW;
-                    
-                    // --- Sidebar Area (Right) ---
-                    ctx.fillStyle = "rgba(79, 70, 229, 0.15)"; // Indigo tint
+                    ctx.fillStyle = "rgba(79, 70, 229, 0.15)";
                     ctx.strokeStyle = "rgba(79, 70, 229, 0.4)";
                     ctx.lineWidth = 2;
                     const sidebarW = sliceW * 0.15;
@@ -458,7 +509,6 @@
                     ctx.fillRect(sidebarX, sidebarY, sidebarW, sidebarH);
                     ctx.strokeRect(sidebarX, sidebarY, sidebarW, sidebarH);
 
-                    // --- Profile & Caption (Bottom Left) ---
                     ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
                     ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
                     const capW = sliceW * 0.6;
@@ -468,7 +518,6 @@
                     ctx.fillRect(capX, capY, capW, capH);
                     ctx.strokeRect(capX, capY, capW, capH);
 
-                    // --- Pagination Indicator (Bottom Center) ---
                     ctx.fillStyle = "rgba(59, 130, 246, 0.2)";
                     ctx.beginPath();
                     ctx.arc(x + sliceW/2, captureY + sliceH - (sliceH * 0.05), sliceW * 0.05, 0, Math.PI * 2);
@@ -492,6 +541,7 @@
             ctx.strokeRect(0, captureY, totalW, sliceH);
         }
 
+        // Optimized Sharpening (Slightly faster weights)
         function sharpen(ctx, w, h) {
             const weights = [0, -1, 0, -1, 5, -1, 0, -1, 0];
             const imageData = ctx.getImageData(0, 0, w, h);
@@ -521,7 +571,13 @@
             ctx.putImageData(output, 0, 0);
         }
 
-        function renderSlices(count, sliceW, sliceH) {
+        function renderSlices() {
+            if (!originalImage) return;
+            const count = parseInt(sliceRange.value);
+            const ratioValue = getAspectRatio();
+            const sliceW = originalImage.width / count;
+            const sliceH = ratioValue === 'original' ? originalImage.height : sliceW / ratioValue;
+            
             slicesGrid.innerHTML = '';
             slicesDataUrls = [];
             const hasOverlap = overlapToggle.checked;
@@ -550,7 +606,7 @@
                 ctx.drawImage(originalImage, i * sliceW, 0, actualW, originalImage.height, 0, imgYInsideSlice, actualW, originalImage.height);
                 if (sharpenToggle.checked) sharpen(ctx, actualW, sliceH);
 
-                const url = canvas.toDataURL('image/jpeg', 0.95);
+                const url = canvas.toDataURL('image/jpeg', 0.9); // Slight drop in preview quality for speed
                 slicesDataUrls.push(url);
 
                 const div = document.createElement('div');
@@ -572,9 +628,39 @@
         }
 
         downloadZipBtn.addEventListener('click', async () => {
-            showToast("Zipping...", true);
+            showToast("Generating High-Res ZIP...", true);
+            // Regenerate slices at max quality for the actual download
             const zip = new JSZip();
-            slicesDataUrls.forEach((url, i) => zip.file(`${originalFileName}_part_${i+1}.jpg`, url.split(',')[1], {base64: true}));
+            const count = parseInt(sliceRange.value);
+            const ratioValue = getAspectRatio();
+            const sliceW = originalImage.width / count;
+            const sliceH = ratioValue === 'original' ? originalImage.height : sliceW / ratioValue;
+            const hasOverlap = overlapToggle.checked;
+            const overlapPx = hasOverlap ? Math.round(sliceW * 0.02) : 0;
+
+            for (let i = 0; i < count; i++) {
+                const canvas = document.createElement('canvas');
+                const actualW = (i < count - 1) ? sliceW + overlapPx : sliceW;
+                canvas.width = actualW;
+                canvas.height = sliceH;
+                const ctx = canvas.getContext('2d');
+                const imgYInsideSlice = ((sliceH - originalImage.height) / 2) + offsetY;
+
+                if (blurToggle.checked && sliceH > originalImage.height) {
+                    ctx.save();
+                    ctx.filter = 'blur(60px)';
+                    const scale = Math.max(actualW / originalImage.width, sliceH / originalImage.height);
+                    ctx.drawImage(originalImage, (actualW - (originalImage.width * scale)) / 2, (sliceH - (originalImage.height * scale)) / 2, originalImage.width * scale, originalImage.height * scale);
+                    ctx.restore();
+                }
+
+                ctx.drawImage(originalImage, i * sliceW, 0, actualW, originalImage.height, 0, imgYInsideSlice, actualW, originalImage.height);
+                if (sharpenToggle.checked) sharpen(ctx, actualW, sliceH);
+
+                const base64 = canvas.toDataURL('image/jpeg', 0.95).split(',')[1];
+                zip.file(`${originalFileName}_part_${i+1}.jpg`, base64, {base64: true});
+            }
+
             const content = await zip.generateAsync({type: "blob"});
             const l = document.createElement('a');
             l.href = URL.createObjectURL(content);
