@@ -71,6 +71,12 @@
                 <p class="text-gray-600 dark:text-gray-400 text-sm md:text-base font-medium">Advanced subject-aware social media carousels.</p>
             </div>
             <div class="flex items-center gap-3">
+                 <button id="headerUploadBtn" class="hidden md:flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-full text-sm font-bold hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    New Photo
+                 </button>
                  <button id="themeToggle" class="p-3 rounded-full bg-gray-200 dark:bg-zinc-800 hover:scale-110 transition-transform shadow-sm">
                     <span id="themeIcon">
                         <svg id="sunIcon" class="w-5 h-5 md:w-6 md:h-6 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"></path></svg>
@@ -92,8 +98,9 @@
                     <p class="text-2xl font-bold text-gray-800 dark:text-gray-100">Click or Drag & Drop Panorama</p>
                     <p class="text-gray-500 dark:text-gray-400 mt-2 max-w-sm mx-auto">Upload high-res images for better results.</p>
                 </div>
-                <input type="file" id="fileInput" class="hidden" accept="image/*">
             </div>
+            <!-- Hidden input that handles both original and "new photo" uploads -->
+            <input type="file" id="fileInput" class="hidden" accept="image/*">
         </div>
 
         <!-- Editor Section -->
@@ -179,7 +186,11 @@
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                                 Export High-Res ZIP
                             </button>
-                            <button id="resetBtn" class="text-gray-500 font-bold hover:text-red-500 transition-colors text-sm">Reset Canvas</button>
+                            <div class="flex items-center justify-center gap-4 mt-2">
+                                <button id="resetBtn" class="text-gray-500 font-bold hover:text-red-500 transition-colors text-xs uppercase tracking-widest">Reset Slices</button>
+                                <span class="text-zinc-800 dark:text-zinc-700">•</span>
+                                <button id="changePhotoBtn" class="text-zinc-500 font-bold hover:text-blue-500 transition-colors text-xs uppercase tracking-widest">Swap Photo</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -233,6 +244,8 @@
         const dropZone = document.getElementById('dropZone');
         const uploadSection = document.getElementById('uploadSection');
         const editorSection = document.getElementById('editorSection');
+        const headerUploadBtn = document.getElementById('headerUploadBtn');
+        const changePhotoBtn = document.getElementById('changePhotoBtn');
         const sliceRange = document.getElementById('sliceRange');
         const sliceCountDisplay = document.getElementById('sliceCountDisplay');
         const ratioSelect = document.getElementById('ratioSelect');
@@ -279,7 +292,12 @@
             if (originalImage) triggerFullUpdate();
         });
 
-        dropZone.addEventListener('click', () => fileInput.click());
+        // Trigger file input from various buttons
+        const triggerNewUpload = () => fileInput.click();
+        dropZone.addEventListener('click', triggerNewUpload);
+        headerUploadBtn.addEventListener('click', triggerNewUpload);
+        changePhotoBtn.addEventListener('click', triggerNewUpload);
+
         fileInput.addEventListener('change', () => handleFiles(fileInput.files));
         dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
         dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
@@ -300,7 +318,10 @@
                     originalImage = img;
                     uploadSection.classList.add('hidden');
                     editorSection.classList.remove('hidden');
+                    headerUploadBtn.classList.remove('hidden'); // Show small button when editor is active
+                    offsetY = 0; // Reset offset for new image
                     triggerFullUpdate();
+                    showToast("New image loaded");
                 };
                 img.src = e.target.result;
             };
@@ -340,13 +361,8 @@
             sliceRange.value = 3;
             sliceCountDisplay.textContent = 3;
             ratioSelect.value = "0.8";
-            qualityRange.value = 95;
-            qualityInput.value = 95;
-            blurToggle.checked = false;
-            overlapToggle.checked = false;
-            sharpenToggle.checked = true;
-            safeZoneToggle.checked = true;
             triggerFullUpdate();
+            showToast("Settings reset");
         });
 
         function triggerFullUpdate() {
@@ -474,7 +490,7 @@
                 ctx.drawImage(originalImage, i * sliceW, 0, actualW, originalImage.height, 0, imgYInsideSlice, actualW, originalImage.height);
                 if (sharpenToggle.checked) sharpen(ctx, actualW, sliceH);
 
-                const url = canvas.toDataURL('image/jpeg', 0.85); // Speed over quality for gallery thumbnails
+                const url = canvas.toDataURL('image/jpeg', 0.85); 
                 const div = document.createElement('div');
                 div.className = "aspect-square bg-zinc-100 dark:bg-zinc-900 rounded-2xl overflow-hidden shadow-sm border dark:border-zinc-800 hover:scale-105 transition-transform cursor-pointer relative group";
                 div.innerHTML = `<img src="${url}" class="w-full h-full object-cover">`;
