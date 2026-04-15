@@ -215,7 +215,10 @@
                 <div>
                     <div class="flex items-center justify-between mb-6">
                         <h3 class="heading-xs">Composition</h3>
-                        <button id="auto-compose-btn" class="text-[9px] px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20">Magic Fit</button>
+                        <div class="flex gap-1.5">
+                            <button id="autofit-frame-btn" class="text-[9px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20" title="Fit whole image in frame">Autofit</button>
+                            <button id="auto-compose-btn" class="text-[9px] px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20" title="Fill frame completely">Fill Fit</button>
+                        </div>
                     </div>
                     
                     <!-- Slices -->
@@ -295,7 +298,7 @@
             <div class="p-6 border-t border-white/5 space-y-3">
                 <button id="reset-session-btn" class="w-full text-[10px] text-white/30 hover:text-red-400 font-bold uppercase tracking-widest text-left transition-colors">Clear Session Data</button>
                 <div class="flex items-center justify-between text-[10px] text-white/30 font-bold uppercase tracking-widest">
-                    <span>Engine v2.8</span>
+                    <span>Engine v2.9</span>
                     <span class="text-emerald-500">Industry Std</span>
                 </div>
             </div>
@@ -423,6 +426,7 @@
             resInfo: document.getElementById('resolution-info'),
             nameDisplay: document.getElementById('file-name-display'),
             autoCompose: document.getElementById('auto-compose-btn'),
+            autofitFrame: document.getElementById('autofit-frame-btn'),
             mobileSync: document.getElementById('mobile-sync-btn'),
             qrModal: document.getElementById('qr-modal'),
             qrcode: document.getElementById('qrcode'),
@@ -580,12 +584,32 @@
         }
 
         // --- SMART AUTO-COMPOSITION ---
+        // Fill Fit: Scales to cover the frame completely (no letterboxing)
         elements.autoCompose.onclick = () => {
             if (!state.image) return;
-            // Basic "Magic Fit" - Centers and scales to fit height or width
             const scaleToFitH = state.viewfinderH / state.imgH;
             const scaleToFitW = state.viewfinderW / state.imgW;
             state.zoom = Math.max(scaleToFitH, scaleToFitW);
+            state.posX = (state.viewfinderW - state.imgW) / 2;
+            state.posY = (state.viewfinderH - state.imgH) / 2;
+            state.rotation = 0;
+            
+            elements.zoomInput.value = state.zoom.toFixed(2);
+            elements.zoomRange.value = state.zoom;
+            elements.rotInput.value = 0;
+            elements.rotRange.value = 0;
+            
+            updateTransform();
+            updatePreviews();
+            saveSession();
+        };
+
+        // Autofit Frame: Scales to fit the ENTIRE image inside the frame (letterboxing)
+        elements.autofitFrame.onclick = () => {
+            if (!state.image) return;
+            const scaleToFitH = state.viewfinderH / state.imgH;
+            const scaleToFitW = state.viewfinderW / state.imgW;
+            state.zoom = Math.min(scaleToFitH, scaleToFitW);
             state.posX = (state.viewfinderW - state.imgW) / 2;
             state.posY = (state.viewfinderH - state.imgH) / 2;
             state.rotation = 0;
