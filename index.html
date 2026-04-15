@@ -30,12 +30,25 @@
             cursor: grab;
             position: relative;
             background: radial-gradient(circle, #001a00 0%, #000 100%);
+            overflow: hidden;
         }
         .canvas-container:active { cursor: grabbing; }
-        canvas { box-shadow: 0 0 20px rgba(0, 255, 65, 0.2); }
+        
+        #view {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.1);
+        }
+
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #00ff41; }
         input[type=range] { accent-color: #00ff41; }
+        
+        .ratio-opt.active {
+            background-color: #00ff41;
+            color: #000;
+        }
     </style>
 </head>
 <body class="min-h-screen overflow-hidden flex flex-col">
@@ -74,7 +87,7 @@
                         <span>Splits</span>
                         <span id="valSlices">3</span>
                     </div>
-                    <input type="range" id="inputSlices" min="2" max="10" value="3" class="w-full">
+                    <input type="range" id="inputSlices" min="2" max="10" value="3" class="w-full h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer">
                 </section>
 
                 <section>
@@ -92,13 +105,13 @@
                         <span>Rotate</span>
                         <span id="valRot">0°</span>
                     </div>
-                    <input type="range" id="inputRot" min="-15" max="15" step="0.5" value="0" class="w-full">
+                    <input type="range" id="inputRot" min="-15" max="15" step="0.5" value="0" class="w-full h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer">
                 </section>
 
             </div>
 
-            <div class="mt-auto p-6 border-t border-cyber/20">
-                <button id="btnDownload" class="w-full py-4 bg-cyber text-black font-black uppercase text-xs tracking-widest hover:shadow-[0_0_20px_#00ff41] transition-all">
+            <div class="mt-auto p-6 border-t border-cyber/20 bg-black">
+                <button id="btnDownload" class="w-full py-4 bg-cyber text-black font-black uppercase text-xs tracking-widest hover:shadow-[0_0_20px_#00ff41] transition-all active:scale-95">
                     Compile & Export
                 </button>
             </div>
@@ -110,8 +123,8 @@
                 <canvas id="view"></canvas>
             </div>
             
-            <div class="absolute bottom-6 left-6 text-[9px] text-cyber/40 uppercase tracking-widest font-mono">
-                System_Status: <span class="text-cyber">Ready</span> // Offset_Y: <span id="valY">0</span>
+            <div class="absolute bottom-6 left-6 text-[9px] text-cyber/40 uppercase tracking-widest font-mono pointer-events-none">
+                System_Status: <span class="text-cyber">Active</span> // Drag_To_Adjust
             </div>
         </div>
 
@@ -124,7 +137,7 @@
 
     <script>
         let img = null, name = "pano", offY = 0, rot = 0, slices = 3, ratio = 0.8;
-        let isDrag = false, lastY = 0;
+        let isDrag = false, startY = 0;
 
         const canvas = document.getElementById('view');
         const ctx = canvas.getContext('2d');
@@ -141,6 +154,7 @@
                     img = i;
                     document.getElementById('landing').classList.add('hidden');
                     document.getElementById('workspace').classList.remove('hidden');
+                    offY = 0; // Reset offset on new image
                     update();
                 };
                 i.src = re.target.result;
@@ -167,7 +181,7 @@
         document.querySelectorAll('.ratio-opt').forEach(b => {
             b.onclick = () => {
                 document.querySelectorAll('.ratio-opt').forEach(el => el.classList.remove('active', 'bg-cyber', 'text-black'));
-                b.classList.add('active', 'bg-cyber', 'text-black');
+                b.classList.add('active');
                 ratio = b.dataset.r === 'orig' ? 'orig' : parseFloat(b.dataset.r);
                 update();
             };
@@ -175,102 +189,155 @@
 
         function update() {
             if (!img) return;
+            
+            // Calculate slice dimensions
             const sw = img.width / slices;
             const sh = ratio === 'orig' ? img.height : sw / ratio;
             
             renderMain(sw, sh);
             renderFragments(sw, sh);
-            document.getElementById('valY').textContent = Math.round(offY);
         }
 
         function renderMain(sw, sh) {
-            const h = Math.max(img.width, img.height) * 1.5;
+            // We use a fixed-height canvas to prevent jumps during ratio changes
+            // The "Virtual Workspace" height is larger than the image to allow dragging
+            const workspaceHeight = Math.max(img.width, img.height) * 2;
             canvas.width = img.width;
-            canvas.height = h;
+            canvas.height = workspaceHeight;
 
-            ctx.fillStyle = '#000';
-            ctx.fillRect(0,0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            
+            // 1. The Viewport Frame is anchored exactly in the center of the canvas
+            const frameTop = cy - sh / 2;
+            const frameBottom = cy + sh / 2;
 
-            const cx = canvas.width/2;
-            const cy = canvas.height/2;
-            const frameY = cy - sh/2;
-
-            // Image
+            // 2. Draw the actual image behind the frame with current rotation and Y-offset
             ctx.save();
             ctx.translate(cx, cy + offY);
             ctx.rotate(rot * Math.PI / 180);
-            ctx.drawImage(img, -img.width/2, -img.height/2);
+            ctx.drawImage(img, -img.width / 2, -img.height / 2);
             ctx.restore();
 
-            // Overlay
-            ctx.fillStyle = 'rgba(0,0,0,0.85)';
-            ctx.fillRect(0, 0, canvas.width, frameY);
-            ctx.fillRect(0, frameY + sh, canvas.width, canvas.height);
+            // 3. Dark Overlay (Letterboxing)
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+            // Top box
+            ctx.fillRect(0, 0, canvas.width, frameTop);
+            // Bottom box
+            ctx.fillRect(0, frameBottom, canvas.width, canvas.height);
 
-            // Cyber UI Lines
+            // 4. Cyber Viewfinder Border
             ctx.strokeStyle = '#00ff41';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(0, frameY, canvas.width, sh);
+            ctx.lineWidth = 4;
+            ctx.strokeRect(0, frameTop, canvas.width, sh);
 
-            // Guides
-            ctx.setLineDash([10, 10]);
-            ctx.strokeStyle = 'rgba(0, 255, 65, 0.3)';
-            for(let i=1; i<slices; i++) {
+            // 5. Slice Guides
+            ctx.setLineDash([15, 10]);
+            ctx.strokeStyle = 'rgba(0, 255, 65, 0.4)';
+            ctx.lineWidth = 2;
+            for(let i = 1; i < slices; i++) {
+                const x = i * sw;
                 ctx.beginPath();
-                ctx.moveTo(i * sw, frameY);
-                ctx.lineTo(i * sw, frameY + sh);
+                ctx.moveTo(x, frameTop);
+                ctx.lineTo(x, frameBottom);
                 ctx.stroke();
             }
+            ctx.setLineDash([]); // Reset
         }
 
         function renderFragments(sw, sh) {
             const grid = document.getElementById('grid');
             grid.innerHTML = '';
-            for(let i=0; i<slices; i++) {
+            
+            for(let i = 0; i < slices; i++) {
                 const tmp = document.createElement('canvas');
-                tmp.width = sw; tmp.height = sh;
+                tmp.width = sw;
+                tmp.height = sh;
                 const tctx = tmp.getContext('2d');
+                
                 tctx.save();
-                tctx.translate(-i * sw, sh/2);
-                tctx.translate(img.width/2, offY);
+                // We recreate the exact framing from the main preview
+                tctx.translate(-i * sw, sh / 2);
+                tctx.translate(img.width / 2, offY);
                 tctx.rotate(rot * Math.PI / 180);
-                tctx.drawImage(img, -img.width/2, -img.height/2);
+                tctx.drawImage(img, -img.width / 2, -img.height / 2);
                 tctx.restore();
 
+                const wrapper = document.createElement('div');
+                wrapper.className = "relative group cursor-zoom-in";
+                
                 const imgEl = document.createElement('img');
                 imgEl.src = tmp.toDataURL('image/jpeg', 0.8);
-                imgEl.className = "border border-cyber/20 opacity-80 hover:opacity-100 transition-all";
-                grid.appendChild(imgEl);
+                imgEl.className = "w-full border border-cyber/20 hover:border-cyber/60 transition-all shadow-lg";
+                
+                const label = document.createElement('div');
+                label.className = "absolute top-2 left-2 bg-black/80 border border-cyber/30 px-1 text-[8px] text-cyber";
+                label.textContent = `SLICE_${i+1}`;
+                
+                wrapper.appendChild(label);
+                wrapper.appendChild(imgEl);
+                grid.appendChild(wrapper);
             }
         }
 
-        // Interaction
-        canvas.onmousedown = (e) => { isDrag = true; lastY = e.clientY - offY; };
-        window.onmousemove = (e) => { if(isDrag) { offY = e.clientY - lastY; update(); } };
-        window.onmouseup = () => isDrag = false;
+        // Draggable Interaction
+        canvas.addEventListener('mousedown', (e) => {
+            isDrag = true;
+            startY = e.clientY - offY;
+        });
 
-        document.getElementById('btnDownload').onclick = async () => {
-            const zip = new JSZip();
-            const sw = img.width / slices;
-            const sh = ratio === 'orig' ? img.height : sw / ratio;
-
-            for(let i=0; i<slices; i++) {
-                const out = document.createElement('canvas');
-                out.width = sw; out.height = sh;
-                const octx = out.getContext('2d');
-                octx.save();
-                octx.translate(-i * sw, sh/2);
-                octx.translate(img.width/2, offY);
-                octx.rotate(rot * Math.PI / 180);
-                octx.drawImage(img, -img.width/2, -img.height/2);
-                octx.restore();
-                zip.file(`${name}_${i+1}.jpg`, out.toDataURL('image/jpeg', 0.95).split(',')[1], {base64: true});
+        window.addEventListener('mousemove', (e) => {
+            if (isDrag) {
+                offY = e.clientY - startY;
+                update();
             }
-            const blob = await zip.generateAsync({type: "blob"});
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `${name}_CAROUSEL.zip`;
-            a.click();
+        });
+
+        window.addEventListener('mouseup', () => {
+            isDrag = false;
+        });
+
+        // Download Logic
+        document.getElementById('btnDownload').onclick = async () => {
+            const btn = document.getElementById('btnDownload');
+            const originalText = btn.textContent;
+            btn.textContent = "PROCESSING...";
+            btn.disabled = true;
+
+            try {
+                const zip = new JSZip();
+                const sw = img.width / slices;
+                const sh = ratio === 'orig' ? img.height : sw / ratio;
+
+                for(let i = 0; i < slices; i++) {
+                    const out = document.createElement('canvas');
+                    out.width = sw;
+                    out.height = sh;
+                    const octx = out.getContext('2d');
+                    
+                    octx.save();
+                    octx.translate(-i * sw, sh / 2);
+                    octx.translate(img.width / 2, offY);
+                    octx.rotate(rot * Math.PI / 180);
+                    octx.drawImage(img, -img.width / 2, -img.height / 2);
+                    octx.restore();
+                    
+                    zip.file(`${name}_${i+1}.jpg`, out.toDataURL('image/jpeg', 0.95).split(',')[1], {base64: true});
+                }
+                
+                const blob = await zip.generateAsync({type: "blob"});
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `${name}_CAROUSEL.zip`;
+                a.click();
+            } catch (err) {
+                console.error(err);
+            } finally {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
         };
     </script>
 </body>
