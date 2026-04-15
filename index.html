@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PanoSplitter Pro</title>
+    <title>PanoSplitter Cyberpunk</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script>
@@ -11,15 +11,16 @@
             darkMode: 'class',
             theme: {
                 extend: {
-                    colors: { zinc: { 950: '#09090b' } }
+                    colors: { 
+                        cyber: '#00ff41',
+                        zinc: { 950: '#050505' } 
+                    }
                 }
             }
         }
     </script>
     <style>
-        .dark body { background-color: #000000; }
-        
-        /* Fixed Preview Container */
+        body { background-color: #000; color: #00ff41; font-family: monospace; }
         .canvas-container {
             width: 100%;
             height: 100%;
@@ -27,397 +28,250 @@
             justify-content: center;
             align-items: center;
             cursor: grab;
-            touch-action: none;
             position: relative;
-            background-color: #09090b;
-            background-image: radial-gradient(#18181b 1px, transparent 1px);
-            background-size: 24px 24px;
+            background: radial-gradient(circle, #001a00 0%, #000 100%);
         }
-        
         .canvas-container:active { cursor: grabbing; }
-        
-        canvas {
-            max-width: 95%;
-            max-height: 95%;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-        }
-
+        canvas { box-shadow: 0 0 20px rgba(0, 255, 65, 0.2); }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 10px; }
-
-        .ratio-btn.active {
-            background-color: #2563eb;
-            color: white;
-            border-color: #2563eb;
-        }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #00ff41; }
+        input[type=range] { accent-color: #00ff41; }
     </style>
 </head>
-<body class="bg-gray-50 dark:bg-black min-h-screen text-gray-900 dark:text-gray-100 antialiased overflow-hidden flex flex-col">
+<body class="min-h-screen overflow-hidden flex flex-col">
 
-    <!-- Header -->
-    <nav class="relative z-[60] border-b border-zinc-200 dark:border-zinc-900 bg-white/90 dark:bg-black/90 backdrop-blur-md px-4 py-3 lg:px-6 shrink-0">
-        <div class="max-w-full mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-black text-white italic shadow-lg shadow-blue-600/20">P</div>
-                <h1 class="text-xl font-bold tracking-tight">PanoSplitter <span class="text-blue-500">Pro</span></h1>
+    <!-- Cyberpunk Header -->
+    <nav class="border-b border-cyber/30 bg-black px-6 py-4 flex justify-between items-center z-50">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-transparent border-2 border-cyber flex items-center justify-center font-bold text-cyber shadow-[0_0_10px_#00ff41]">
+                PS
             </div>
-            
-            <div class="flex items-center gap-4">
-                <button id="headerUploadBtn" class="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-xl text-xs font-bold transition-all">Replace Image</button>
-            </div>
+            <h1 class="text-xl font-black tracking-tighter uppercase italic">Pano<span class="text-white">Splitter</span></h1>
         </div>
+        <button id="uploadTrigger" class="px-4 py-2 border border-cyber text-[10px] font-bold uppercase tracking-widest hover:bg-cyber hover:text-black transition-all">
+            Load_System_File
+        </button>
     </nav>
 
-    <!-- Initial Landing -->
-    <div id="uploadSection" class="flex-1 flex items-center justify-center p-8">
-        <div id="dropZone" class="max-w-4xl w-full border-2 border-dashed border-gray-200 dark:border-zinc-800 rounded-[3rem] p-24 text-center hover:border-blue-500 hover:bg-blue-50/5 transition-all cursor-pointer">
-            <div class="flex flex-col items-center">
-                <div class="w-24 h-24 bg-blue-600/10 rounded-[2rem] flex items-center justify-center mb-8">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2-2v12a2 2 0 002 2z" /></svg>
-                </div>
-                <h2 class="text-3xl font-bold mb-3 tracking-tight">Import Panoramic Shot</h2>
-                <p class="text-zinc-500 font-medium">Drag and drop to begin splitting for Instagram or LinkedIn</p>
-            </div>
+    <!-- Upload Overlay -->
+    <div id="landing" class="flex-1 flex flex-col items-center justify-center p-6 text-center">
+        <div id="dropZone" class="border border-cyber/20 p-20 hover:border-cyber transition-all cursor-pointer group bg-zinc-950/50">
+            <p class="text-cyber/50 group-hover:text-cyber mb-4">[ INSERT_PANORAMA ]</p>
+            <p class="text-[10px] uppercase tracking-[0.4em]">Drag or Click to Initialize</p>
         </div>
         <input type="file" id="fileInput" class="hidden" accept="image/*">
     </div>
 
-    <!-- Main Editor -->
-    <main id="editorSection" class="hidden flex-1 flex flex-col lg:flex-row overflow-hidden">
+    <!-- Main Workspace -->
+    <main id="workspace" class="hidden flex-1 flex flex-col lg:flex-row overflow-hidden">
         
-        <!-- Left Sidebar: Controls -->
-        <aside class="w-full lg:w-72 h-auto lg:h-full border-b lg:border-b-0 lg:border-r border-zinc-200 dark:border-zinc-900 bg-white dark:bg-black flex flex-col z-20 shrink-0">
-            <div class="flex-1 overflow-y-auto p-5 space-y-8 custom-scrollbar">
+        <!-- Controls -->
+        <aside class="w-full lg:w-80 border-r border-cyber/20 bg-black flex flex-col shrink-0">
+            <div class="p-6 space-y-10 overflow-y-auto custom-scrollbar">
                 
-                <section class="space-y-6">
-                    <div>
-                        <div class="flex justify-between items-center mb-3">
-                            <label class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Slices</label>
-                            <span id="sliceVal" class="text-blue-500 font-bold text-sm">3</span>
-                        </div>
-                        <input type="range" id="sliceRange" min="2" max="10" value="3" class="w-full h-1 bg-zinc-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                <section>
+                    <div class="flex justify-between text-[10px] mb-4 uppercase tracking-widest font-bold">
+                        <span>Splits</span>
+                        <span id="valSlices">3</span>
                     </div>
+                    <input type="range" id="inputSlices" min="2" max="10" value="3" class="w-full">
+                </section>
 
-                    <div>
-                        <div class="flex justify-between items-center mb-3">
-                            <label class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Rotation</label>
-                            <span id="rotVal" class="text-zinc-500 font-bold text-sm">0°</span>
-                        </div>
-                        <input type="range" id="rotationRange" min="-15" max="15" step="0.1" value="0" class="w-full h-1 bg-zinc-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-600">
-                    </div>
-
-                    <div>
-                        <div class="flex justify-between items-center mb-3">
-                            <label class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Aspect Ratio</label>
-                            <button id="flipBtn" class="text-[9px] font-bold text-blue-500 flex items-center gap-1 uppercase hover:opacity-70">Flip</button>
-                        </div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <button class="ratio-btn p-3 text-[10px] font-bold border border-zinc-200 dark:border-zinc-800 rounded-xl active" data-ratio="0.8">4:5 / 5:4</button>
-                            <button class="ratio-btn p-3 text-[10px] font-bold border border-zinc-200 dark:border-zinc-800 rounded-xl" data-ratio="1">1:1 Square</button>
-                            <button class="ratio-btn p-3 text-[10px] font-bold border border-zinc-200 dark:border-zinc-800 rounded-xl" data-ratio="1.777">9:16 / 16:9</button>
-                            <button class="ratio-btn p-3 text-[10px] font-bold border border-zinc-200 dark:border-zinc-800 rounded-xl" data-ratio="original">Original</button>
-                        </div>
+                <section>
+                    <label class="text-[10px] mb-4 block uppercase tracking-widest font-bold">Ratio</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button class="ratio-opt py-2 border border-cyber/30 text-[10px] hover:border-cyber active" data-r="0.8">4:5</button>
+                        <button class="ratio-opt py-2 border border-cyber/30 text-[10px] hover:border-cyber" data-r="1">1:1</button>
+                        <button class="ratio-opt py-2 border border-cyber/30 text-[10px] hover:border-cyber" data-r="1.777">16:9</button>
+                        <button class="ratio-opt py-2 border border-cyber/30 text-[10px] hover:border-cyber" data-r="orig">AUTO</button>
                     </div>
                 </section>
 
-                <section class="space-y-6">
-                    <div>
-                        <div class="flex justify-between items-center mb-3">
-                            <label class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Quality</label>
-                            <span id="qualityVal" class="text-zinc-500 font-bold text-xs">95%</span>
-                        </div>
-                        <input type="range" id="qualityRange" min="50" max="100" value="95" class="w-full h-1 bg-zinc-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                <section>
+                    <div class="flex justify-between text-[10px] mb-4 uppercase tracking-widest font-bold">
+                        <span>Rotate</span>
+                        <span id="valRot">0°</span>
                     </div>
-
-                    <div class="space-y-4">
-                        <label class="flex items-center justify-between cursor-pointer">
-                            <span class="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Safe Zones</span>
-                            <input type="checkbox" id="safeZoneToggle" checked class="sr-only peer">
-                            <div class="w-8 h-4 bg-zinc-200 dark:bg-zinc-800 rounded-full peer peer-checked:bg-blue-600 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-4"></div>
-                        </label>
-                    </div>
+                    <input type="range" id="inputRot" min="-15" max="15" step="0.5" value="0" class="w-full">
                 </section>
+
             </div>
-            
-            <div class="p-5 border-t border-zinc-100 dark:border-zinc-900 bg-zinc-50 dark:bg-zinc-950 shrink-0">
-                <div class="text-[9px] font-black text-zinc-500 uppercase tracking-widest space-y-2">
-                    <div class="flex justify-between"><span>Per Slice:</span> <span id="resText" class="text-white font-mono">0x0</span></div>
-                </div>
+
+            <div class="mt-auto p-6 border-t border-cyber/20">
+                <button id="btnDownload" class="w-full py-4 bg-cyber text-black font-black uppercase text-xs tracking-widest hover:shadow-[0_0_20px_#00ff41] transition-all">
+                    Compile & Export
+                </button>
             </div>
         </aside>
 
-        <!-- Main Preview Area -->
-        <div class="flex-1 bg-zinc-950 flex flex-col relative overflow-hidden">
-            <div class="canvas-container" id="canvasContainer">
-                <canvas id="previewCanvas"></canvas>
+        <!-- Preview Viewport -->
+        <div class="flex-1 bg-black relative overflow-hidden flex flex-col">
+            <div id="canvasContainer" class="canvas-container">
+                <canvas id="view"></canvas>
             </div>
-
-            <!-- Export Floating Bar -->
-            <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-zinc-900/90 backdrop-blur-2xl px-3 py-3 rounded-[1.75rem] border border-white/5 shadow-2xl z-40">
-                <button id="resetBtn" class="w-12 h-12 flex items-center justify-center text-zinc-500 hover:text-white transition-colors bg-white/5 rounded-[1.2rem] hover:bg-white/10">
-                    Reset
-                </button>
-                <div class="w-px h-8 bg-white/10 mx-1"></div>
-                <button id="downloadZipBtn" class="h-12 pl-6 pr-6 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs uppercase tracking-widest rounded-[1.2rem] flex items-center gap-4 transition-all active:scale-[0.98]">
-                    Download All Slices
-                </button>
+            
+            <div class="absolute bottom-6 left-6 text-[9px] text-cyber/40 uppercase tracking-widest font-mono">
+                System_Status: <span class="text-cyber">Ready</span> // Offset_Y: <span id="valY">0</span>
             </div>
         </div>
 
-        <!-- Right Sidebar: Export Previews (Scrollable) -->
-        <aside class="hidden xl:flex w-72 bg-zinc-950 border-l border-zinc-900 flex-col shrink-0 h-full overflow-hidden">
-            <div class="p-4 border-b border-zinc-900 flex justify-between items-center shrink-0">
-                <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Slice Preview</h3>
-            </div>
-            <!-- SCROLLABLE LIST -->
-            <div id="slicesGrid" class="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
-                <!-- Slices generated here -->
-            </div>
+        <!-- Right Side Preview -->
+        <aside class="hidden xl:flex w-64 border-l border-cyber/20 bg-zinc-950 flex-col overflow-hidden">
+            <div class="p-4 border-b border-cyber/20 text-[9px] uppercase tracking-widest text-cyber/60">Fragment_Output</div>
+            <div id="grid" class="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar"></div>
         </aside>
     </main>
 
-    <!-- Feedback Toast -->
-    <div id="toast" class="fixed bottom-10 right-10 bg-white text-black px-6 py-4 rounded-2xl shadow-2xl translate-x-[200%] transition-transform duration-500 z-[100] font-bold">
-        <span id="toastMsg">Ready</span>
-    </div>
-
     <script>
-        let originalImage = null;
-        let originalFileName = "panorama";
-        let offsetY = 0; 
-        let isDragging = false;
-        let startY = 0;
-        let currentRatio = 0.8;
-        let isFlipped = false;
-        let rotation = 0;
-        let slices = 3;
+        let img = null, name = "pano", offY = 0, rot = 0, slices = 3, ratio = 0.8;
+        let isDrag = false, lastY = 0;
 
-        const cvs = document.getElementById('previewCanvas');
-        const ctx = cvs.getContext('2d');
+        const canvas = document.getElementById('view');
+        const ctx = canvas.getContext('2d');
 
-        // File Handler
+        // Initial Setup
         document.getElementById('fileInput').onchange = (e) => {
             const file = e.target.files[0];
             if (!file) return;
-            originalFileName = file.name.split('.').slice(0, -1).join('.') || "panorama";
+            name = file.name.replace(/\.[^/.]+$/, "");
             const reader = new FileReader();
-            reader.onload = (ev) => {
-                const img = new Image();
-                img.onload = () => {
-                    originalImage = img;
-                    document.getElementById('uploadSection').classList.add('hidden');
-                    document.getElementById('editorSection').classList.remove('hidden');
-                    resetState();
-                    updateAll();
+            reader.onload = (re) => {
+                const i = new Image();
+                i.onload = () => {
+                    img = i;
+                    document.getElementById('landing').classList.add('hidden');
+                    document.getElementById('workspace').classList.remove('hidden');
+                    update();
                 };
-                img.src = ev.target.result;
+                i.src = re.target.result;
             };
             reader.readAsDataURL(file);
         };
 
         document.getElementById('dropZone').onclick = () => document.getElementById('fileInput').click();
-        document.getElementById('headerUploadBtn').onclick = () => document.getElementById('fileInput').click();
+        document.getElementById('uploadTrigger').onclick = () => document.getElementById('fileInput').click();
 
-        function resetState() {
-            offsetY = 0;
-            rotation = 0;
-            slices = 3;
-            currentRatio = 0.8;
-            isFlipped = false;
-            document.getElementById('sliceRange').value = 3;
-            document.getElementById('rotationRange').value = 0;
-            document.getElementById('sliceVal').textContent = '3';
-        }
-
-        // Listeners
-        document.getElementById('sliceRange').oninput = (e) => {
+        // UI Events
+        document.getElementById('inputSlices').oninput = (e) => {
             slices = parseInt(e.target.value);
-            document.getElementById('sliceVal').textContent = slices;
-            updateAll();
+            document.getElementById('valSlices').textContent = slices;
+            update();
         };
 
-        document.getElementById('rotationRange').oninput = (e) => {
-            rotation = parseFloat(e.target.value);
-            document.getElementById('rotVal').textContent = rotation + '°';
-            updateAll();
+        document.getElementById('inputRot').oninput = (e) => {
+            rot = parseFloat(e.target.value);
+            document.getElementById('valRot').textContent = rot + '°';
+            update();
         };
 
-        document.getElementById('flipBtn').onclick = () => {
-            isFlipped = !isFlipped;
-            updateAll();
-        };
-
-        document.querySelectorAll('.ratio-btn').forEach(btn => {
-            btn.onclick = () => {
-                document.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentRatio = btn.dataset.ratio === 'original' ? 'original' : parseFloat(btn.dataset.ratio);
-                updateAll();
+        document.querySelectorAll('.ratio-opt').forEach(b => {
+            b.onclick = () => {
+                document.querySelectorAll('.ratio-opt').forEach(el => el.classList.remove('active', 'bg-cyber', 'text-black'));
+                b.classList.add('active', 'bg-cyber', 'text-black');
+                ratio = b.dataset.r === 'orig' ? 'orig' : parseFloat(b.dataset.r);
+                update();
             };
         });
 
-        document.getElementById('safeZoneToggle').onchange = updateAll;
-
-        function updateAll() {
-            if (!originalImage) return;
+        function update() {
+            if (!img) return;
+            const sw = img.width / slices;
+            const sh = ratio === 'orig' ? img.height : sw / ratio;
             
-            let effectiveRatio = currentRatio;
-            if (currentRatio !== 'original' && isFlipped) effectiveRatio = 1 / currentRatio;
-
-            const sliceW = originalImage.width / slices;
-            const sliceH = effectiveRatio === 'original' ? originalImage.height : sliceW / effectiveRatio;
-            
-            document.getElementById('resText').textContent = `${Math.round(sliceW)}x${Math.round(sliceH)}`;
-
-            drawPreview(sliceW, sliceH);
-            renderGrid(sliceW, sliceH);
+            renderMain(sw, sh);
+            renderFragments(sw, sh);
+            document.getElementById('valY').textContent = Math.round(offY);
         }
 
-        function drawPreview(sliceW, sliceH) {
-            // We set a fixed large workspace to keep coordinates centered
-            const workspaceSize = Math.max(originalImage.width, originalImage.height) * 1.5;
-            cvs.width = originalImage.width;
-            cvs.height = workspaceSize; 
+        function renderMain(sw, sh) {
+            const h = Math.max(img.width, img.height) * 1.5;
+            canvas.width = img.width;
+            canvas.height = h;
 
-            ctx.clearRect(0, 0, cvs.width, cvs.height);
-            
-            const centerX = cvs.width / 2;
-            const centerY = cvs.height / 2;
-            
-            // The Frame Y-Position is FIXED in the middle of our canvas
-            const frameY = centerY - (sliceH / 2);
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0,0, canvas.width, canvas.height);
 
-            // 1. Draw Background (Darker)
-            ctx.fillStyle = '#050505';
-            ctx.fillRect(0, 0, cvs.width, cvs.height);
+            const cx = canvas.width/2;
+            const cy = canvas.height/2;
+            const frameY = cy - sh/2;
 
-            // 2. Draw Image (Centered + Draggable Offset)
+            // Image
             ctx.save();
-            ctx.translate(centerX, centerY + offsetY);
-            ctx.rotate(rotation * Math.PI / 180);
-            ctx.drawImage(originalImage, -originalImage.width/2, -originalImage.height/2);
+            ctx.translate(cx, cy + offY);
+            ctx.rotate(rot * Math.PI / 180);
+            ctx.drawImage(img, -img.width/2, -img.height/2);
             ctx.restore();
 
-            // 3. Dark Overlay outside the crop window
-            ctx.fillStyle = 'rgba(0,0,0,0.8)';
-            ctx.fillRect(0, 0, cvs.width, frameY);
-            ctx.fillRect(0, frameY + sliceH, cvs.width, cvs.height);
+            // Overlay
+            ctx.fillStyle = 'rgba(0,0,0,0.85)';
+            ctx.fillRect(0, 0, canvas.width, frameY);
+            ctx.fillRect(0, frameY + sh, canvas.width, canvas.height);
 
-            // 4. Highlighted Viewfinder Frame
-            ctx.strokeStyle = '#3b82f6';
-            ctx.lineWidth = 4;
-            ctx.strokeRect(0, frameY, cvs.width, sliceH);
+            // Cyber UI Lines
+            ctx.strokeStyle = '#00ff41';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(0, frameY, canvas.width, sh);
 
-            // 5. Slice Guides
-            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-            ctx.lineWidth = 1;
+            // Guides
+            ctx.setLineDash([10, 10]);
+            ctx.strokeStyle = 'rgba(0, 255, 65, 0.3)';
             for(let i=1; i<slices; i++) {
-                const x = (cvs.width / slices) * i;
                 ctx.beginPath();
-                ctx.moveTo(x, frameY);
-                ctx.lineTo(x, frameY + sliceH);
+                ctx.moveTo(i * sw, frameY);
+                ctx.lineTo(i * sw, frameY + sh);
                 ctx.stroke();
             }
-
-            // 6. Safe Zones
-            if (document.getElementById('safeZoneToggle').checked) {
-                ctx.fillStyle = 'rgba(255,255,255,0.03)';
-                const sW = cvs.width / slices;
-                for(let i=0; i<slices; i++) {
-                    const x = i * sW;
-                    ctx.fillRect(x + sW * 0.88, frameY + sliceH * 0.3, sW * 0.08, sliceH * 0.4);
-                }
-            }
         }
 
-        function renderGrid(sliceW, sliceH) {
-            const grid = document.getElementById('slicesGrid');
+        function renderFragments(sw, sh) {
+            const grid = document.getElementById('grid');
             grid.innerHTML = '';
-            
-            const workspaceSize = Math.max(originalImage.width, originalImage.height) * 1.5;
-            const centerY = workspaceSize / 2;
-
-            for (let i = 0; i < slices; i++) {
-                const tempCvs = document.createElement('canvas');
-                tempCvs.width = sliceW;
-                tempCvs.height = sliceH;
-                const tctx = tempCvs.getContext('2d');
-                
-                // Draw exactly what is inside the frame
+            for(let i=0; i<slices; i++) {
+                const tmp = document.createElement('canvas');
+                tmp.width = sw; tmp.height = sh;
+                const tctx = tmp.getContext('2d');
                 tctx.save();
-                // 1. Center the crop locally
-                tctx.translate(-i * sliceW, sliceH / 2);
-                // 2. Map back to the workspace global position
-                tctx.translate(originalImage.width/2, offsetY); 
-                tctx.rotate(rotation * Math.PI / 180);
-                tctx.drawImage(originalImage, -originalImage.width/2, -originalImage.height/2);
+                tctx.translate(-i * sw, sh/2);
+                tctx.translate(img.width/2, offY);
+                tctx.rotate(rot * Math.PI / 180);
+                tctx.drawImage(img, -img.width/2, -img.height/2);
                 tctx.restore();
 
-                const div = document.createElement('div');
-                div.className = "group relative rounded-xl overflow-hidden border border-zinc-800 bg-zinc-900 shrink-0";
-                div.innerHTML = `
-                    <div class="absolute top-2 left-2 z-10 bg-black/80 backdrop-blur-md text-[10px] px-2 py-0.5 rounded text-white font-bold">${i+1}</div>
-                    <img src="${tempCvs.toDataURL('image/jpeg', 0.6)}" class="w-full h-auto block">
-                `;
-                grid.appendChild(div);
+                const imgEl = document.createElement('img');
+                imgEl.src = tmp.toDataURL('image/jpeg', 0.8);
+                imgEl.className = "border border-cyber/20 opacity-80 hover:opacity-100 transition-all";
+                grid.appendChild(imgEl);
             }
         }
 
-        // Dragging Logic
-        cvs.onmousedown = (e) => { isDragging = true; startY = e.clientY - offsetY; };
-        window.onmousemove = (e) => { 
-            if(isDragging) { 
-                offsetY = e.clientY - startY; 
-                updateAll(); 
-            } 
-        };
-        window.onmouseup = () => { isDragging = false; };
+        // Interaction
+        canvas.onmousedown = (e) => { isDrag = true; lastY = e.clientY - offY; };
+        window.onmousemove = (e) => { if(isDrag) { offY = e.clientY - lastY; update(); } };
+        window.onmouseup = () => isDrag = false;
 
-        document.getElementById('resetBtn').onclick = () => { resetState(); updateAll(); showToast("Workspace Reset"); };
-
-        document.getElementById('downloadZipBtn').onclick = async () => {
-            showToast("Exporting ZIP...");
+        document.getElementById('btnDownload').onclick = async () => {
             const zip = new JSZip();
-            const quality = parseInt(document.getElementById('qualityRange').value) / 100;
-            
-            let effectiveRatio = currentRatio;
-            if (currentRatio !== 'original' && isFlipped) effectiveRatio = 1 / currentRatio;
-
-            const sliceW = originalImage.width / slices;
-            const sliceH = effectiveRatio === 'original' ? originalImage.height : sliceW / effectiveRatio;
+            const sw = img.width / slices;
+            const sh = ratio === 'orig' ? img.height : sw / ratio;
 
             for(let i=0; i<slices; i++) {
                 const out = document.createElement('canvas');
-                out.width = sliceW;
-                out.height = sliceH;
+                out.width = sw; out.height = sh;
                 const octx = out.getContext('2d');
-                
                 octx.save();
-                octx.translate(-i * sliceW, sliceH / 2);
-                octx.translate(originalImage.width/2, offsetY);
-                octx.rotate(rotation * Math.PI / 180);
-                octx.drawImage(originalImage, -originalImage.width/2, -originalImage.height/2);
+                octx.translate(-i * sw, sh/2);
+                octx.translate(img.width/2, offY);
+                octx.rotate(rot * Math.PI / 180);
+                octx.drawImage(img, -img.width/2, -img.height/2);
                 octx.restore();
-                
-                const data = out.toDataURL('image/jpeg', quality).split(',')[1];
-                zip.file(`${originalFileName}_${i+1}.jpg`, data, {base64: true});
+                zip.file(`${name}_${i+1}.jpg`, out.toDataURL('image/jpeg', 0.95).split(',')[1], {base64: true});
             }
-
-            const content = await zip.generateAsync({type: "blob"});
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(content);
-            link.download = `${originalFileName}_Carousel.zip`;
-            link.click();
-            showToast("Export Complete!");
+            const blob = await zip.generateAsync({type: "blob"});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `${name}_CAROUSEL.zip`;
+            a.click();
         };
-
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            document.getElementById('toastMsg').textContent = msg;
-            t.classList.remove('translate-x-[200%]');
-            setTimeout(() => t.classList.add('translate-x-[200%]'), 3000);
-        }
     </script>
 </body>
 </html>
