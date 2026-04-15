@@ -19,6 +19,7 @@
     <style>
         .dark body { background-color: #000000; }
         
+        /* Fixed Preview Container */
         .canvas-container {
             width: 100%;
             height: 100%;
@@ -28,10 +29,9 @@
             cursor: grab;
             touch-action: none;
             position: relative;
-            overflow: hidden;
             background-color: #09090b;
-            background-image: radial-gradient(#27272a 1px, transparent 1px);
-            background-size: 30px 30px;
+            background-image: radial-gradient(#18181b 1px, transparent 1px);
+            background-size: 24px 24px;
         }
         
         .canvas-container:active { cursor: grabbing; }
@@ -39,14 +39,12 @@
         canvas {
             max-width: 95%;
             max-height: 95%;
-            box-shadow: 0 0 100px rgba(0,0,0,0.8);
-            image-rendering: auto;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
         }
 
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #52525b; }
 
         .ratio-btn.active {
             background-color: #2563eb;
@@ -66,9 +64,6 @@
             </div>
             
             <div class="flex items-center gap-4">
-                <button id="themeToggle" class="p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full transition-colors">
-                    <svg class="w-5 h-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1-1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"></path></svg>
-                </button>
                 <button id="headerUploadBtn" class="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-xl text-xs font-bold transition-all">Replace Image</button>
             </div>
         </div>
@@ -91,7 +86,7 @@
     <!-- Main Editor -->
     <main id="editorSection" class="hidden flex-1 flex flex-col lg:flex-row overflow-hidden">
         
-        <!-- Left Sidebar -->
+        <!-- Left Sidebar: Controls -->
         <aside class="w-full lg:w-72 h-auto lg:h-full border-b lg:border-b-0 lg:border-r border-zinc-200 dark:border-zinc-900 bg-white dark:bg-black flex flex-col z-20 shrink-0">
             <div class="flex-1 overflow-y-auto p-5 space-y-8 custom-scrollbar">
                 
@@ -115,73 +110,44 @@
                     <div>
                         <div class="flex justify-between items-center mb-3">
                             <label class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Aspect Ratio</label>
-                            <button id="flipBtn" class="text-[9px] font-bold text-blue-500 flex items-center gap-1 uppercase hover:opacity-70">
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path></svg>
-                                Flip
-                            </button>
+                            <button id="flipBtn" class="text-[9px] font-bold text-blue-500 flex items-center gap-1 uppercase hover:opacity-70">Flip</button>
                         </div>
                         <div class="grid grid-cols-2 gap-2">
-                            <button class="ratio-btn p-3 text-[10px] font-bold border border-zinc-200 dark:border-zinc-800 rounded-xl active transition-all" data-ratio="0.8">4:5 / 5:4</button>
-                            <button class="ratio-btn p-3 text-[10px] font-bold border border-zinc-200 dark:border-zinc-800 rounded-xl transition-all" data-ratio="1">1:1 Square</button>
-                            <button class="ratio-btn p-3 text-[10px] font-bold border border-zinc-200 dark:border-zinc-800 rounded-xl transition-all" data-ratio="1.777">9:16 / 16:9</button>
-                            <button class="ratio-btn p-3 text-[10px] font-bold border border-zinc-200 dark:border-zinc-800 rounded-xl transition-all" data-ratio="original">Original</button>
+                            <button class="ratio-btn p-3 text-[10px] font-bold border border-zinc-200 dark:border-zinc-800 rounded-xl active" data-ratio="0.8">4:5 / 5:4</button>
+                            <button class="ratio-btn p-3 text-[10px] font-bold border border-zinc-200 dark:border-zinc-800 rounded-xl" data-ratio="1">1:1 Square</button>
+                            <button class="ratio-btn p-3 text-[10px] font-bold border border-zinc-200 dark:border-zinc-800 rounded-xl" data-ratio="1.777">9:16 / 16:9</button>
+                            <button class="ratio-btn p-3 text-[10px] font-bold border border-zinc-200 dark:border-zinc-800 rounded-xl" data-ratio="original">Original</button>
                         </div>
                     </div>
-
-                    <button id="aiFrameBtn" class="w-full py-4 bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2">
-                        <span class="text-blue-500 text-lg">✦</span>
-                        AI Auto-Frame
-                    </button>
                 </section>
-
-                <div class="h-px bg-zinc-100 dark:bg-zinc-900"></div>
 
                 <section class="space-y-6">
                     <div>
                         <div class="flex justify-between items-center mb-3">
-                            <label class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">JPEG Quality</label>
+                            <label class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Quality</label>
                             <span id="qualityVal" class="text-zinc-500 font-bold text-xs">95%</span>
                         </div>
                         <input type="range" id="qualityRange" min="50" max="100" value="95" class="w-full h-1 bg-zinc-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-600">
                     </div>
 
-                    <div>
-                        <div class="flex justify-between items-center mb-3">
-                            <label class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Overlap (px)</label>
-                            <span id="overlapVal" class="text-zinc-500 font-bold text-xs">0px</span>
-                        </div>
-                        <input type="range" id="overlapRange" min="0" max="200" value="0" class="w-full h-1 bg-zinc-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-600">
-                    </div>
-
                     <div class="space-y-4">
-                        <label class="flex items-center justify-between cursor-pointer">
-                            <span class="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Smart Sharpen</span>
-                            <input type="checkbox" id="sharpenToggle" class="sr-only peer">
-                            <div class="w-8 h-4 bg-zinc-200 dark:bg-zinc-800 rounded-full peer peer-checked:bg-blue-600 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-4"></div>
-                        </label>
                         <label class="flex items-center justify-between cursor-pointer">
                             <span class="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Safe Zones</span>
                             <input type="checkbox" id="safeZoneToggle" checked class="sr-only peer">
                             <div class="w-8 h-4 bg-zinc-200 dark:bg-zinc-800 rounded-full peer peer-checked:bg-blue-600 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-4"></div>
                         </label>
-                        <label class="flex items-center justify-between cursor-pointer">
-                            <span class="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Blur Fill</span>
-                            <input type="checkbox" id="blurToggle" class="sr-only peer">
-                            <div class="w-8 h-4 bg-zinc-200 dark:bg-zinc-800 rounded-full peer peer-checked:bg-blue-600 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-4"></div>
-                        </label>
                     </div>
                 </section>
             </div>
-
-            <div class="p-5 border-t border-zinc-100 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-950/50 shrink-0">
+            
+            <div class="p-5 border-t border-zinc-100 dark:border-zinc-900 bg-zinc-50 dark:bg-zinc-950 shrink-0">
                 <div class="text-[9px] font-black text-zinc-500 uppercase tracking-widest space-y-2">
-                    <div class="flex justify-between"><span>Slice:</span> <span id="resText" class="text-white font-mono">0x0</span></div>
-                    <div class="flex justify-between"><span>Total:</span> <span id="totalResText" class="text-white font-mono">0 PX</span></div>
+                    <div class="flex justify-between"><span>Per Slice:</span> <span id="resText" class="text-white font-mono">0x0</span></div>
                 </div>
             </div>
         </aside>
 
-        <!-- Main Preview -->
+        <!-- Main Preview Area -->
         <div class="flex-1 bg-zinc-950 flex flex-col relative overflow-hidden">
             <div class="canvas-container" id="canvasContainer">
                 <canvas id="previewCanvas"></canvas>
@@ -190,38 +156,33 @@
             <!-- Export Floating Bar -->
             <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-zinc-900/90 backdrop-blur-2xl px-3 py-3 rounded-[1.75rem] border border-white/5 shadow-2xl z-40">
                 <button id="resetBtn" class="w-12 h-12 flex items-center justify-center text-zinc-500 hover:text-white transition-colors bg-white/5 rounded-[1.2rem] hover:bg-white/10">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    Reset
                 </button>
                 <div class="w-px h-8 bg-white/10 mx-1"></div>
-                <button id="downloadZipBtn" class="h-12 pl-6 pr-4 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs uppercase tracking-widest rounded-[1.2rem] flex items-center gap-4 transition-all active:scale-[0.98]">
-                    <span>Export Carousel</span>
-                    <div class="w-8 h-8 bg-black/20 rounded-lg flex items-center justify-center">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
-                    </div>
+                <button id="downloadZipBtn" class="h-12 pl-6 pr-6 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs uppercase tracking-widest rounded-[1.2rem] flex items-center gap-4 transition-all active:scale-[0.98]">
+                    Download All Slices
                 </button>
             </div>
         </div>
 
-        <!-- Right Grid -->
-        <aside class="hidden xl:flex w-72 bg-zinc-950/50 border-l border-zinc-900 flex-col shrink-0">
+        <!-- Right Sidebar: Export Previews (Scrollable) -->
+        <aside class="hidden xl:flex w-72 bg-zinc-950 border-l border-zinc-900 flex-col shrink-0 h-full overflow-hidden">
             <div class="p-4 border-b border-zinc-900 flex justify-between items-center shrink-0">
-                <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Output Preview</h3>
+                <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Slice Preview</h3>
             </div>
-            <!-- SCROLLABLE GRID CONTAINER -->
-            <div id="slicesGrid" class="flex-1 overflow-y-auto p-4 flex flex-col gap-4 custom-scrollbar">
+            <!-- SCROLLABLE LIST -->
+            <div id="slicesGrid" class="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
                 <!-- Slices generated here -->
             </div>
         </aside>
     </main>
 
     <!-- Feedback Toast -->
-    <div id="toast" class="fixed bottom-10 right-10 bg-white text-black px-6 py-4 rounded-2xl shadow-2xl translate-x-[200%] transition-transform duration-500 z-[100] font-bold flex items-center gap-3">
-        <div id="toastSpinner" class="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full hidden"></div>
+    <div id="toast" class="fixed bottom-10 right-10 bg-white text-black px-6 py-4 rounded-2xl shadow-2xl translate-x-[200%] transition-transform duration-500 z-[100] font-bold">
         <span id="toastMsg">Ready</span>
     </div>
 
     <script>
-        const apiKey = ""; 
         let originalImage = null;
         let originalFileName = "panorama";
         let offsetY = 0; 
@@ -266,7 +227,6 @@
             isFlipped = false;
             document.getElementById('sliceRange').value = 3;
             document.getElementById('rotationRange').value = 0;
-            document.getElementById('rotVal').textContent = '0°';
             document.getElementById('sliceVal').textContent = '3';
         }
 
@@ -283,15 +243,6 @@
             updateAll();
         };
 
-        document.getElementById('overlapRange').oninput = (e) => {
-            document.getElementById('overlapVal').textContent = e.target.value + "px";
-            updateAll();
-        };
-
-        document.getElementById('qualityRange').oninput = (e) => {
-            document.getElementById('qualityVal').textContent = e.target.value + "%";
-        };
-
         document.getElementById('flipBtn').onclick = () => {
             isFlipped = !isFlipped;
             updateAll();
@@ -306,9 +257,7 @@
             };
         });
 
-        [ 'blurToggle', 'safeZoneToggle', 'sharpenToggle' ].forEach(id => {
-            document.getElementById(id).onchange = updateAll;
-        });
+        document.getElementById('safeZoneToggle').onchange = updateAll;
 
         function updateAll() {
             if (!originalImage) return;
@@ -320,73 +269,64 @@
             const sliceH = effectiveRatio === 'original' ? originalImage.height : sliceW / effectiveRatio;
             
             document.getElementById('resText').textContent = `${Math.round(sliceW)}x${Math.round(sliceH)}`;
-            document.getElementById('totalResText').textContent = `${Math.round(sliceW * slices)} PX`;
 
             drawPreview(sliceW, sliceH);
             renderGrid(sliceW, sliceH);
         }
 
         function drawPreview(sliceW, sliceH) {
-            // FIX: Anchor canvas dimensions to original image to prevent "jumping"
-            // We ensure the canvas is large enough to show the image + rotation + some margin
-            const maxDimension = Math.max(originalImage.width, originalImage.height) * 1.5;
+            // We set a fixed large workspace to keep coordinates centered
+            const workspaceSize = Math.max(originalImage.width, originalImage.height) * 1.5;
             cvs.width = originalImage.width;
-            cvs.height = maxDimension; 
+            cvs.height = workspaceSize; 
 
             ctx.clearRect(0, 0, cvs.width, cvs.height);
             
             const centerX = cvs.width / 2;
             const centerY = cvs.height / 2;
-            const cropY = centerY - (sliceH / 2);
+            
+            // The Frame Y-Position is FIXED in the middle of our canvas
+            const frameY = centerY - (sliceH / 2);
 
-            // 1. Background Fill
-            if (document.getElementById('blurToggle').checked) {
-                ctx.save();
-                ctx.filter = 'blur(50px) brightness(0.4)';
-                ctx.translate(centerX, centerY);
-                ctx.rotate(rotation * Math.PI / 180);
-                const scale = Math.max(cvs.width / originalImage.width, cvs.height / originalImage.height) * 1.2;
-                ctx.drawImage(originalImage, -(originalImage.width * scale) / 2, -(originalImage.height * scale) / 2, originalImage.width * scale, originalImage.height * scale);
-                ctx.restore();
-            }
+            // 1. Draw Background (Darker)
+            ctx.fillStyle = '#050505';
+            ctx.fillRect(0, 0, cvs.width, cvs.height);
 
-            // 2. Main Image with Drag Offset
+            // 2. Draw Image (Centered + Draggable Offset)
             ctx.save();
             ctx.translate(centerX, centerY + offsetY);
             ctx.rotate(rotation * Math.PI / 180);
             ctx.drawImage(originalImage, -originalImage.width/2, -originalImage.height/2);
             ctx.restore();
 
-            // 3. Darkness Overlays (Outside Crop)
-            ctx.fillStyle = 'rgba(0,0,0,0.85)';
-            ctx.fillRect(0, 0, cvs.width, cropY);
-            ctx.fillRect(0, cropY + sliceH, cvs.width, cvs.height);
+            // 3. Dark Overlay outside the crop window
+            ctx.fillStyle = 'rgba(0,0,0,0.8)';
+            ctx.fillRect(0, 0, cvs.width, frameY);
+            ctx.fillRect(0, frameY + sliceH, cvs.width, cvs.height);
 
-            // 4. Pro Blue Frame
+            // 4. Highlighted Viewfinder Frame
             ctx.strokeStyle = '#3b82f6';
-            ctx.lineWidth = Math.max(2, cvs.width / 500);
-            ctx.strokeRect(0, cropY, cvs.width, sliceH);
+            ctx.lineWidth = 4;
+            ctx.strokeRect(0, frameY, cvs.width, sliceH);
 
-            // 5. Slice Guides (Dashed)
-            ctx.setLineDash([10, 10]);
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+            // 5. Slice Guides
+            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
             ctx.lineWidth = 1;
             for(let i=1; i<slices; i++) {
                 const x = (cvs.width / slices) * i;
-                ctx.beginPath(); ctx.moveTo(x, cropY); ctx.lineTo(x, cropY + sliceH); ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(x, frameY);
+                ctx.lineTo(x, frameY + sliceH);
+                ctx.stroke();
             }
-            ctx.setLineDash([]);
 
             // 6. Safe Zones
             if (document.getElementById('safeZoneToggle').checked) {
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+                ctx.fillStyle = 'rgba(255,255,255,0.03)';
                 const sW = cvs.width / slices;
                 for(let i=0; i<slices; i++) {
                     const x = i * sW;
-                    // Mock Interaction Sidebar
-                    ctx.fillRect(x + sW * 0.88, cropY + sliceH * 0.4, sW * 0.08, sliceH * 0.5);
-                    // Mock Caption Area
-                    ctx.fillRect(x + sW * 0.04, cropY + sliceH * 0.85, sW * 0.4, sliceH * 0.1);
+                    ctx.fillRect(x + sW * 0.88, frameY + sliceH * 0.3, sW * 0.08, sliceH * 0.4);
                 }
             }
         }
@@ -394,37 +334,37 @@
         function renderGrid(sliceW, sliceH) {
             const grid = document.getElementById('slicesGrid');
             grid.innerHTML = '';
-            const overlap = parseInt(document.getElementById('overlapRange').value);
+            
+            const workspaceSize = Math.max(originalImage.width, originalImage.height) * 1.5;
+            const centerY = workspaceSize / 2;
 
             for (let i = 0; i < slices; i++) {
                 const tempCvs = document.createElement('canvas');
-                tempCvs.width = sliceW + overlap;
+                tempCvs.width = sliceW;
                 tempCvs.height = sliceH;
                 const tctx = tempCvs.getContext('2d');
                 
-                if (document.getElementById('sharpenToggle').checked) tctx.filter = 'contrast(1.1) saturate(1.05) brightness(1.02)';
-
+                // Draw exactly what is inside the frame
                 tctx.save();
-                // Matching exactly the preview's centering logic
-                const centerY = (Math.max(originalImage.width, originalImage.height) * 1.5) / 2;
-                const drawOffset = (sliceH / 2) - centerY + offsetY;
-                tctx.translate(-i * sliceW, drawOffset);
-                tctx.translate(originalImage.width/2, centerY); 
+                // 1. Center the crop locally
+                tctx.translate(-i * sliceW, sliceH / 2);
+                // 2. Map back to the workspace global position
+                tctx.translate(originalImage.width/2, offsetY); 
                 tctx.rotate(rotation * Math.PI / 180);
                 tctx.drawImage(originalImage, -originalImage.width/2, -originalImage.height/2);
                 tctx.restore();
 
                 const div = document.createElement('div');
-                div.className = "group relative rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-900 shadow-xl shrink-0";
+                div.className = "group relative rounded-xl overflow-hidden border border-zinc-800 bg-zinc-900 shrink-0";
                 div.innerHTML = `
-                    <div class="absolute top-2 left-2 z-10 bg-black/80 backdrop-blur-md text-[10px] px-2 py-0.5 rounded-lg text-white font-black border border-white/10">${i+1}</div>
-                    <img src="${tempCvs.toDataURL('image/jpeg', 0.5)}" class="w-full h-auto block group-hover:scale-105 transition-transform duration-500">
+                    <div class="absolute top-2 left-2 z-10 bg-black/80 backdrop-blur-md text-[10px] px-2 py-0.5 rounded text-white font-bold">${i+1}</div>
+                    <img src="${tempCvs.toDataURL('image/jpeg', 0.6)}" class="w-full h-auto block">
                 `;
                 grid.appendChild(div);
             }
         }
 
-        // Drag Logic
+        // Dragging Logic
         cvs.onmousedown = (e) => { isDragging = true; startY = e.clientY - offsetY; };
         window.onmousemove = (e) => { 
             if(isDragging) { 
@@ -437,9 +377,8 @@
         document.getElementById('resetBtn').onclick = () => { resetState(); updateAll(); showToast("Workspace Reset"); };
 
         document.getElementById('downloadZipBtn').onclick = async () => {
-            showToast("Generating Carousel ZIP...", true);
+            showToast("Exporting ZIP...");
             const zip = new JSZip();
-            const overlap = parseInt(document.getElementById('overlapRange').value);
             const quality = parseInt(document.getElementById('qualityRange').value) / 100;
             
             let effectiveRatio = currentRatio;
@@ -450,17 +389,13 @@
 
             for(let i=0; i<slices; i++) {
                 const out = document.createElement('canvas');
-                out.width = sliceW + overlap;
+                out.width = sliceW;
                 out.height = sliceH;
                 const octx = out.getContext('2d');
                 
-                if (document.getElementById('sharpenToggle').checked) octx.filter = 'contrast(1.1) saturate(1.05) brightness(1.02)';
-                
                 octx.save();
-                const centerY = (Math.max(originalImage.width, originalImage.height) * 1.5) / 2;
-                const drawOffset = (sliceH / 2) - centerY + offsetY;
-                octx.translate(-i * sliceW, drawOffset);
-                octx.translate(originalImage.width/2, centerY);
+                octx.translate(-i * sliceW, sliceH / 2);
+                octx.translate(originalImage.width/2, offsetY);
                 octx.rotate(rotation * Math.PI / 180);
                 octx.drawImage(originalImage, -originalImage.width/2, -originalImage.height/2);
                 octx.restore();
@@ -477,48 +412,12 @@
             showToast("Export Complete!");
         };
 
-        document.getElementById('aiFrameBtn').onclick = async () => {
-            showToast("AI Scanning Scene...", true);
-            const thumb = document.createElement('canvas');
-            thumb.width = 800; thumb.height = (originalImage.height / originalImage.width) * 800;
-            thumb.getContext('2d').drawImage(originalImage, 0, 0, 800, thumb.height);
-            const b64 = thumb.toDataURL('image/jpeg', 0.4).split(',')[1];
-
-            try {
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{text: "Focus on the visual horizon or main subject. Output JSON: {center_y_pct: 0-100}"}, {inlineData: {mimeType: "image/jpeg", data: b64}}] }],
-                        generationConfig: { responseMimeType: "application/json" }
-                    })
-                });
-                const json = await res.json();
-                const data = JSON.parse(json.candidates[0].content.parts[0].text);
-                
-                const targetPixelY = originalImage.height * (data.center_y_pct / 100);
-                offsetY = (originalImage.height / 2) - targetPixelY;
-                
-                updateAll();
-                showToast("AI Centered!");
-            } catch (e) { 
-                showToast("AI Unavailable"); 
-            }
-        };
-
-        function showToast(msg, spin = false) {
+        function showToast(msg) {
             const t = document.getElementById('toast');
             document.getElementById('toastMsg').textContent = msg;
-            document.getElementById('toastSpinner').classList.toggle('hidden', !spin);
             t.classList.remove('translate-x-[200%]');
-            if (!spin) setTimeout(() => t.classList.add('translate-x-[200%]'), 3000);
+            setTimeout(() => t.classList.add('translate-x-[200%]'), 3000);
         }
-
-        document.getElementById('themeToggle').onclick = () => {
-            document.documentElement.classList.toggle('dark');
-            updateAll();
-        };
-
     </script>
 </body>
 </html>
