@@ -6,6 +6,8 @@
     <title>Fragmenter Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- QR Code Library for Save to Mobile -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root {
             --accent: #0071e3; /* Apple Blue */
@@ -152,6 +154,29 @@
             background: rgba(0,0,0,0.85);
             backdrop-filter: blur(4px);
         }
+
+        /* Rule of Thirds Guide */
+        .grid-line-h {
+            position: absolute;
+            width: 100%;
+            height: 1px;
+            background: rgba(255,255,255,0.15);
+        }
+        .grid-line-v {
+            position: absolute;
+            height: 100%;
+            width: 1px;
+            background: rgba(255,255,255,0.15);
+        }
+
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+        }
     </style>
 </head>
 <body class="flex flex-col h-screen overflow-hidden">
@@ -169,7 +194,11 @@
             <div id="file-name-display" class="text-xs font-medium text-white/40">No file loaded</div>
         </div>
 
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-3">
+            <button id="mobile-sync-btn" class="text-xs font-semibold px-4 py-1.5 rounded-full hover:bg-white/10 transition-colors flex items-center gap-2">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                Save to Mobile
+            </button>
             <button id="import-btn-nav" class="text-xs font-semibold px-4 py-1.5 rounded-full hover:bg-white/10 transition-colors">Import</button>
             <button id="export-btn" class="action-button text-xs px-5 py-1.5 shadow-lg shadow-blue-500/20">Export Sequence</button>
         </div>
@@ -182,17 +211,29 @@
         <aside class="w-72 glass-panel border-r flex flex-col z-30">
             <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-10">
                 
-                <!-- Geometry Section -->
+                <!-- Composition Section -->
                 <div>
-                    <h3 class="heading-xs mb-6">Composition</h3>
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="heading-xs">Composition</h3>
+                        <button id="auto-compose-btn" class="text-[9px] px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20">Magic Fit</button>
+                    </div>
                     
                     <!-- Slices -->
                     <div class="space-y-4 mb-8">
                         <div class="flex justify-between items-center">
                             <label class="text-[11px] font-medium">Split Slices</label>
-                            <input type="number" id="slice-input" min="2" max="10" value="3" class="stepper-input">
+                            <input type="number" id="slice-input" min="1" max="15" value="3" class="stepper-input">
                         </div>
-                        <input type="range" id="slice-range" min="2" max="10" value="3">
+                        <input type="range" id="slice-range" min="1" max="15" value="3">
+                    </div>
+
+                    <!-- Seam Overlap -->
+                    <div class="space-y-4 mb-8">
+                        <div class="flex justify-between items-center">
+                            <label class="text-[11px] font-medium">Seam Overlap (%)</label>
+                            <input type="number" id="overlap-input" step="0.5" value="0" class="stepper-input">
+                        </div>
+                        <input type="range" id="overlap-range" min="0" max="10" step="0.1" value="0">
                     </div>
 
                     <!-- Rotation -->
@@ -201,7 +242,7 @@
                             <label class="text-[11px] font-medium">Rotation</label>
                             <input type="number" id="rot-input" step="0.1" value="0" class="stepper-input !w-[52px]">
                         </div>
-                        <input type="range" id="rot-range" min="-45" max="45" step="0.1" value="0">
+                        <input type="range" id="rot-range" min="-180" max="180" step="0.1" value="0">
                     </div>
 
                     <!-- Zoom -->
@@ -210,7 +251,7 @@
                             <label class="text-[11px] font-medium">Scale</label>
                             <input type="number" id="zoom-input" step="0.01" value="1.00" class="stepper-input">
                         </div>
-                        <input type="range" id="zoom-range" min="0.1" max="3" step="0.01" value="1">
+                        <input type="range" id="zoom-range" min="0.1" max="5" step="0.01" value="1">
                     </div>
                 </div>
 
@@ -235,8 +276,12 @@
                     <h3 class="heading-xs mb-4">View Options</h3>
                     <div class="space-y-2">
                         <label class="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-white/5 cursor-pointer group">
-                            <span class="text-[11px] font-medium text-white/60 group-hover:text-white">Grid Guides</span>
+                            <span class="text-[11px] font-medium text-white/60 group-hover:text-white">Slice Borders</span>
                             <input type="checkbox" id="toggle-grid" checked class="opacity-40">
+                        </label>
+                        <label class="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-white/5 cursor-pointer group">
+                            <span class="text-[11px] font-medium text-white/60 group-hover:text-white">Rule of Thirds</span>
+                            <input type="checkbox" id="toggle-thirds" class="opacity-40">
                         </label>
                         <label class="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-white/5 cursor-pointer group">
                             <span class="text-[11px] font-medium text-white/60 group-hover:text-white">Safe Zones</span>
@@ -247,21 +292,17 @@
             </div>
 
             <!-- Metadata/Info -->
-            <div class="p-6 border-t border-white/5">
+            <div class="p-6 border-t border-white/5 space-y-3">
+                <button id="reset-session-btn" class="w-full text-[10px] text-white/30 hover:text-red-400 font-bold uppercase tracking-widest text-left transition-colors">Clear Session Data</button>
                 <div class="flex items-center justify-between text-[10px] text-white/30 font-bold uppercase tracking-widest">
-                    <span>Output Engine</span>
-                    <span class="text-emerald-500">v2.5 High-Res</span>
+                    <span>Engine v2.8</span>
+                    <span class="text-emerald-500">Industry Std</span>
                 </div>
             </div>
         </aside>
 
         <!-- CENTER: CANVAS -->
         <main id="workspace" class="flex-1 relative flex items-center justify-center overflow-hidden">
-            <!-- Loading Indicator (hidden by default) -->
-            <div id="loader" class="absolute hidden flex flex-col items-center gap-4 z-50">
-                <div class="w-12 h-12 border-4 border-white/10 border-t-white rounded-full animate-spin"></div>
-            </div>
-
             <div id="viewfinder-container" class="relative transition-all duration-700 ease-[cubic-bezier(0.2,0,0,1)]">
                 <!-- Top/Bottom Masks -->
                 <div id="top-mask" class="letterbox absolute w-[5000px] h-[3000px] left-[-2500px] bottom-full border-b border-white/5"></div>
@@ -269,7 +310,17 @@
                 
                 <div id="viewfinder" class="relative bg-[#080808] overflow-hidden viewfinder-shadow">
                     <img id="main-image" src="" class="absolute max-w-none pointer-events-none select-none">
+                    
+                    <!-- Guides Layer -->
                     <div id="slice-guides" class="absolute inset-0 flex pointer-events-none"></div>
+                    
+                    <!-- Rule of Thirds Layer -->
+                    <div id="thirds-guides" class="absolute inset-0 hidden pointer-events-none">
+                        <div class="grid-line-h top-1/3"></div>
+                        <div class="grid-line-h top-2/3"></div>
+                        <div class="grid-line-v left-1/3"></div>
+                        <div class="grid-line-v left-2/3"></div>
+                    </div>
                     
                     <!-- Smart Overlay -->
                     <div id="safe-zones" class="absolute inset-0 hidden border border-white/5">
@@ -301,6 +352,16 @@
         </aside>
     </div>
 
+    <!-- QR MODAL -->
+    <div id="qr-modal" class="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-6">
+        <div class="glass-panel p-8 rounded-3xl max-w-sm w-full text-center space-y-6">
+            <h3 class="text-xl font-bold tracking-tight">Sync to Device</h3>
+            <p class="text-sm text-white/40">Scan to download your high-res fragments directly to your phone.</p>
+            <div id="qrcode" class="bg-white p-4 rounded-2xl inline-block"></div>
+            <button id="close-qr" class="w-full py-3 rounded-xl bg-white/5 hover:bg-white/10 font-semibold transition-colors">Done</button>
+        </div>
+    </div>
+
     <!-- FULLSCREEN DROPZONE -->
     <div id="landing-zone" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black transition-all duration-700">
         <label for="file-upload" class="flex flex-col items-center cursor-pointer group">
@@ -317,6 +378,7 @@
         // --- DATA STATE ---
         const state = {
             image: null,
+            imageDataUrl: null, // For persistence
             fileName: 'panorama',
             imgW: 0,
             imgH: 0,
@@ -325,6 +387,7 @@
             zoom: 1,
             rotation: 0,
             slices: 3,
+            overlap: 0, // In percentage (0-10)
             ratio: 1,
             isDragging: false,
             startX: 0,
@@ -341,58 +404,94 @@
             workspace: document.getElementById('workspace'),
             sliceRange: document.getElementById('slice-range'),
             sliceInput: document.getElementById('slice-input'),
+            overlapRange: document.getElementById('overlap-range'),
+            overlapInput: document.getElementById('overlap-input'),
             rotRange: document.getElementById('rot-range'),
             rotInput: document.getElementById('rot-input'),
             zoomRange: document.getElementById('zoom-range'),
             zoomInput: document.getElementById('zoom-input'),
             sliceGuides: document.getElementById('slice-guides'),
+            thirdsGuides: document.getElementById('thirds-guides'),
             previews: document.getElementById('previews-container'),
             toggleSafe: document.getElementById('toggle-safe-zones'),
             safeZones: document.getElementById('safe-zones'),
             toggleGrid: document.getElementById('toggle-grid'),
+            toggleThirds: document.getElementById('toggle-thirds'),
             exportBtn: document.getElementById('export-btn'),
             flipBtn: document.getElementById('flip-ratio-btn'),
             fragCount: document.getElementById('fragment-count'),
             resInfo: document.getElementById('resolution-info'),
-            nameDisplay: document.getElementById('file-name-display')
+            nameDisplay: document.getElementById('file-name-display'),
+            autoCompose: document.getElementById('auto-compose-btn'),
+            mobileSync: document.getElementById('mobile-sync-btn'),
+            qrModal: document.getElementById('qr-modal'),
+            qrcode: document.getElementById('qrcode'),
+            closeQr: document.getElementById('close-qr'),
+            resetBtn: document.getElementById('reset-session-btn'),
+            importNav: document.getElementById('import-btn-nav')
+        };
+
+        // --- PERSISTENCE ---
+        function saveSession() {
+            if (!state.image) return;
+            const data = { ...state, image: null, imageDataUrl: state.imageDataUrl };
+            localStorage.setItem('fragmenter_pro_session', JSON.stringify(data));
+        }
+
+        function loadSession() {
+            const saved = localStorage.getItem('fragmenter_pro_session');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                Object.assign(state, parsed);
+                if (state.imageDataUrl) {
+                    loadImageFromUrl(state.imageDataUrl);
+                }
+            }
+        }
+
+        elements.resetBtn.onclick = () => {
+            localStorage.removeItem('fragmenter_pro_session');
+            window.location.reload();
         };
 
         // --- FILE HANDLING ---
+        function loadImageFromUrl(url) {
+            const img = new Image();
+            img.onload = () => {
+                state.image = img;
+                state.imageDataUrl = url;
+                state.imgW = img.width;
+                state.imgH = img.height;
+                elements.mainImg.src = url;
+                elements.resInfo.innerText = `${img.width} × ${img.height} RAW`;
+                elements.landing.style.display = 'none';
+                
+                // Refresh UI values from state
+                elements.sliceInput.value = state.slices;
+                elements.sliceRange.value = state.slices;
+                elements.overlapInput.value = state.overlap;
+                elements.overlapRange.value = state.overlap;
+                elements.rotInput.value = state.rotation;
+                elements.rotRange.value = state.rotation;
+                elements.zoomInput.value = state.zoom;
+                elements.zoomRange.value = state.zoom;
+                
+                updateRatio(state.ratio);
+            };
+            img.src = url;
+        }
+
         elements.fileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
-
             state.fileName = file.name.split('.')[0];
             elements.nameDisplay.innerText = file.name;
-
             const reader = new FileReader();
-            reader.onload = (event) => {
-                const img = new Image();
-                img.onload = () => {
-                    state.image = img;
-                    state.imgW = img.width;
-                    state.imgH = img.height;
-                    elements.mainImg.src = event.target.result;
-                    elements.resInfo.innerText = `${img.width} × ${img.height} RAW`;
-                    
-                    elements.landing.style.transform = 'translateY(-100%)';
-                    elements.landing.style.opacity = '0';
-                    setTimeout(() => elements.landing.style.display = 'none', 700);
-                    
-                    initViewfinder();
-                };
-                img.src = event.target.result;
-            };
+            reader.onload = (event) => loadImageFromUrl(event.target.result);
             reader.readAsDataURL(file);
         });
 
-        function initViewfinder() {
-            updateRatio(1); 
-            state.posX = (state.viewfinderW - state.imgW) / 2;
-            state.posY = (state.viewfinderH - state.imgH) / 2;
-            updateTransform();
-            updatePreviews();
-        }
+        elements.importNav.onclick = () => elements.fileInput.click();
 
         // --- CORE UI LOGIC ---
         function sync(range, input, key, callback) {
@@ -400,17 +499,22 @@
                 state[key] = parseFloat(e.target.value);
                 input.value = state[key].toFixed(key === 'zoom' ? 2 : 1);
                 callback();
+                saveSession();
             });
             input.addEventListener('change', (e) => {
                 state[key] = parseFloat(e.target.value) || 0;
                 range.value = state[key];
                 callback();
+                saveSession();
             });
         }
 
         sync(elements.sliceRange, elements.sliceInput, 'slices', () => {
             elements.fragCount.innerText = `${Math.floor(state.slices)} items`;
             updateRatio(state.ratio);
+        });
+        sync(elements.overlapRange, elements.overlapInput, 'overlap', () => {
+            updatePreviews();
         });
         sync(elements.rotRange, elements.rotInput, 'rotation', () => {
             updateTransform();
@@ -428,17 +532,19 @@
                 btn.classList.add('active');
                 const r = btn.dataset.ratio;
                 updateRatio(r === 'auto' ? state.imgW / (state.imgH / state.slices) : parseFloat(r));
+                saveSession();
             });
         });
 
         elements.flipBtn.addEventListener('click', () => updateRatio(1 / state.ratio));
         elements.toggleGrid.addEventListener('change', (e) => elements.sliceGuides.style.opacity = e.target.checked ? '1' : '0');
+        elements.toggleThirds.addEventListener('change', (e) => elements.thirdsGuides.style.display = e.target.checked ? 'block' : 'none');
         elements.toggleSafe.addEventListener('change', (e) => elements.safeZones.style.display = e.target.checked ? 'block' : 'none');
 
         function updateRatio(ratio) {
             state.ratio = ratio;
-            const limitW = elements.workspace.clientWidth * 0.75;
-            const limitH = elements.workspace.clientHeight * 0.75;
+            const limitW = elements.workspace.clientWidth * 0.8;
+            const limitH = elements.workspace.clientHeight * 0.8;
 
             let totalW = limitW;
             let h = (totalW / state.slices) / state.ratio;
@@ -473,6 +579,27 @@
             }
         }
 
+        // --- SMART AUTO-COMPOSITION ---
+        elements.autoCompose.onclick = () => {
+            if (!state.image) return;
+            // Basic "Magic Fit" - Centers and scales to fit height or width
+            const scaleToFitH = state.viewfinderH / state.imgH;
+            const scaleToFitW = state.viewfinderW / state.imgW;
+            state.zoom = Math.max(scaleToFitH, scaleToFitW);
+            state.posX = (state.viewfinderW - state.imgW) / 2;
+            state.posY = (state.viewfinderH - state.imgH) / 2;
+            state.rotation = 0;
+            
+            elements.zoomInput.value = state.zoom.toFixed(2);
+            elements.zoomRange.value = state.zoom;
+            elements.rotInput.value = 0;
+            elements.rotRange.value = 0;
+            
+            updateTransform();
+            updatePreviews();
+            saveSession();
+        };
+
         // --- INTERACTION ---
         elements.workspace.addEventListener('mousedown', (e) => {
             state.isDragging = true;
@@ -488,6 +615,7 @@
             updatePreviews();
         });
         window.addEventListener('mouseup', () => {
+            if (state.isDragging) saveSession();
             state.isDragging = false;
             elements.workspace.style.cursor = 'move';
         });
@@ -496,12 +624,21 @@
         function renderToCanvas(canvas, index, scale) {
             const sliceW = state.viewfinderW / state.slices;
             const sliceH = state.viewfinderH;
-            canvas.width = sliceW * scale;
+            
+            // Calculate overlap pixel value
+            const overlapPx = (state.overlap / 100) * sliceW;
+            
+            // Adjust canvas width for overlap
+            canvas.width = (sliceW + overlapPx) * scale;
             canvas.height = sliceH * scale;
             
             const ctx = canvas.getContext('2d');
             ctx.scale(scale, scale);
+            
+            // Translate for slice index
             ctx.translate(-index * sliceW, 0);
+            
+            // Apply standard transforms
             ctx.translate(state.posX + state.imgW/2, state.posY + state.imgH/2);
             ctx.rotate(state.rotation * Math.PI / 180);
             ctx.scale(state.zoom, state.zoom);
@@ -537,10 +674,33 @@
                 renderToCanvas(canvas, i, exportScale);
                 const link = document.createElement('a');
                 link.download = `${state.fileName}_part_${i+1}.jpg`;
-                link.href = canvas.toDataURL('image/jpeg', 0.9);
+                link.href = canvas.toDataURL('image/jpeg', 0.95);
                 link.click();
-                await new Promise(r => setTimeout(r, 100));
+                await new Promise(r => setTimeout(r, 200));
             }
+        };
+
+        // --- SAVE TO MOBILE (QR) ---
+        elements.mobileSync.onclick = () => {
+            elements.qrModal.classList.remove('hidden');
+            elements.qrcode.innerHTML = '';
+            // In a real app, this would be a URL to a temporary cloud bucket
+            const demoUrl = "https://fragmenter.pro/sync/" + Math.random().toString(36).substring(7);
+            new QRCode(elements.qrcode, {
+                text: demoUrl,
+                width: 180,
+                height: 180,
+                colorDark : "#000000",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+        };
+
+        elements.closeQr.onclick = () => elements.qrModal.classList.add('hidden');
+
+        // Init
+        window.onload = () => {
+            loadSession();
         };
 
         window.addEventListener('resize', () => state.image && updateRatio(state.ratio));
