@@ -160,7 +160,6 @@
             z-index: 20;
         }
 
-        /* Custom Checkbox */
         .custom-checkbox {
             appearance: none;
             width: 32px;
@@ -215,11 +214,9 @@
     </nav>
 
     <div class="flex-1 flex overflow-hidden relative">
-        <!-- Sidebar -->
         <aside class="w-80 glass-panel border-r flex flex-col z-30">
             <div class="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
                 
-                <!-- GEOMETRY SECTION -->
                 <section>
                     <h3 class="heading-section">Geometry</h3>
                     <div class="space-y-6">
@@ -255,7 +252,6 @@
                     </div>
                 </section>
 
-                <!-- FRAME ASPECT SECTION -->
                 <section>
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="heading-section !mb-0">Aspect Ratio</h3>
@@ -289,12 +285,16 @@
                             2.35:1
                         </button>
                     </div>
-                    <button id="auto-compose-btn" class="w-full py-2.5 rounded-lg border border-blue-500/30 text-blue-500 text-xs font-bold hover:bg-blue-500/10 transition-colors uppercase tracking-widest">
-                        Auto Fit Center
-                    </button>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="auto-fit-btn" class="w-full py-2.5 rounded-lg border border-blue-500/30 text-blue-500 text-[10px] font-bold hover:bg-blue-500/10 transition-colors uppercase tracking-tight">
+                            Auto Fit
+                        </button>
+                        <button id="fit-fill-btn" class="w-full py-2.5 rounded-lg border border-emerald-500/30 text-emerald-500 text-[10px] font-bold hover:bg-emerald-500/10 transition-colors uppercase tracking-tight">
+                            Fit to Fill
+                        </button>
+                    </div>
                 </section>
 
-                <!-- OVERLAY SECTION -->
                 <section>
                     <h3 class="heading-section">Interface</h3>
                     <div class="space-y-4">
@@ -321,7 +321,6 @@
             </div>
         </aside>
 
-        <!-- Main Canvas -->
         <main id="workspace" class="flex-1 relative flex items-center justify-center p-12 select-none overflow-hidden">
             <div id="viewfinder-container" class="relative z-10 transition-all duration-300 ease-out">
                 <div id="top-mask" class="theme-mask absolute w-[10000px] h-[5000px] left-[-5000px] bottom-full border-b border-[var(--viewfinder-border)]"></div>
@@ -354,7 +353,6 @@
             </div>
         </main>
 
-        <!-- Right Preview Column -->
         <aside class="w-64 glass-panel border-l flex flex-col z-30">
             <div class="p-4 border-b border-[var(--border)] flex items-center justify-between">
                 <span class="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">Live Export Preview</span>
@@ -364,7 +362,6 @@
         </aside>
     </div>
 
-    <!-- Upload Landing -->
     <div id="landing-zone" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-slate-950">
         <label for="file-upload" class="flex flex-col items-center cursor-pointer group px-12 py-20 rounded-[40px] border-2 border-dashed border-white/10 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all">
             <div class="w-20 h-20 rounded-3xl bg-blue-600 flex items-center justify-center shadow-2xl shadow-blue-600/30 group-hover:scale-110 transition-transform">
@@ -405,13 +402,13 @@
             toggleGrid: document.getElementById('toggle-grid'),
             toggleThirds: document.getElementById('toggle-thirds'),
             exportBtn: document.getElementById('export-btn'),
-            autoCompose: document.getElementById('auto-compose-btn'),
+            autoFitBtn: document.getElementById('auto-fit-btn'),
+            fitFillBtn: document.getElementById('fit-fill-btn'),
             socialPreview: document.getElementById('social-preview-select'),
             flipBtn: document.getElementById('flip-ratio-btn'),
             themeToggle: document.getElementById('theme-toggle')
         };
 
-        // Theme logic
         elements.themeToggle.onclick = () => {
             const isLight = elements.html.classList.toggle('light-theme');
             elements.html.classList.toggle('dark', !isLight);
@@ -444,7 +441,6 @@
             }
         };
 
-        // UI Syncing - Fixed the hover reset bug
         function setupControl(range, input, key, cb) {
             range.addEventListener('input', () => {
                 state[key] = parseFloat(range.value);
@@ -489,18 +485,34 @@
             document.getElementById('fragment-count').innerText = `${state.slices} SLYCES`;
         }
 
+        function applyStateChange() {
+            elements.zoomRange.value = state.zoom;
+            elements.zoomInput.value = state.zoom.toFixed(2);
+            elements.rotRange.value = state.rotation;
+            elements.rotInput.value = state.rotation.toFixed(1);
+            updateTransform(); 
+            updatePreviews();
+        }
+
         function autoFit() {
             if (!state.image) return;
             state.zoom = state.viewfinderH / state.imgH;
             state.rotation = 0;
             state.posX = 0;
             state.posY = 0;
-            elements.zoomRange.value = state.zoom;
-            elements.zoomInput.value = state.zoom.toFixed(2);
-            elements.rotRange.value = 0;
-            elements.rotInput.value = "0.0";
-            updateTransform(); 
-            updatePreviews();
+            applyStateChange();
+        }
+
+        function fitFill() {
+            if (!state.image) return;
+            // Fill calculates zoom based on which dimension is more restrictive
+            const zoomH = state.viewfinderH / state.imgH;
+            const zoomW = state.viewfinderW / state.imgW;
+            state.zoom = Math.max(zoomH, zoomW);
+            state.rotation = 0;
+            state.posX = 0;
+            state.posY = 0;
+            applyStateChange();
         }
 
         elements.workspace.onmousedown = (e) => {
@@ -527,14 +539,14 @@
 
         elements.flipBtn.onclick = () => {
             updateRatio(1 / state.ratio);
-            // Update the UI button states to match if possible
             document.querySelectorAll('.ratio-btn').forEach(btn => {
                 if (Math.abs(parseFloat(btn.dataset.ratio) - state.ratio) < 0.01) btn.classList.add('active');
                 else btn.classList.remove('active');
             });
         };
 
-        elements.autoCompose.onclick = autoFit;
+        elements.autoFitBtn.onclick = autoFit;
+        elements.fitFillBtn.onclick = fitFill;
 
         elements.socialPreview.onchange = (e) => {
             const val = e.target.value;
@@ -595,7 +607,6 @@
                 a.download = `fragment_${i+1}.jpg`;
                 a.href = canvas.toDataURL('image/jpeg', 0.95);
                 a.click();
-                // Add a small delay to prevent browser download grouping issues
                 await new Promise(r => setTimeout(r, 200));
             }
         };
