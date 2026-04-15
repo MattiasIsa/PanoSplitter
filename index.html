@@ -100,7 +100,6 @@
             overflow: hidden;
             border: 1px solid var(--border);
             background: #111;
-            transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1);
         }
 
         .action-button {
@@ -110,7 +109,6 @@
             border-radius: 12px;
         }
 
-        /* Platform Overlays */
         .social-overlay {
             position: absolute;
             inset: 0;
@@ -150,10 +148,10 @@
         <div class="flex items-center gap-3">
             <button id="mobile-sync-btn" class="text-xs font-semibold px-4 py-1.5 rounded-full hover:bg-white/10 transition-colors flex items-center gap-2">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                Mobile Sync
+                Sync
             </button>
             <button id="import-btn-nav" class="text-xs font-semibold px-4 py-1.5 rounded-full hover:bg-white/10 transition-colors">Import</button>
-            <button id="export-btn" class="action-button text-xs px-5 py-1.5 shadow-lg shadow-blue-500/20">Export Sequence</button>
+            <button id="export-btn" class="action-button text-xs px-5 py-1.5 shadow-lg shadow-blue-500/20">Export</button>
         </div>
     </nav>
 
@@ -161,6 +159,7 @@
         <aside class="w-72 glass-panel border-r flex flex-col z-30">
             <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-10">
                 
+                <!-- Composition Controls -->
                 <div>
                     <div class="flex items-center justify-between mb-6">
                         <h3 class="heading-xs">Composition</h3>
@@ -178,14 +177,6 @@
                         <input type="range" id="slice-range" min="1" max="15" value="3">
                     </div>
 
-                    <div class="space-y-4 mb-8">
-                        <div class="flex justify-between items-center">
-                            <label class="text-[11px] font-medium">Seam Overlap (%)</label>
-                            <input type="number" id="overlap-input" step="0.5" value="0" class="stepper-input">
-                        </div>
-                        <input type="range" id="overlap-range" min="0" max="10" step="0.1" value="0">
-                    </div>
-
                     <div class="space-y-4">
                         <div class="flex justify-between items-center">
                             <label class="text-[11px] font-medium">Scale</label>
@@ -195,18 +186,29 @@
                     </div>
                 </div>
 
+                <!-- Aspect Ratio Section -->
                 <div>
-                    <h3 class="heading-xs mb-4">Preview Mockups</h3>
-                    <select id="social-preview-select" class="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-blue-500">
-                        <option value="none">Clean Canvas (Standard)</option>
-                        <option value="instagram">Instagram Feed Post</option>
-                        <option value="tiktok">TikTok Fullscreen</option>
-                        <option value="reels">Instagram Reels</option>
-                    </select>
+                    <h3 class="heading-xs mb-4">Aspect Ratio</h3>
+                    <div class="segmented-control">
+                        <button class="ratio-btn segment-btn" data-ratio="0.8">4:5</button>
+                        <button class="ratio-btn segment-btn active" data-ratio="1">1:1</button>
+                        <button class="ratio-btn segment-btn" data-ratio="1.777">16:9</button>
+                        <button id="flip-ratio-btn" class="segment-btn flex items-center justify-center">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
+                        </button>
+                    </div>
                 </div>
 
+                <!-- Overlays Section -->
                 <div>
-                    <h3 class="heading-xs mb-4">View Options</h3>
+                    <h3 class="heading-xs mb-4">Mockup Overlays</h3>
+                    <select id="social-preview-select" class="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-blue-500 mb-6">
+                        <option value="none">Standard Canvas</option>
+                        <option value="instagram">Instagram Post</option>
+                        <option value="tiktok">TikTok Video</option>
+                        <option value="reels">Instagram Reels</option>
+                    </select>
+
                     <div class="space-y-2">
                         <label class="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-white/5 cursor-pointer group">
                             <span class="text-[11px] font-medium text-white/60">Slice Borders</span>
@@ -221,7 +223,7 @@
             </div>
 
             <div class="p-6 border-t border-white/5">
-                <button id="reset-session-btn" class="w-full text-[10px] text-white/30 hover:text-red-400 font-bold uppercase tracking-widest text-left">Clear Session</button>
+                <button id="reset-session-btn" class="w-full text-[10px] text-white/30 hover:text-red-400 font-bold uppercase tracking-widest text-left">Clear Workspace</button>
             </div>
         </aside>
 
@@ -234,44 +236,39 @@
                     <img id="main-image" src="" class="absolute max-w-none pointer-events-none select-none">
                     <div id="slice-guides" class="absolute inset-0 flex pointer-events-none"></div>
                     
-                    <!-- Rule of Thirds -->
                     <div id="thirds-guides" class="absolute inset-0 hidden pointer-events-none">
-                        <div class="grid-line-h top-1/3"></div>
-                        <div class="grid-line-h top-2/3"></div>
-                        <div class="grid-line-v left-1/3"></div>
-                        <div class="grid-line-v left-2/3"></div>
+                        <div class="grid-line-h top-1/3"></div><div class="grid-line-h top-2/3"></div>
+                        <div class="grid-line-v left-1/3"></div><div class="grid-line-v left-2/3"></div>
                     </div>
 
                     <!-- Instagram Overlay -->
                     <div id="overlay-instagram" class="social-overlay">
-                        <div class="absolute top-0 w-full p-3 flex items-center justify-between bg-gradient-to-b from-black/40 to-transparent">
+                        <div class="absolute top-0 w-full p-3 flex items-center justify-between bg-gradient-to-b from-black/50 to-transparent">
                             <div class="flex items-center gap-2">
-                                <div class="w-8 h-8 rounded-full bg-white/20"></div>
-                                <div class="text-[11px] font-bold">your_profile</div>
+                                <div class="w-7 h-7 rounded-full bg-white/20"></div>
+                                <div class="text-[10px] font-bold">username</div>
                             </div>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
                         </div>
-                        <div class="absolute bottom-0 w-full p-4 bg-gradient-to-t from-black/40 to-transparent">
-                            <div class="flex gap-4 mb-2">
-                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
-                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                        <div class="absolute bottom-0 w-full p-3 bg-gradient-to-t from-black/50 to-transparent">
+                            <div class="flex gap-4 mb-1">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
                             </div>
-                            <div class="text-[10px] font-bold">1,234 likes</div>
                         </div>
                     </div>
 
-                    <!-- TikTok Overlay -->
+                    <!-- TikTok/Reels Overlay (Combined style) -->
                     <div id="overlay-tiktok" class="social-overlay">
+                        <div id="overlay-reels" class="social-overlay"></div> <!-- Duplicate target for shared logic -->
                         <div class="absolute right-4 bottom-24 flex flex-col items-center gap-6">
-                            <div class="flex flex-col items-center"><div class="w-10 h-10 rounded-full border border-white bg-white/10"></div><span class="text-[10px] mt-1">Profile</span></div>
-                            <div class="flex flex-col items-center"><svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg><span class="text-[10px] mt-1">88K</span></div>
-                            <div class="flex flex-col items-center"><svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10z"/></svg><span class="text-[10px] mt-1">122</span></div>
-                            <div class="flex flex-col items-center"><svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg><span class="text-[10px] mt-1">Share</span></div>
+                            <div class="flex flex-col items-center"><div class="w-10 h-10 rounded-full border border-white bg-white/10"></div></div>
+                            <div class="flex flex-col items-center"><svg width="26" height="26" viewBox="0 0 24 24" fill="white"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div>
+                            <div class="flex flex-col items-center"><svg width="26" height="26" viewBox="0 0 24 24" fill="white"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10z"/></svg></div>
                         </div>
-                        <div class="absolute left-4 bottom-8 max-w-[70%]">
-                            <div class="font-bold text-sm mb-1">@creator_name</div>
-                            <div class="text-xs">Amazing panoramic views using #FragmenterPro #Creative </div>
+                        <div class="absolute left-4 bottom-10 max-w-[60%]">
+                            <div class="font-bold text-xs mb-1">@creator_pro</div>
+                            <div class="text-[10px] opacity-80">Full panorama split using #FragmenterPro. Seamless carousel transition.</div>
                         </div>
                     </div>
                 </div>
@@ -287,21 +284,12 @@
         </aside>
     </div>
 
-    <div id="qr-modal" class="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-6">
-        <div class="glass-panel p-8 rounded-3xl max-w-sm w-full text-center space-y-6">
-            <h3 class="text-xl font-bold tracking-tight">Sync to Device</h3>
-            <div id="qrcode" class="bg-white p-4 rounded-2xl inline-block"></div>
-            <button id="close-qr" class="w-full py-3 rounded-xl bg-white/5 hover:bg-white/10 font-semibold transition-colors">Done</button>
-        </div>
-    </div>
-
     <div id="landing-zone" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black">
         <label for="file-upload" class="flex flex-col items-center cursor-pointer group">
             <div class="w-20 h-20 rounded-3xl border-2 border-white/10 flex items-center justify-center group-hover:border-blue-500/50 group-hover:bg-blue-500/10 transition-all duration-500">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-white/20 group-hover:text-blue-500"><path d="M12 5v14M5 12h14"/></svg>
             </div>
-            <h2 class="mt-8 text-2xl font-bold tracking-tight text-white">Start a Project</h2>
-            <p class="mt-2 text-sm text-white/40">Drop a panoramic image to fragment</p>
+            <h2 class="mt-8 text-2xl font-bold text-white">Import Panorama</h2>
             <input type="file" id="file-upload" class="hidden" accept="image/*">
         </label>
     </div>
@@ -310,7 +298,7 @@
         const state = {
             image: null, imageDataUrl: null, fileName: 'panorama',
             imgW: 0, imgH: 0, posX: 0, posY: 0, zoom: 1, rotation: 0,
-            slices: 3, overlap: 0, ratio: 1, isDragging: false,
+            slices: 3, ratio: 1, isDragging: false,
             startX: 0, startY: 0, viewfinderW: 0, viewfinderH: 0
         };
 
@@ -322,8 +310,6 @@
             workspace: document.getElementById('workspace'),
             sliceRange: document.getElementById('slice-range'),
             sliceInput: document.getElementById('slice-input'),
-            overlapRange: document.getElementById('overlap-range'),
-            overlapInput: document.getElementById('overlap-input'),
             zoomRange: document.getElementById('zoom-range'),
             zoomInput: document.getElementById('zoom-input'),
             sliceGuides: document.getElementById('slice-guides'),
@@ -335,28 +321,8 @@
             autoCompose: document.getElementById('auto-compose-btn'),
             autofitFrame: document.getElementById('autofit-frame-btn'),
             socialPreview: document.getElementById('social-preview-select'),
-            mobileSync: document.getElementById('mobile-sync-btn'),
-            qrModal: document.getElementById('qr-modal'),
-            closeQr: document.getElementById('close-qr'),
-            resetBtn: document.getElementById('reset-session-btn'),
-            importNav: document.getElementById('import-btn-nav')
+            flipBtn: document.getElementById('flip-ratio-btn')
         };
-
-        // --- CORE FUNCTIONS ---
-        function saveSession() {
-            if (!state.image) return;
-            const data = { ...state, image: null };
-            localStorage.setItem('fragmenter_pro_v3', JSON.stringify(data));
-        }
-
-        function loadSession() {
-            const saved = localStorage.getItem('fragmenter_pro_v3');
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                Object.assign(state, parsed);
-                if (state.imageDataUrl) loadImage(state.imageDataUrl);
-            }
-        }
 
         function loadImage(url) {
             const img = new Image();
@@ -380,21 +346,34 @@
             reader.readAsDataURL(file);
         };
 
+        // Aspect Ratio
+        document.querySelectorAll('.ratio-btn').forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                updateRatio(parseFloat(btn.dataset.ratio));
+            };
+        });
+
+        elements.flipBtn.onclick = () => updateRatio(1 / state.ratio);
+
+        // Social Overlays
         elements.socialPreview.onchange = (e) => {
             document.querySelectorAll('.social-overlay').forEach(el => el.classList.remove('active'));
             const selected = e.target.value;
-            if (selected !== 'none') {
+            if (selected === 'reels' || selected === 'tiktok') {
+                document.getElementById('overlay-tiktok').classList.add('active');
+            } else if (selected !== 'none') {
                 document.getElementById(`overlay-${selected}`).classList.add('active');
             }
         };
 
         function syncInput(range, input, key, callback) {
-            range.oninput = (e) => { state[key] = parseFloat(e.target.value); input.value = state[key]; callback(); saveSession(); };
-            input.onchange = (e) => { state[key] = parseFloat(e.target.value) || 0; range.value = state[key]; callback(); saveSession(); };
+            range.oninput = (e) => { state[key] = parseFloat(e.target.value); input.value = state[key]; callback(); };
+            input.onchange = (e) => { state[key] = parseFloat(e.target.value) || 0; range.value = state[key]; callback(); };
         }
 
-        syncInput(elements.sliceRange, elements.sliceInput, 'slices', () => { updateRatio(state.ratio); });
-        syncInput(elements.overlapRange, elements.overlapInput, 'overlap', updatePreviews);
+        syncInput(elements.sliceRange, elements.sliceInput, 'slices', () => updateRatio(state.ratio));
         syncInput(elements.zoomRange, elements.zoomInput, 'zoom', () => { updateTransform(); updatePreviews(); });
 
         function updateRatio(ratio) {
@@ -423,14 +402,20 @@
             }
         }
 
-        elements.autoCompose.onclick = () => {
-            state.zoom = Math.max(state.viewfinderH / state.imgH, state.viewfinderW / state.imgW);
-            state.posX = (state.viewfinderW - state.imgW) / 2; state.posY = (state.viewfinderH - state.imgH) / 2;
+        elements.autofitFrame.onclick = () => {
+            const singleSliceW = state.viewfinderW / state.slices;
+            const scaleW = singleSliceW / state.imgW;
+            const scaleH = state.viewfinderH / state.imgH;
+            state.zoom = Math.min(scaleW, scaleH);
+            state.posX = (state.viewfinderW - state.imgW) / 2;
+            state.posY = (state.viewfinderH - state.imgH) / 2;
+            elements.zoomInput.value = state.zoom.toFixed(2);
+            elements.zoomRange.value = state.zoom;
             updateTransform(); updatePreviews();
         };
 
-        elements.autofitFrame.onclick = () => {
-            state.zoom = Math.min(state.viewfinderH / state.imgH, (state.viewfinderW / state.slices) / state.imgW);
+        elements.autoCompose.onclick = () => {
+            state.zoom = Math.max(state.viewfinderH / state.imgH, state.viewfinderW / state.imgW);
             state.posX = (state.viewfinderW - state.imgW) / 2; state.posY = (state.viewfinderH - state.imgH) / 2;
             updateTransform(); updatePreviews();
         };
@@ -446,25 +431,21 @@
             state.posY = e.clientY - state.startY;
             updateTransform(); updatePreviews();
         };
-        window.onmouseup = () => { if (state.isDragging) saveSession(); state.isDragging = false; };
+        window.onmouseup = () => { state.isDragging = false; };
 
         function updatePreviews() {
             if (!state.image) return;
             elements.previews.innerHTML = '';
             const sliceW = state.viewfinderW / state.slices;
-            const overlapPx = (state.overlap / 100) * sliceW;
-
             for (let i = 0; i < state.slices; i++) {
                 const canvas = document.createElement('canvas');
-                canvas.width = (sliceW + overlapPx) * 0.5;
-                canvas.height = state.viewfinderH * 0.5;
+                canvas.width = sliceW * 0.4; canvas.height = state.viewfinderH * 0.4;
                 const ctx = canvas.getContext('2d');
-                ctx.scale(0.5, 0.5);
+                ctx.scale(0.4, 0.4);
                 ctx.translate(-i * sliceW, 0);
                 ctx.translate(state.posX + state.imgW/2, state.posY + state.imgH/2);
                 ctx.scale(state.zoom, state.zoom);
                 ctx.drawImage(state.image, -state.imgW/2, -state.imgH/2);
-                
                 const card = document.createElement('div');
                 card.className = 'preview-card';
                 card.appendChild(canvas);
@@ -475,38 +456,26 @@
         elements.exportBtn.onclick = async () => {
             const sliceW = state.viewfinderW / state.slices;
             const scale = 2048 / sliceW;
-            const overlapPx = (state.overlap / 100) * sliceW;
-
             for (let i = 0; i < state.slices; i++) {
                 const canvas = document.createElement('canvas');
-                canvas.width = (sliceW + overlapPx) * scale;
-                canvas.height = state.viewfinderH * scale;
+                canvas.width = sliceW * scale; canvas.height = state.viewfinderH * scale;
                 const ctx = canvas.getContext('2d');
                 ctx.scale(scale, scale);
                 ctx.translate(-i * sliceW, 0);
                 ctx.translate(state.posX + state.imgW/2, state.posY + state.imgH/2);
                 ctx.scale(state.zoom, state.zoom);
                 ctx.drawImage(state.image, -state.imgW/2, -state.imgH/2);
-                
                 const link = document.createElement('a');
                 link.download = `slice_${i+1}.jpg`;
                 link.href = canvas.toDataURL('image/jpeg', 0.9);
                 link.click();
-                await new Promise(r => setTimeout(r, 250));
+                await new Promise(r => setTimeout(r, 200));
             }
         };
 
-        elements.mobileSync.onclick = () => {
-            elements.qrModal.classList.remove('hidden');
-            document.getElementById('qrcode').innerHTML = '';
-            new QRCode(document.getElementById('qrcode'), "https://fragmenter.pro/sync/demo");
-        };
-        elements.closeQr.onclick = () => elements.qrModal.classList.add('hidden');
         elements.toggleGrid.onclick = (e) => elements.sliceGuides.style.opacity = e.target.checked ? '1' : '0';
         elements.toggleThirds.onclick = (e) => elements.thirdsGuides.style.display = e.target.checked ? 'block' : 'none';
-        elements.resetBtn.onclick = () => { localStorage.clear(); location.reload(); };
-
-        window.onload = loadSession;
+        window.onresize = () => state.image && updateRatio(state.ratio);
     </script>
 </body>
 </html>
