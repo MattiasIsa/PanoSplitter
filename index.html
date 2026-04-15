@@ -15,7 +15,7 @@
             --text-primary: #f8fafc;
             --text-secondary: #94a3b8;
             --input-bg: rgba(15, 23, 42, 0.6);
-            --viewfinder-border: rgba(255, 255, 255, 0.3);
+            --viewfinder-border: rgba(255, 255, 255, 0.4);
         }
 
         .light-theme {
@@ -25,7 +25,7 @@
             --text-primary: #1e293b;
             --text-secondary: #64748b;
             --input-bg: rgba(241, 245, 249, 1);
-            --viewfinder-border: rgba(0, 0, 0, 0.2);
+            --viewfinder-border: rgba(0, 0, 0, 0.3);
         }
 
         body {
@@ -117,14 +117,6 @@
             padding: 4px;
         }
 
-        /* Checkbox */
-        .custom-checkbox {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-            accent-color: var(--accent);
-        }
-
         #workspace {
             background-image: radial-gradient(circle at center, var(--bg-panel) 0%, var(--bg-canvas) 100%);
         }
@@ -153,6 +145,8 @@
         .theme-mask {
             background-color: var(--bg-canvas);
             transition: background-color 0.3s;
+            pointer-events: none;
+            z-index: 20;
         }
     </style>
 </head>
@@ -231,7 +225,7 @@
                     </div>
                     <div class="aspect-grid">
                         <button class="ratio-btn aspect-btn" data-ratio="0.8">4:5</button>
-                        <button class="ratio-btn aspect-btn" data-ratio="1">1:1</button>
+                        <button class="ratio-btn aspect-btn" data-ratio="1.0">1:1</button>
                         <button class="ratio-btn aspect-btn" data-ratio="1.777">16:9</button>
                         <button class="ratio-btn aspect-btn active" data-ratio="0.5625">9:16</button>
                         <button id="auto-compose-btn" class="aspect-btn col-span-2 border-blue-500/50 text-blue-500 hover:bg-blue-500/10">AUTO FIT</button>
@@ -276,27 +270,29 @@
         <!-- Main Canvas -->
         <main id="workspace" class="flex-1 relative flex items-center justify-center p-12 select-none overflow-hidden">
             <div id="viewfinder-container" class="relative z-10">
-                <!-- Outer Masks -->
-                <div id="top-mask" class="theme-mask absolute w-[5000px] h-[3000px] left-[-2500px] bottom-full opacity-90 border-b border-[var(--viewfinder-border)]"></div>
-                <div id="bottom-mask" class="theme-mask absolute w-[5000px] h-[3000px] left-[-2500px] top-full opacity-90 border-t border-[var(--viewfinder-border)]"></div>
-                <div id="left-mask" class="theme-mask absolute h-[5000px] w-[3000px] top-[-2500px] right-full opacity-90 border-r border-[var(--viewfinder-border)]"></div>
-                <div id="right-mask" class="theme-mask absolute h-[5000px] w-[3000px] top-[-2500px] left-full opacity-90 border-l border-[var(--viewfinder-border)]"></div>
+                <!-- Outer Masks matching background -->
+                <div id="top-mask" class="theme-mask absolute w-[10000px] h-[5000px] left-[-5000px] bottom-full border-b border-[var(--viewfinder-border)]"></div>
+                <div id="bottom-mask" class="theme-mask absolute w-[10000px] h-[5000px] left-[-5000px] top-full border-t border-[var(--viewfinder-border)]"></div>
+                <div id="left-mask" class="theme-mask absolute h-[10000px] w-[5000px] top-[-5000px] right-full border-r border-[var(--viewfinder-border)]"></div>
+                <div id="right-mask" class="theme-mask absolute h-[10000px] w-[5000px] top-[-5000px] left-full border-l border-[var(--viewfinder-border)]"></div>
                 
-                <div id="viewfinder" class="relative bg-black overflow-hidden shadow-2xl">
-                    <img id="main-image" src="" class="absolute max-w-none pointer-events-none select-none origin-center transition-transform duration-75">
-                    <div id="slice-guides" class="absolute inset-0 flex pointer-events-none"></div>
+                <div id="viewfinder" class="relative bg-neutral-900 overflow-hidden shadow-2xl">
+                    <!-- Image centered in div initially, we transform relative to its own center -->
+                    <img id="main-image" src="" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 max-w-none pointer-events-none select-none origin-center">
                     
-                    <div id="thirds-guides" class="absolute inset-0 hidden pointer-events-none">
+                    <div id="slice-guides" class="absolute inset-0 flex pointer-events-none z-10"></div>
+                    
+                    <div id="thirds-guides" class="absolute inset-0 hidden pointer-events-none z-10">
                         <div class="grid-line-h top-1/3"></div><div class="grid-line-h top-2/3"></div>
                         <div class="grid-line-v left-1/3"></div><div class="grid-line-v left-2/3"></div>
                     </div>
 
-                    <div id="overlay-instagram" class="social-overlay">
+                    <div id="overlay-instagram" class="social-overlay z-10">
                          <div class="absolute top-0 w-full p-4 flex items-center justify-between bg-gradient-to-b from-black/60 to-transparent">
                             <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-white/20"></div><div class="text-xs font-bold text-white">username</div></div>
                         </div>
                     </div>
-                    <div id="overlay-tiktok" class="social-overlay">
+                    <div id="overlay-tiktok" class="social-overlay z-10">
                         <div class="absolute right-4 bottom-20 flex flex-col items-center gap-6">
                             <div class="w-10 h-10 rounded-full border-2 border-white bg-white/10"></div>
                             <div class="flex flex-col items-center gap-1"><svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg><span class="text-[10px] text-white">42k</span></div>
@@ -331,7 +327,9 @@
     <script>
         const state = {
             image: null, fileName: 'panorama',
-            imgW: 0, imgH: 0, posX: 0, posY: 0, zoom: 1, rotation: 0,
+            imgW: 0, imgH: 0, 
+            posX: 0, posY: 0, // Offsets from center
+            zoom: 1, rotation: 0,
             slices: 3, ratio: 0.5625, isDragging: false,
             startX: 0, startY: 0, viewfinderW: 0, viewfinderH: 0
         };
@@ -361,7 +359,6 @@
             themeToggle: document.getElementById('theme-toggle')
         };
 
-        // Initialize Theme Logic
         elements.themeToggle.onclick = () => {
             const isLight = elements.html.classList.toggle('light-theme');
             elements.html.classList.toggle('dark', !isLight);
@@ -379,14 +376,9 @@
                 elements.mainImg.src = url;
                 elements.landing.style.display = 'none';
                 
-                // Initial update
+                // Set reasonable initial zoom and update layout
                 updateRatio(state.ratio);
-                
-                // Trigger Auto Fit immediately on upload
                 autoFit();
-                
-                // Initial overlay state
-                updateOverlayVisibility(elements.socialPreview.value);
             };
             img.src = url;
         }
@@ -422,7 +414,9 @@
         }
 
         function updateTransform() {
-            elements.mainImg.style.transform = `translate(${state.posX}px, ${state.posY}px) scale(${state.zoom}) rotate(${state.rotation}deg)`;
+            // Translate is relative to the "left: 50%; top: 50%" start point
+            // translate -50% -50% handles centering the image itself.
+            elements.mainImg.style.transform = `translate(calc(-50% + ${state.posX}px), calc(-50% + ${state.posY}px)) scale(${state.zoom}) rotate(${state.rotation}deg)`;
         }
 
         function updateSliceGuides() {
@@ -438,13 +432,18 @@
 
         function autoFit() {
             if (!state.image) return;
-            // Fits the height of the image to the height of the viewfinder
+            
+            // 1. Calculate zoom to match the viewfinder height
             state.zoom = state.viewfinderH / state.imgH;
-            state.posX = (state.viewfinderW - state.imgW * state.zoom) / 2 / state.zoom;
-            state.posY = 0;
+            
+            // 2. Reset rotation
             state.rotation = 0;
             
-            // Sync UI inputs
+            // 3. Reset position to center of image (0 offset from center)
+            state.posX = 0;
+            state.posY = 0;
+            
+            // Update inputs
             elements.zoomRange.value = state.zoom;
             elements.zoomInput.value = state.zoom.toFixed(2);
             elements.rotRange.value = 0;
@@ -457,13 +456,13 @@
         elements.workspace.onmousedown = (e) => {
             if (!state.image) return;
             state.isDragging = true;
-            state.startX = e.clientX - state.posX * state.zoom;
-            state.startY = e.clientY - state.posY * state.zoom;
+            state.startX = e.clientX - state.posX;
+            state.startY = e.clientY - state.posY;
         };
         window.onmousemove = (e) => {
             if (!state.isDragging) return;
-            state.posX = (e.clientX - state.startX) / state.zoom;
-            state.posY = (e.clientY - state.startY) / state.zoom;
+            state.posX = e.clientX - state.startX;
+            state.posY = e.clientY - state.startY;
             updateTransform(); updatePreviews();
         };
         window.onmouseup = () => state.isDragging = false;
@@ -475,7 +474,10 @@
                 updateRatio(parseFloat(btn.dataset.ratio));
             };
         });
-        elements.flipBtn.onclick = () => updateRatio(1 / state.ratio);
+        elements.flipBtn.onclick = () => {
+            const active = document.querySelector('.ratio-btn.active');
+            updateRatio(1 / state.ratio);
+        };
         elements.autoCompose.onclick = autoFit;
 
         function updateOverlayVisibility(val) {
@@ -492,20 +494,25 @@
             const sw = state.viewfinderW / state.slices;
             for (let i = 0; i < state.slices; i++) {
                 const canvas = document.createElement('canvas');
-                canvas.width = 200; canvas.height = (200 / state.ratio);
+                canvas.width = 200; canvas.height = Math.round(200 / state.ratio);
                 const ctx = canvas.getContext('2d');
+                
                 const s = 200 / sw;
                 ctx.scale(s, s);
-                ctx.translate(-i * sw, 0);
-                ctx.translate(state.viewfinderW/2, state.viewfinderH/2);
+                ctx.translate(-i * sw, 0); // Viewport for this slice
+                
+                // Replicate the transform logic from the main viewfinder
+                ctx.translate(state.viewfinderW / 2, state.viewfinderH / 2);
                 ctx.rotate(state.rotation * Math.PI / 180);
                 ctx.scale(state.zoom, state.zoom);
-                ctx.translate(state.posX, state.posY);
-                ctx.drawImage(state.image, -state.imgW/2, -state.imgH/2);
+                ctx.translate(state.posX / state.zoom, state.posY / state.zoom);
+                
+                // Draw image centered at the translated point
+                ctx.drawImage(state.image, -state.imgW / 2, -state.imgH / 2);
                 
                 const card = document.createElement('div');
                 card.className = 'preview-card group relative';
-                card.innerHTML = `<div class="absolute top-2 left-2 bg-blue-600 text-[8px] font-bold px-1.5 py-0.5 rounded text-white z-10">${i+1}</div>`;
+                card.innerHTML = `<div class="absolute top-2 left-2 bg-blue-600 text-[8px] font-bold px-1.5 py-0.5 rounded text-white z-20 shadow-md">${i+1}</div>`;
                 card.appendChild(canvas);
                 elements.previews.appendChild(card);
             }
@@ -513,22 +520,22 @@
 
         elements.exportBtn.onclick = async () => {
             const sw = state.viewfinderW / state.slices;
-            const targetWidth = 1080; // Instagram standard
+            const targetWidth = 1080; 
             const scale = targetWidth / sw;
             
             for (let i = 0; i < state.slices; i++) {
                 const canvas = document.createElement('canvas');
                 canvas.width = targetWidth; 
-                canvas.height = (state.viewfinderH * scale);
+                canvas.height = Math.round(state.viewfinderH * scale);
                 const ctx = canvas.getContext('2d');
                 
                 ctx.scale(scale, scale);
                 ctx.translate(-i * sw, 0);
-                ctx.translate(state.viewfinderW/2, state.viewfinderH/2);
+                ctx.translate(state.viewfinderW / 2, state.viewfinderH / 2);
                 ctx.rotate(state.rotation * Math.PI / 180);
                 ctx.scale(state.zoom, state.zoom);
-                ctx.translate(state.posX, state.posY);
-                ctx.drawImage(state.image, -state.imgW/2, -state.imgH/2);
+                ctx.translate(state.posX / state.zoom, state.posY / state.zoom);
+                ctx.drawImage(state.image, -state.imgW / 2, -state.imgH / 2);
                 
                 const a = document.createElement('a');
                 a.download = `fragment_${i+1}.jpg`;
