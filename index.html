@@ -3,102 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PANORAMA_FRAGMENTER_v1.0</title>
+    <title>Panorama Fragmenter v1.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
         :root {
-            --matrix-green: #00ff41;
-            --matrix-glow: rgba(0, 255, 65, 0.3);
-            --zinc-950: #050505;
+            --brand-primary: #2563eb;
+            --brand-secondary: #3b82f6;
+            --bg-main: #f8fafc;
+            --bg-sidebar: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
         }
 
         body {
-            background-color: #000000;
-            color: var(--matrix-green);
-            font-family: 'JetBrains Mono', monospace;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
             overflow: hidden;
             height: 100vh;
         }
 
-        .cyber-border {
-            border: 1px solid var(--matrix-green);
-            box-shadow: 0 0 10px var(--matrix-glow);
+        .sidebar {
+            background-color: var(--bg-sidebar);
+            border-color: var(--border-color);
         }
 
         .letterbox-overlay {
-            background: rgba(0, 0, 0, 0.85);
-            pointer-events: none;
-        }
-
-        .viewfinder-grid {
-            border: 1px dashed var(--matrix-green);
+            background: rgba(15, 23, 42, 0.8);
             pointer-events: none;
         }
 
         input[type="range"] {
-            accent-color: var(--matrix-green);
+            accent-color: var(--brand-primary);
         }
 
-        ::-webkit-scrollbar {
-            width: 4px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #000;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: var(--matrix-green);
+        .btn-ratio {
+            @apply border border-slate-200 rounded-md py-2 text-xs font-medium transition-all hover:bg-slate-50 hover:border-slate-300;
         }
 
-        .safe-zone-ui {
-            pointer-events: none;
-            opacity: 0.6;
-        }
-
-        .scanline {
-            width: 100%;
-            height: 2px;
-            background: rgba(0, 255, 65, 0.1);
-            position: absolute;
-            animation: scan 4s linear infinite;
-            z-index: 50;
-            pointer-events: none;
-        }
-
-        @keyframes scan {
-            0% { top: 0% }
-            100% { top: 100% }
+        .btn-ratio.active-ratio {
+            @apply bg-blue-50 border-blue-200 text-blue-600;
         }
 
         .fragment-preview {
             aspect-ratio: var(--preview-ratio);
+            @apply bg-slate-100 rounded-lg border border-slate-200 shadow-sm transition-transform hover:scale-[1.02];
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            @apply bg-slate-300 rounded-full hover:bg-slate-400;
         }
     </style>
 </head>
 <body class="flex flex-col">
 
     <!-- HEADER -->
-    <header class="h-12 border-b border-[#00ff41] flex items-center justify-between px-4 bg-black z-50">
-        <div class="flex items-center gap-2">
-            <div class="w-3 h-3 bg-[#00ff41] animate-pulse"></div>
-            <h1 class="text-sm font-bold tracking-widest">SYSTEM_DEFRAG :: PANORAMA_FRAGMENTER_v1.0</h1>
+    <header class="h-16 border-b border-slate-200 flex items-center justify-between px-6 bg-white z-50">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+            </div>
+            <h1 class="text-lg font-semibold tracking-tight text-slate-900">Panorama Fragmenter</h1>
         </div>
-        <div id="status-display" class="text-[10px] opacity-70 uppercase">
-            STATUS: STANDBY
+        <div id="status-display" class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-slate-300" id="status-indicator"></span>
+            <span class="text-xs font-medium text-slate-500 uppercase tracking-wider">Ready</span>
         </div>
     </header>
 
     <!-- LANDING / DROPZONE -->
-    <div id="landing-zone" class="absolute inset-0 z-40 bg-black flex flex-col items-center justify-center transition-opacity duration-500">
-        <div class="scanline"></div>
-        <label for="file-upload" class="cyber-border p-12 flex flex-col items-center cursor-pointer hover:bg-[#00ff41]/10 transition-colors group">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 mb-4 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-            </svg>
-            <span class="text-lg font-bold tracking-tighter">INITIALIZE_LOAD_SEQUENCE</span>
-            <span class="text-[10px] mt-2 opacity-50">DRAG_AND_DROP_OR_CLICK_TO_PROCEED</span>
+    <div id="landing-zone" class="absolute inset-0 z-40 bg-slate-50 flex flex-col items-center justify-center transition-opacity duration-500">
+        <label for="file-upload" class="bg-white border-2 border-dashed border-slate-300 rounded-2xl p-16 flex flex-col items-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-all group max-w-lg w-full">
+            <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+            </div>
+            <span class="text-xl font-bold text-slate-800">Load System Image</span>
+            <span class="text-sm mt-2 text-slate-500">Drag and drop or click to browse</span>
             <input type="file" id="file-upload" class="hidden" accept="image/*">
         </label>
     </div>
@@ -107,71 +101,84 @@
     <main class="flex-1 flex overflow-hidden hidden" id="main-interface">
         
         <!-- LEFT SIDEBAR: CONTROLS -->
-        <aside class="w-72 border-r border-[#00ff41] flex flex-col bg-black overflow-y-auto p-4 gap-6">
+        <aside class="sidebar w-80 border-r flex flex-col overflow-y-auto p-6 gap-8 shadow-sm">
             <section>
-                <label class="text-[10px] mb-2 block opacity-70">TRANSFORM_PARAMETERS</label>
+                <h2 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4">Canvas Settings</h2>
                 
-                <div class="mb-4">
-                    <div class="flex justify-between text-[11px] mb-1">
-                        <span>SLICE_COUNT</span>
-                        <span id="slice-val">3</span>
+                <div class="mb-6">
+                    <div class="flex justify-between text-xs font-semibold mb-2">
+                        <span class="text-slate-700">Slice Count</span>
+                        <span id="slice-val" class="text-blue-600">3</span>
                     </div>
-                    <input type="range" id="slice-range" min="2" max="10" value="3" class="w-full">
+                    <input type="range" id="slice-range" min="2" max="10" value="3" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer">
                 </div>
 
-                <div class="mb-4">
-                    <div class="flex justify-between text-[11px] mb-1">
-                        <span>ROTATION_LEVEL</span>
-                        <span id="rot-val">0.0°</span>
+                <div>
+                    <div class="flex justify-between text-xs font-semibold mb-2">
+                        <span class="text-slate-700">Rotation</span>
+                        <span id="rot-val" class="text-blue-600">0.0°</span>
                     </div>
-                    <input type="range" id="rot-range" min="-15" max="15" step="0.5" value="0" class="w-full">
+                    <input type="range" id="rot-range" min="-15" max="15" step="0.5" value="0" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer">
                 </div>
             </section>
 
             <section>
-                <label class="text-[10px] mb-2 block opacity-70">ASPECT_RATIO_PRESETS</label>
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Aspect Ratio</h2>
+                    <button id="flip-ratio-btn" class="p-1 hover:bg-slate-100 rounded text-slate-500" title="Flip Aspect Ratio">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                        </svg>
+                    </button>
+                </div>
                 <div class="grid grid-cols-2 gap-2">
-                    <button class="ratio-btn border border-[#00ff41] py-2 text-[10px] hover:bg-[#00ff41]/20" data-ratio="0.8">4:5 PORTRAIT</button>
-                    <button class="ratio-btn border border-[#00ff41] py-2 text-[10px] hover:bg-[#00ff41]/20 active-ratio bg-[#00ff41]/20" data-ratio="1">1:1 SQUARE</button>
-                    <button class="ratio-btn border border-[#00ff41] py-2 text-[10px] hover:bg-[#00ff41]/20" data-ratio="1.777">16:9 LANDSCAPE</button>
-                    <button class="ratio-btn border border-[#00ff41] py-2 text-[10px] hover:bg-[#00ff41]/20" data-ratio="auto">AUTO_HEIGHT</button>
+                    <button class="ratio-btn btn-ratio" data-ratio="0.8">4:5 Portrait</button>
+                    <button class="ratio-btn btn-ratio active-ratio" data-ratio="1">1:1 Square</button>
+                    <button class="ratio-btn btn-ratio" data-ratio="1.777">16:9 Landscape</button>
+                    <button class="ratio-btn btn-ratio" data-ratio="auto">Auto Height</button>
                 </div>
             </section>
 
             <section>
-                <label class="text-[10px] mb-2 block opacity-70">OVERLAY_GUIDES</label>
-                <div class="space-y-2">
-                    <label class="flex items-center gap-2 cursor-pointer text-[10px]">
-                        <input type="checkbox" id="toggle-safe-zones" class="accent-[#00ff41]">
-                        TOGGLE_SAFE_ZONES (SM)
+                <h2 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4">Visibility</h2>
+                <div class="space-y-3">
+                    <label class="flex items-center gap-3 cursor-pointer group">
+                        <div class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="toggle-safe-zones" class="sr-only peer">
+                            <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                        </div>
+                        <span class="text-xs font-medium text-slate-600 group-hover:text-slate-900 transition-colors">Safe Zones (SM)</span>
                     </label>
-                    <label class="flex items-center gap-2 cursor-pointer text-[10px]">
-                        <input type="checkbox" id="toggle-grid" checked class="accent-[#00ff41]">
-                        SHOW_SLICE_BOUNDARIES
+                    <label class="flex items-center gap-3 cursor-pointer group">
+                        <div class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="toggle-grid" checked class="sr-only peer">
+                            <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                        </div>
+                        <span class="text-xs font-medium text-slate-600 group-hover:text-slate-900 transition-colors">Slice Boundaries</span>
                     </label>
                 </div>
             </section>
 
-            <div class="mt-auto pt-4">
-                <button id="export-btn" class="w-full cyber-border bg-[#00ff41] text-black font-bold py-3 text-sm hover:scale-[0.98] transition-transform flex items-center justify-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <div class="mt-auto pt-4 border-t border-slate-100">
+                <button id="export-btn" class="w-full bg-blue-600 text-white font-semibold py-3.5 rounded-xl shadow-lg shadow-blue-200 hover:bg-blue-700 hover:scale-[0.98] active:scale-95 transition-all flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
                     </svg>
-                    COMPILE_&_EXPORT
+                    Export JPG Slices
                 </button>
             </div>
         </aside>
 
         <!-- CENTER: VISUAL WORKSPACE -->
-        <section class="flex-1 relative bg-[#050505] overflow-hidden flex items-center justify-center cursor-move" id="workspace">
-            <!-- Viewport Container (This is what stays fixed) -->
-            <div id="viewfinder-container" class="relative z-10 border border-[#00ff41]/30">
+        <section class="flex-1 relative bg-slate-50 overflow-hidden flex items-center justify-center cursor-move" id="workspace">
+            <!-- Viewport Container -->
+            <div id="viewfinder-container" class="relative z-10">
                 <!-- Overlays -->
-                <div id="top-letterbox" class="letterbox-overlay absolute w-[5000px] h-[2000px] left-[-2500px] bottom-full"></div>
-                <div id="bottom-letterbox" class="letterbox-overlay absolute w-[5000px] h-[2000px] left-[-2500px] top-full"></div>
+                <div id="top-letterbox" class="letterbox-overlay absolute w-[5000px] h-[2000px] left-[-2500px] bottom-full border-b border-white/10"></div>
+                <div id="bottom-letterbox" class="letterbox-overlay absolute w-[5000px] h-[2000px] left-[-2500px] top-full border-t border-white/10"></div>
                 
                 <!-- Viewfinder Content -->
-                <div id="viewfinder" class="relative overflow-hidden bg-black shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+                <div id="viewfinder" class="relative overflow-hidden bg-white shadow-2xl rounded-sm ring-1 ring-slate-200">
                     <!-- Image layer -->
                     <img id="main-image" src="" class="absolute max-w-none origin-center pointer-events-none select-none">
                     
@@ -181,41 +188,45 @@
                     <!-- Social Media Safe Zones -->
                     <div id="safe-zones" class="safe-zone-ui absolute inset-0 hidden">
                         <!-- Right buttons mock -->
-                        <div class="absolute right-2 bottom-32 flex flex-col gap-4">
-                            <div class="w-8 h-8 rounded-full border border-[#00ff41]/50"></div>
-                            <div class="w-8 h-8 rounded-full border border-[#00ff41]/50"></div>
-                            <div class="w-8 h-8 rounded-full border border-[#00ff41]/50"></div>
+                        <div class="absolute right-4 bottom-32 flex flex-col gap-6">
+                            <div class="w-10 h-10 rounded-full border-2 border-white/40 bg-black/10 backdrop-blur-sm"></div>
+                            <div class="w-10 h-10 rounded-full border-2 border-white/40 bg-black/10 backdrop-blur-sm"></div>
+                            <div class="w-10 h-10 rounded-full border-2 border-white/40 bg-black/10 backdrop-blur-sm"></div>
                         </div>
                         <!-- Bottom caption mock -->
-                        <div class="absolute bottom-4 left-4 right-12 h-12 border border-[#00ff41]/50 bg-black/20"></div>
+                        <div class="absolute bottom-6 left-6 right-16 h-12 border-2 border-white/40 bg-black/10 backdrop-blur-sm rounded-lg"></div>
                     </div>
                 </div>
             </div>
 
-            <div class="absolute top-4 left-1/2 -translate-x-1/2 text-[10px] bg-black px-2 py-1 cyber-border pointer-events-none">
-                AXIS_COORDS: <span id="coords">X:0 Y:0</span>
+            <div class="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 bg-white/80 backdrop-blur-md rounded-full border border-slate-200 shadow-sm pointer-events-none transition-opacity">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter mr-2">Coordinates</span>
+                <span id="coords" class="text-xs font-mono font-semibold text-slate-700">X:0 Y:0</span>
             </div>
         </section>
 
         <!-- RIGHT SIDEBAR: FRAGMENT OUTPUT -->
-        <aside class="w-48 border-l border-[#00ff41] bg-black flex flex-col">
-            <div class="p-3 border-b border-[#00ff41] text-[10px] font-bold tracking-widest text-center">
-                FRAGMENT_OUTPUT
+        <aside class="w-60 sidebar border-l flex flex-col">
+            <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Live Output</span>
+                <span id="fragment-count" class="text-[10px] px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded font-bold">0</span>
             </div>
-            <div id="previews-container" class="flex-1 overflow-y-auto p-3 space-y-4">
+            <div id="previews-container" class="flex-1 overflow-y-auto p-4 space-y-4">
                 <!-- Dynamic thumbnails go here -->
             </div>
         </aside>
     </main>
 
     <!-- PROCESSING OVERLAY -->
-    <div id="processing-screen" class="fixed inset-0 bg-black/90 z-[100] hidden flex flex-col items-center justify-center">
-        <div class="cyber-border p-8 bg-black max-w-sm w-full">
-            <div class="text-sm mb-4 animate-pulse">EXTRACTING_FRAGMENTS...</div>
-            <div class="w-full bg-[#00ff41]/20 h-1 mb-2">
-                <div id="progress-bar" class="bg-[#00ff41] h-full w-0 transition-all duration-300"></div>
+    <div id="processing-screen" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] hidden flex flex-col items-center justify-center">
+        <div class="bg-white p-8 rounded-3xl shadow-2xl max-w-xs w-full text-center">
+            <div class="w-12 h-12 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+            <div class="text-sm font-bold text-slate-800 mb-2">Generating Fragments</div>
+            <div class="text-xs text-slate-500 mb-6">Processing high-resolution JPG output...</div>
+            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden mb-2">
+                <div id="progress-bar" class="bg-blue-600 h-full w-0 transition-all duration-300"></div>
             </div>
-            <div id="progress-text" class="text-[10px] text-right">0%</div>
+            <div id="progress-text" class="text-[10px] font-bold text-slate-400">0%</div>
         </div>
     </div>
 
@@ -257,15 +268,17 @@
             toggleGrid: document.getElementById('toggle-grid'),
             exportBtn: document.getElementById('export-btn'),
             processing: document.getElementById('processing-screen'),
-            progressBar: document.getElementById('progress-bar')
+            progressBar: document.getElementById('progress-bar'),
+            flipBtn: document.getElementById('flip-ratio-btn'),
+            fragmentCount: document.getElementById('fragment-count'),
+            statusIndicator: document.getElementById('status-indicator')
         };
 
         // --- INITIALIZATION ---
         elements.fileInput.addEventListener('change', handleFile);
         
-        // Drag and Drop support
-        elements.landing.addEventListener('dragover', (e) => { e.preventDefault(); e.target.classList.add('bg-[#00ff41]/10'); });
-        elements.landing.addEventListener('dragleave', (e) => { e.preventDefault(); e.target.classList.remove('bg-[#00ff41]/10'); });
+        elements.landing.addEventListener('dragover', (e) => { e.preventDefault(); e.target.classList.add('bg-blue-50'); });
+        elements.landing.addEventListener('dragleave', (e) => { e.preventDefault(); e.target.classList.remove('bg-blue-50'); });
         elements.landing.addEventListener('drop', (e) => {
             e.preventDefault();
             if (e.dataTransfer.files.length) {
@@ -287,11 +300,11 @@
                     state.imgH = img.height;
                     elements.mainImg.src = event.target.result;
                     
-                    // Show UI
                     elements.landing.classList.add('opacity-0');
                     setTimeout(() => {
                         elements.landing.style.display = 'none';
                         elements.main.classList.remove('hidden');
+                        elements.statusIndicator.classList.replace('bg-slate-300', 'bg-emerald-500');
                         initViewfinder();
                     }, 500);
                 };
@@ -301,8 +314,7 @@
         }
 
         function initViewfinder() {
-            updateRatio(1); // Default to square
-            // Center image
+            updateRatio(1); 
             state.posX = (state.viewfinderW - state.imgW) / 2;
             state.posY = (state.viewfinderH - state.imgH) / 2;
             updateTransform();
@@ -314,8 +326,8 @@
         elements.sliceRange.addEventListener('input', (e) => {
             state.slices = parseInt(e.target.value);
             elements.sliceVal.innerText = state.slices;
-            updateSliceGuides();
-            updatePreviews();
+            elements.fragmentCount.innerText = state.slices;
+            updateRatio(state.ratio);
         });
 
         elements.rotRange.addEventListener('input', (e) => {
@@ -327,18 +339,21 @@
 
         document.querySelectorAll('.ratio-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                document.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('bg-[#00ff41]/20'));
-                btn.classList.add('bg-[#00ff41]/20');
+                document.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('active-ratio'));
+                btn.classList.add('active-ratio');
                 
                 const r = btn.dataset.ratio;
                 if (r === 'auto') {
-                    // Match image height but keep width as current container ratio relative to image
-                    // Simple approach: stick to 1:1 width/height of viewport
-                    updateRatio(state.imgW / state.imgH);
+                    updateRatio(state.imgW / (state.imgH / state.slices));
                 } else {
                     updateRatio(parseFloat(r));
                 }
             });
+        });
+
+        elements.flipBtn.addEventListener('click', () => {
+            if (state.ratio === 'auto') return;
+            updateRatio(1 / state.ratio);
         });
 
         elements.toggleSafe.addEventListener('change', (e) => {
@@ -354,12 +369,10 @@
             const containerWidth = elements.workspace.clientWidth * 0.8;
             const containerHeight = elements.workspace.clientHeight * 0.8;
 
-            // Total width for all slices combined
             let totalW = containerWidth;
             let singleSliceW = totalW / state.slices;
             let h = singleSliceW / state.ratio;
 
-            // If height overflows, scale down
             if (h > containerHeight) {
                 h = containerHeight;
                 singleSliceW = h * state.ratio;
@@ -372,7 +385,6 @@
             elements.viewfinder.style.width = totalW + 'px';
             elements.viewfinder.style.height = h + 'px';
             
-            // Set CSS var for previews
             document.documentElement.style.setProperty('--preview-ratio', state.ratio);
             
             updateSliceGuides();
@@ -380,12 +392,11 @@
             updatePreviews();
         }
 
-        // --- INTERACTION (DRAG) ---
+        // --- INTERACTION ---
         elements.workspace.addEventListener('mousedown', startDrag);
         window.addEventListener('mousemove', doDrag);
         window.addEventListener('mouseup', endDrag);
         
-        // Touch support
         elements.workspace.addEventListener('touchstart', (e) => startDrag(e.touches[0]));
         window.addEventListener('touchmove', (e) => doDrag(e.touches[0]));
         window.addEventListener('touchend', endDrag);
@@ -394,7 +405,6 @@
             state.isDragging = true;
             state.startX = e.clientX - state.posX;
             state.startY = e.clientY - state.posY;
-            document.body.style.cursor = 'grabbing';
         }
 
         function doDrag(e) {
@@ -407,7 +417,6 @@
 
         function endDrag() {
             state.isDragging = false;
-            document.body.style.cursor = 'default';
         }
 
         function updateTransform() {
@@ -419,36 +428,31 @@
             elements.sliceGuides.innerHTML = '';
             for (let i = 1; i < state.slices; i++) {
                 const line = document.createElement('div');
-                line.className = 'h-full border-r border-dashed border-[#00ff41]/50';
+                line.className = 'h-full border-r border-slate-300 border-dashed';
                 line.style.width = (100 / state.slices) + '%';
                 elements.sliceGuides.appendChild(line);
             }
         }
 
         // --- PREVIEW SYSTEM ---
-        const previewCanvas = document.createElement('canvas');
-        const pCtx = previewCanvas.getContext('2d');
-
         function updatePreviews() {
             if (!state.image) return;
             
             elements.previews.innerHTML = '';
-            const sliceWidth = state.viewfinderW / state.slices;
+            elements.fragmentCount.innerText = state.slices;
             
-            // We draw each slice to a hidden canvas to generate thumbnails
             for (let i = 0; i < state.slices; i++) {
                 const thumb = document.createElement('div');
-                thumb.className = 'fragment-preview cyber-border relative overflow-hidden bg-zinc-900 group';
+                thumb.className = 'fragment-preview relative overflow-hidden group';
                 
                 const canvas = document.createElement('canvas');
                 canvas.className = 'w-full h-full object-cover';
                 
-                // Draw logic
-                renderSliceToCanvas(canvas, i);
+                renderSliceToCanvas(canvas, i, 1);
                 
                 const label = document.createElement('div');
-                label.className = 'absolute bottom-0 right-0 bg-[#00ff41] text-black text-[8px] px-1 font-bold';
-                label.innerText = `FRAG_${i+1}`;
+                label.className = 'absolute top-2 left-2 bg-white/90 backdrop-blur shadow-sm text-slate-800 text-[9px] px-1.5 py-0.5 rounded font-bold border border-slate-200';
+                label.innerText = (i+1);
                 
                 thumb.appendChild(canvas);
                 thumb.appendChild(label);
@@ -456,26 +460,21 @@
             }
         }
 
-        function renderSliceToCanvas(canvas, index) {
+        function renderSliceToCanvas(canvas, index, qualityScale = 1) {
             const sliceViewW = state.viewfinderW / state.slices;
             const sliceViewH = state.viewfinderH;
 
-            // Output resolution (scaling for quality/preview)
-            const qualityScale = 1.5; 
             canvas.width = sliceViewW * qualityScale;
             canvas.height = sliceViewH * qualityScale;
             
             const ctx = canvas.getContext('2d');
-            ctx.fillStyle = "#000";
+            ctx.fillStyle = "#fff";
             ctx.fillRect(0,0, canvas.width, canvas.height);
 
             ctx.save();
             ctx.scale(qualityScale, qualityScale);
-            
-            // Shift context to current slice position
             ctx.translate(-index * sliceViewW, 0);
             
-            // Apply image transformations relative to viewfinder
             ctx.translate(state.posX + state.imgW/2, state.posY + state.imgH/2);
             ctx.rotate(state.rotation * Math.PI / 180);
             ctx.drawImage(state.image, -state.imgW/2, -state.imgH/2, state.imgW, state.imgH);
@@ -489,18 +488,19 @@
             const zip = new JSZip();
             const sliceViewW = state.viewfinderW / state.slices;
             
-            // High res capture
-            const captureScale = 2; // Export at 2x resolution
+            // Export Quality Scale (Adjust based on performance/needs)
+            const captureScale = 2500 / sliceViewW; // Target around 2500px width per slice
 
             for (let i = 0; i < state.slices; i++) {
                 const exportCanvas = document.createElement('canvas');
                 exportCanvas.width = sliceViewW * captureScale;
                 exportCanvas.height = state.viewfinderH * captureScale;
                 
-                renderSliceToCanvas(exportCanvas, i);
+                renderSliceToCanvas(exportCanvas, i, captureScale);
                 
-                const blob = await new Promise(res => exportCanvas.toBlob(res, 'image/jpeg', 0.95));
-                zip.file(`fragment_${(i+1).toString().padStart(2, '0')}.jpg`, blob);
+                // Export as JPEG
+                const blob = await new Promise(res => exportCanvas.toBlob(res, 'image/jpeg', 0.92));
+                zip.file(`slice_${(i+1).toString().padStart(2, '0')}.jpg`, blob);
                 
                 const progress = Math.round(((i + 1) / state.slices) * 100);
                 elements.progressBar.style.width = progress + '%';
@@ -510,7 +510,7 @@
             const content = await zip.generateAsync({ type: "blob" });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(content);
-            link.download = `PANORAMA_EXPORT_${Date.now()}.zip`;
+            link.download = `Panorama_Export_${new Date().toISOString().slice(0,10)}.zip`;
             link.click();
             
             setTimeout(() => {
@@ -519,7 +519,6 @@
             }, 500);
         });
 
-        // Initialize display on resize
         window.addEventListener('resize', () => {
             if (state.image) updateRatio(state.ratio);
         });
