@@ -6,15 +6,24 @@
     <title>Fragmenter Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root {
-            --accent: #0071e3;
-            --bg-canvas: #000000;
-            --bg-panel: rgba(28, 28, 30, 0.85);
+            --accent: #3b82f6;
+            --bg-canvas: #0f172a;
+            --bg-panel: #1e293b;
             --border: rgba(255, 255, 255, 0.1);
-            --text-primary: #f5f5f7;
-            --text-secondary: #86868b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --input-bg: rgba(15, 23, 42, 0.6);
+        }
+
+        .light-theme {
+            --bg-canvas: #f1f5f9;
+            --bg-panel: #ffffff;
+            --border: rgba(0, 0, 0, 0.1);
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --input-bg: rgba(241, 245, 249, 1);
         }
 
         body {
@@ -23,90 +32,106 @@
             font-family: 'Inter', sans-serif;
             overflow: hidden;
             height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
         }
 
         .glass-panel {
             background: var(--bg-panel);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border);
+            border-color: var(--border);
+            transition: background-color 0.3s, border-color 0.3s;
         }
 
-        .heading-xs {
-            font-size: 10px;
-            font-weight: 700;
+        .heading-section {
+            font-size: 11px;
+            font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--text-secondary);
+            letter-spacing: 0.15em;
+            color: var(--accent);
+            margin-bottom: 1.5rem;
         }
 
+        /* Range Sliders */
         input[type="range"] {
             -webkit-appearance: none;
             width: 100%;
             height: 4px;
-            background: rgba(255, 255, 255, 0.15);
+            background: var(--accent);
             border-radius: 2px;
+            opacity: 0.8;
         }
 
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            width: 18px;
-            height: 18px;
-            background: #ffffff;
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border: 2px solid var(--accent);
             border-radius: 50%;
             cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
 
-        .segmented-control {
-            display: flex;
-            background: rgba(0, 0, 0, 0.25);
-            padding: 2px;
-            border-radius: 10px;
+        /* Aspect Grid */
+        .aspect-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .aspect-btn {
+            background: var(--input-bg);
             border: 1px solid var(--border);
-        }
-
-        .segment-btn {
-            flex: 1;
-            padding: 8px 4px;
-            font-size: 11px;
-            font-weight: 600;
-            border-radius: 8px;
+            padding: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 4px;
+            color: var(--text-primary);
             transition: all 0.2s;
-            color: var(--text-secondary);
         }
 
-        .segment-btn.active {
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
+        .aspect-btn.active {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: var(--accent);
+        }
+
+        /* Steppers */
+        .stepper-box {
+            background: var(--input-bg);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            border: 1px solid var(--border);
         }
 
         .stepper-input {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 4px 8px;
-            font-size: 12px;
+            background: transparent;
             color: var(--accent);
+            font-weight: 600;
+            font-size: 14px;
             text-align: center;
-            width: 52px;
+            width: 60px;
+            border: none;
+            padding: 4px;
+        }
+
+        /* Checkbox */
+        .custom-checkbox {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--accent);
         }
 
         #workspace {
-            background-image: radial-gradient(circle at center, #1c1c1e 0%, #000 100%);
+            background-image: radial-gradient(circle at center, var(--bg-panel) 0%, var(--bg-canvas) 100%);
         }
 
         .preview-card {
-            border-radius: 12px;
+            border-radius: 8px;
             overflow: hidden;
             border: 1px solid var(--border);
-            background: #111;
-        }
-
-        .action-button {
-            background: var(--accent);
-            color: white;
-            font-weight: 600;
-            border-radius: 12px;
+            background: var(--input-bg);
         }
 
         .social-overlay {
@@ -116,20 +141,11 @@
             opacity: 0;
             transition: opacity 0.3s;
         }
+        .social-overlay.active { opacity: 1; }
 
-        .social-overlay.active {
-            opacity: 1;
-        }
-
-        .grid-line-h, .grid-line-v {
-            position: absolute;
-            background: rgba(255,255,255,0.15);
-        }
+        .grid-line-h, .grid-line-v { position: absolute; background: rgba(255,255,255,0.2); }
         .grid-line-h { width: 100%; height: 1px; }
         .grid-line-v { height: 100%; width: 1px; }
-
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
     </style>
 </head>
 <body class="flex flex-col h-screen overflow-hidden">
@@ -137,103 +153,124 @@
     <nav class="h-14 glass-panel border-b flex items-center justify-between px-6 z-50">
         <div class="flex items-center gap-6">
             <div class="flex items-center gap-2">
-                <div class="w-6 h-6 bg-white rounded-md flex items-center justify-center">
-                    <div class="w-3 h-3 border-2 border-black rounded-sm"></div>
+                <div class="w-6 h-6 bg-blue-500 rounded flex items-center justify-center">
+                    <div class="w-2.5 h-2.5 bg-white rounded-sm"></div>
                 </div>
-                <span class="font-bold text-sm tracking-tight">Fragmenter <span class="text-secondary font-medium">Pro</span></span>
+                <span class="font-bold text-sm tracking-tight text-[var(--text-primary)]">Fragmenter <span class="text-blue-500 font-black">PRO</span></span>
             </div>
-            <div id="file-name-display" class="text-xs font-medium text-white/40">No file loaded</div>
+            <div id="file-name-display" class="text-xs font-medium text-[var(--text-secondary)]">No file loaded</div>
         </div>
 
         <div class="flex items-center gap-3">
-            <button id="mobile-sync-btn" class="text-xs font-semibold px-4 py-1.5 rounded-full hover:bg-white/10 transition-colors flex items-center gap-2">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                Sync
+            <button id="theme-toggle" class="p-2 hover:bg-white/10 rounded-full transition-colors">
+                <svg id="theme-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-[var(--text-secondary)]">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
             </button>
-            <button id="import-btn-nav" class="text-xs font-semibold px-4 py-1.5 rounded-full hover:bg-white/10 transition-colors">Import</button>
-            <button id="export-btn" class="action-button text-xs px-5 py-1.5 shadow-lg shadow-blue-500/20">Export</button>
+            <button id="export-btn" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-6 py-2 rounded-lg shadow-lg shadow-blue-500/20 transition-all">EXPORT SLYCES</button>
         </div>
     </nav>
 
     <div class="flex-1 flex overflow-hidden relative">
-        <aside class="w-72 glass-panel border-r flex flex-col z-30">
-            <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-10">
+        <!-- Sidebar -->
+        <aside class="w-80 glass-panel border-r flex flex-col z-30">
+            <div class="flex-1 overflow-y-auto p-6 space-y-10 custom-scrollbar">
                 
-                <!-- Composition Controls -->
-                <div>
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 class="heading-xs">Composition</h3>
-                        <div class="flex gap-1.5">
-                            <button id="autofit-frame-btn" class="text-[9px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20">Autofit</button>
-                            <button id="auto-compose-btn" class="text-[9px] px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20">Fill Fit</button>
-                        </div>
-                    </div>
+                <!-- GEOMETRY SECTION -->
+                <section>
+                    <h3 class="heading-section">Geometry</h3>
                     
-                    <div class="space-y-4 mb-8">
-                        <div class="flex justify-between items-center">
-                            <label class="text-[11px] font-medium">Split Slices</label>
-                            <input type="number" id="slice-input" min="1" max="15" value="3" class="stepper-input">
+                    <div class="space-y-6">
+                        <!-- Slice Count -->
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <label class="text-xs font-semibold text-[var(--text-secondary)]">Slice Count</label>
+                                <div class="stepper-box">
+                                    <input type="number" id="slice-input" min="1" max="15" value="3" class="stepper-input">
+                                </div>
+                            </div>
+                            <input type="range" id="slice-range" min="1" max="15" value="3">
                         </div>
-                        <input type="range" id="slice-range" min="1" max="15" value="3">
-                    </div>
 
-                    <div class="space-y-4">
-                        <div class="flex justify-between items-center">
-                            <label class="text-[11px] font-medium">Scale</label>
-                            <input type="number" id="zoom-input" step="0.01" value="1.00" class="stepper-input">
+                        <!-- Rotation -->
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <label class="text-xs font-semibold text-[var(--text-secondary)] text-nowrap">Rotation (deg)</label>
+                                <div class="stepper-box">
+                                    <input type="number" id="rot-input" step="0.5" value="0.0" class="stepper-input">
+                                </div>
+                            </div>
+                            <input type="range" id="rot-range" min="-45" max="45" step="0.5" value="0">
                         </div>
-                        <input type="range" id="zoom-range" min="0.1" max="5" step="0.01" value="1">
-                    </div>
-                </div>
 
-                <!-- Aspect Ratio Section -->
-                <div>
-                    <h3 class="heading-xs mb-4">Aspect Ratio</h3>
-                    <div class="segmented-control">
-                        <button class="ratio-btn segment-btn" data-ratio="0.8">4:5</button>
-                        <button class="ratio-btn segment-btn active" data-ratio="1">1:1</button>
-                        <button class="ratio-btn segment-btn" data-ratio="1.777">16:9</button>
-                        <button id="flip-ratio-btn" class="segment-btn flex items-center justify-center">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
+                        <!-- Zoom -->
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <label class="text-xs font-semibold text-[var(--text-secondary)]">Zoom</label>
+                                <div class="stepper-box">
+                                    <input type="number" id="zoom-input" step="0.01" value="1.00" class="stepper-input">
+                                </div>
+                            </div>
+                            <input type="range" id="zoom-range" min="0.1" max="5" step="0.01" value="1">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- FRAME ASPECT SECTION -->
+                <section>
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="heading-section !mb-0">Frame Aspect</h3>
+                        <button id="flip-ratio-btn" class="text-[var(--text-secondary)] hover:text-blue-500 transition-colors">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
                         </button>
                     </div>
-                </div>
-
-                <!-- Overlays Section -->
-                <div>
-                    <h3 class="heading-xs mb-4">Mockup Overlays</h3>
-                    <select id="social-preview-select" class="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-blue-500 mb-6">
-                        <option value="none">Standard Canvas</option>
-                        <option value="instagram">Instagram Post</option>
-                        <option value="tiktok">TikTok Video</option>
-                        <option value="reels">Instagram Reels</option>
-                    </select>
-
-                    <div class="space-y-2">
-                        <label class="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-white/5 cursor-pointer group">
-                            <span class="text-[11px] font-medium text-white/60">Slice Borders</span>
-                            <input type="checkbox" id="toggle-grid" checked>
-                        </label>
-                        <label class="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-white/5 cursor-pointer group">
-                            <span class="text-[11px] font-medium text-white/60">Rule of Thirds</span>
-                            <input type="checkbox" id="toggle-thirds">
-                        </label>
+                    <div class="aspect-grid">
+                        <button class="ratio-btn aspect-btn" data-ratio="0.8">4:5</button>
+                        <button class="ratio-btn aspect-btn active" data-ratio="1">1:1</button>
+                        <button class="ratio-btn aspect-btn" data-ratio="1.777">16:9</button>
+                        <button id="auto-compose-btn" class="aspect-btn hover:bg-blue-500/10">AUTO</button>
                     </div>
-                </div>
-            </div>
+                </section>
 
-            <div class="p-6 border-t border-white/5">
-                <button id="reset-session-btn" class="w-full text-[10px] text-white/30 hover:text-red-400 font-bold uppercase tracking-widest text-left">Clear Workspace</button>
+                <!-- PREVIEW MOCKUPS SECTION -->
+                <section>
+                    <h3 class="heading-section">Preview Mockups</h3>
+                    <div class="space-y-6">
+                        <div class="relative">
+                            <select id="social-preview-select" class="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-lg p-3 text-sm text-[var(--text-primary)] focus:outline-none focus:border-blue-500 appearance-none">
+                                <option value="none">None</option>
+                                <option value="instagram">Instagram Post</option>
+                                <option value="tiktok">TikTok Fullscreen</option>
+                                <option value="reels">Instagram Reels</option>
+                            </select>
+                            <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--text-secondary)]">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <label class="flex items-center justify-between group cursor-pointer">
+                                <span class="text-sm font-medium text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">Safe Zones</span>
+                                <input type="checkbox" id="toggle-grid" checked class="custom-checkbox">
+                            </label>
+                            <label class="flex items-center justify-between group cursor-pointer">
+                                <span class="text-sm font-medium text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">Rule of Thirds</span>
+                                <input type="checkbox" id="toggle-thirds" class="custom-checkbox">
+                            </label>
+                        </div>
+                    </div>
+                </section>
             </div>
         </aside>
 
-        <main id="workspace" class="flex-1 relative flex items-center justify-center">
+        <!-- Main Canvas -->
+        <main id="workspace" class="flex-1 relative flex items-center justify-center p-12">
             <div id="viewfinder-container" class="relative">
                 <div id="top-mask" class="bg-black/90 absolute w-[5000px] h-[3000px] left-[-2500px] bottom-full"></div>
                 <div id="bottom-mask" class="bg-black/90 absolute w-[5000px] h-[3000px] left-[-2500px] top-full"></div>
                 
-                <div id="viewfinder" class="relative bg-[#080808] overflow-hidden shadow-2xl">
-                    <img id="main-image" src="" class="absolute max-w-none pointer-events-none select-none">
+                <div id="viewfinder" class="relative bg-black overflow-hidden shadow-2xl transition-all duration-300">
+                    <img id="main-image" src="" class="absolute max-w-none pointer-events-none select-none origin-center">
                     <div id="slice-guides" class="absolute inset-0 flex pointer-events-none"></div>
                     
                     <div id="thirds-guides" class="absolute inset-0 hidden pointer-events-none">
@@ -241,68 +278,54 @@
                         <div class="grid-line-v left-1/3"></div><div class="grid-line-v left-2/3"></div>
                     </div>
 
-                    <!-- Instagram Overlay -->
+                    <!-- Overlays -->
                     <div id="overlay-instagram" class="social-overlay">
-                        <div class="absolute top-0 w-full p-3 flex items-center justify-between bg-gradient-to-b from-black/50 to-transparent">
-                            <div class="flex items-center gap-2">
-                                <div class="w-7 h-7 rounded-full bg-white/20"></div>
-                                <div class="text-[10px] font-bold">username</div>
-                            </div>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
-                        </div>
-                        <div class="absolute bottom-0 w-full p-3 bg-gradient-to-t from-black/50 to-transparent">
-                            <div class="flex gap-4 mb-1">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
-                            </div>
+                        <div class="absolute top-0 w-full p-4 flex items-center justify-between bg-gradient-to-b from-black/60 to-transparent">
+                            <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-white/20"></div><div class="text-xs font-bold text-white">username</div></div>
                         </div>
                     </div>
-
-                    <!-- TikTok/Reels Overlay (Combined style) -->
                     <div id="overlay-tiktok" class="social-overlay">
-                        <div id="overlay-reels" class="social-overlay"></div> <!-- Duplicate target for shared logic -->
-                        <div class="absolute right-4 bottom-24 flex flex-col items-center gap-6">
-                            <div class="flex flex-col items-center"><div class="w-10 h-10 rounded-full border border-white bg-white/10"></div></div>
-                            <div class="flex flex-col items-center"><svg width="26" height="26" viewBox="0 0 24 24" fill="white"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div>
-                            <div class="flex flex-col items-center"><svg width="26" height="26" viewBox="0 0 24 24" fill="white"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10z"/></svg></div>
-                        </div>
-                        <div class="absolute left-4 bottom-10 max-w-[60%]">
-                            <div class="font-bold text-xs mb-1">@creator_pro</div>
-                            <div class="text-[10px] opacity-80">Full panorama split using #FragmenterPro. Seamless carousel transition.</div>
+                        <div class="absolute right-4 bottom-20 flex flex-col items-center gap-6">
+                            <div class="w-10 h-10 rounded-full border-2 border-white bg-white/10"></div>
+                            <div class="flex flex-col items-center gap-1"><svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg><span class="text-[10px] text-white">42k</span></div>
                         </div>
                     </div>
                 </div>
             </div>
         </main>
 
+        <!-- Right Preview Column -->
         <aside class="w-64 glass-panel border-l flex flex-col z-30">
-            <div class="p-4 border-b border-white/5 flex items-center justify-between">
-                <span class="heading-xs">Fragments</span>
-                <span id="fragment-count" class="text-[10px] font-bold text-white/40">0 items</span>
+            <div class="p-4 border-b border-[var(--border)] flex items-center justify-between">
+                <span class="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">Fragments</span>
+                <span id="fragment-count" class="text-[10px] font-bold text-blue-500">0 ITEMS</span>
             </div>
-            <div id="previews-container" class="flex-1 overflow-y-auto p-4 space-y-6"></div>
+            <div id="previews-container" class="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar"></div>
         </aside>
     </div>
 
-    <div id="landing-zone" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black">
-        <label for="file-upload" class="flex flex-col items-center cursor-pointer group">
-            <div class="w-20 h-20 rounded-3xl border-2 border-white/10 flex items-center justify-center group-hover:border-blue-500/50 group-hover:bg-blue-500/10 transition-all duration-500">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-white/20 group-hover:text-blue-500"><path d="M12 5v14M5 12h14"/></svg>
+    <!-- Upload Landing -->
+    <div id="landing-zone" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-slate-950">
+        <label for="file-upload" class="flex flex-col items-center cursor-pointer group px-10 py-16 rounded-3xl border-2 border-dashed border-white/10 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all">
+            <div class="w-20 h-20 rounded-2xl bg-blue-600 flex items-center justify-center shadow-2xl shadow-blue-600/30 group-hover:scale-110 transition-transform">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
             </div>
             <h2 class="mt-8 text-2xl font-bold text-white">Import Panorama</h2>
+            <p class="text-slate-400 mt-2 text-sm">Drag and drop or click to browse</p>
             <input type="file" id="file-upload" class="hidden" accept="image/*">
         </label>
     </div>
 
     <script>
         const state = {
-            image: null, imageDataUrl: null, fileName: 'panorama',
+            image: null, fileName: 'panorama',
             imgW: 0, imgH: 0, posX: 0, posY: 0, zoom: 1, rotation: 0,
             slices: 3, ratio: 1, isDragging: false,
             startX: 0, startY: 0, viewfinderW: 0, viewfinderH: 0
         };
 
         const elements = {
+            html: document.getElementById('root-html'),
             landing: document.getElementById('landing-zone'),
             fileInput: document.getElementById('file-upload'),
             mainImg: document.getElementById('main-image'),
@@ -310,6 +333,8 @@
             workspace: document.getElementById('workspace'),
             sliceRange: document.getElementById('slice-range'),
             sliceInput: document.getElementById('slice-input'),
+            rotRange: document.getElementById('rot-range'),
+            rotInput: document.getElementById('rot-input'),
             zoomRange: document.getElementById('zoom-range'),
             zoomInput: document.getElementById('zoom-input'),
             sliceGuides: document.getElementById('slice-guides'),
@@ -319,16 +344,24 @@
             toggleThirds: document.getElementById('toggle-thirds'),
             exportBtn: document.getElementById('export-btn'),
             autoCompose: document.getElementById('auto-compose-btn'),
-            autofitFrame: document.getElementById('autofit-frame-btn'),
             socialPreview: document.getElementById('social-preview-select'),
-            flipBtn: document.getElementById('flip-ratio-btn')
+            flipBtn: document.getElementById('flip-ratio-btn'),
+            themeToggle: document.getElementById('theme-toggle')
+        };
+
+        // Theme Toggle
+        elements.themeToggle.onclick = () => {
+            const isLight = elements.html.classList.toggle('light-theme');
+            elements.html.classList.toggle('dark', !isLight);
+            document.getElementById('theme-icon').innerHTML = isLight 
+                ? '<path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"></path>' 
+                : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
         };
 
         function loadImage(url) {
             const img = new Image();
             img.onload = () => {
                 state.image = img;
-                state.imageDataUrl = url;
                 state.imgW = img.width;
                 state.imgH = img.height;
                 elements.mainImg.src = url;
@@ -340,86 +373,51 @@
 
         elements.fileInput.onchange = (e) => {
             const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (event) => loadImage(event.target.result);
-            reader.readAsDataURL(file);
-        };
-
-        // Aspect Ratio
-        document.querySelectorAll('.ratio-btn').forEach(btn => {
-            btn.onclick = () => {
-                document.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                updateRatio(parseFloat(btn.dataset.ratio));
-            };
-        });
-
-        elements.flipBtn.onclick = () => updateRatio(1 / state.ratio);
-
-        // Social Overlays
-        elements.socialPreview.onchange = (e) => {
-            document.querySelectorAll('.social-overlay').forEach(el => el.classList.remove('active'));
-            const selected = e.target.value;
-            if (selected === 'reels' || selected === 'tiktok') {
-                document.getElementById('overlay-tiktok').classList.add('active');
-            } else if (selected !== 'none') {
-                document.getElementById(`overlay-${selected}`).classList.add('active');
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => loadImage(ev.target.result);
+                reader.readAsDataURL(file);
+                document.getElementById('file-name-display').innerText = file.name;
             }
         };
 
-        function syncInput(range, input, key, callback) {
-            range.oninput = (e) => { state[key] = parseFloat(e.target.value); input.value = state[key]; callback(); };
-            input.onchange = (e) => { state[key] = parseFloat(e.target.value) || 0; range.value = state[key]; callback(); };
+        // UI Sync
+        function sync(range, input, key, cb) {
+            range.oninput = () => { state[key] = parseFloat(range.value); input.value = state[key]; cb(); };
+            input.onchange = () => { state[key] = parseFloat(input.value) || 0; range.value = state[key]; cb(); };
         }
-
-        syncInput(elements.sliceRange, elements.sliceInput, 'slices', () => updateRatio(state.ratio));
-        syncInput(elements.zoomRange, elements.zoomInput, 'zoom', () => { updateTransform(); updatePreviews(); });
+        sync(elements.sliceRange, elements.sliceInput, 'slices', () => updateRatio(state.ratio));
+        sync(elements.rotRange, elements.rotInput, 'rotation', () => { updateTransform(); updatePreviews(); });
+        sync(elements.zoomRange, elements.zoomInput, 'zoom', () => { updateTransform(); updatePreviews(); });
 
         function updateRatio(ratio) {
             state.ratio = ratio;
-            const limitW = elements.workspace.clientWidth * 0.8;
-            const limitH = elements.workspace.clientHeight * 0.8;
-            let totalW = limitW;
-            let h = (totalW / state.slices) / state.ratio;
-            if (h > limitH) { h = limitH; totalW = (h * state.ratio) * state.slices; }
-            state.viewfinderW = totalW; state.viewfinderH = h;
-            elements.viewfinder.style.width = `${totalW}px`; elements.viewfinder.style.height = `${h}px`;
+            const limitW = elements.workspace.clientWidth * 0.85;
+            const limitH = elements.workspace.clientHeight * 0.85;
+            let tw = limitW;
+            let h = (tw / state.slices) / state.ratio;
+            if (h > limitH) { h = limitH; tw = (h * state.ratio) * state.slices; }
+            state.viewfinderW = tw; state.viewfinderH = h;
+            elements.viewfinder.style.width = `${tw}px`; elements.viewfinder.style.height = `${h}px`;
             updateSliceGuides(); updateTransform(); updatePreviews();
         }
 
         function updateTransform() {
-            elements.mainImg.style.transform = `translate(${state.posX}px, ${state.posY}px) scale(${state.zoom})`;
+            elements.mainImg.style.transform = `translate(${state.posX}px, ${state.posY}px) scale(${state.zoom}) rotate(${state.rotation}deg)`;
         }
 
         function updateSliceGuides() {
             elements.sliceGuides.innerHTML = '';
             for (let i = 1; i < state.slices; i++) {
-                const guide = document.createElement('div');
-                guide.className = 'h-full border-r border-white/20';
-                guide.style.width = `${100 / state.slices}%`;
-                elements.sliceGuides.appendChild(guide);
+                const g = document.createElement('div');
+                g.className = 'h-full border-r border-white/20';
+                g.style.width = `${100 / state.slices}%`;
+                elements.sliceGuides.appendChild(g);
             }
+            document.getElementById('fragment-count').innerText = `${state.slices} ITEMS`;
         }
 
-        elements.autofitFrame.onclick = () => {
-            const singleSliceW = state.viewfinderW / state.slices;
-            const scaleW = singleSliceW / state.imgW;
-            const scaleH = state.viewfinderH / state.imgH;
-            state.zoom = Math.min(scaleW, scaleH);
-            state.posX = (state.viewfinderW - state.imgW) / 2;
-            state.posY = (state.viewfinderH - state.imgH) / 2;
-            elements.zoomInput.value = state.zoom.toFixed(2);
-            elements.zoomRange.value = state.zoom;
-            updateTransform(); updatePreviews();
-        };
-
-        elements.autoCompose.onclick = () => {
-            state.zoom = Math.max(state.viewfinderH / state.imgH, state.viewfinderW / state.imgW);
-            state.posX = (state.viewfinderW - state.imgW) / 2; state.posY = (state.viewfinderH - state.imgH) / 2;
-            updateTransform(); updatePreviews();
-        };
-
+        // Draggable
         elements.workspace.onmousedown = (e) => {
             state.isDragging = true;
             state.startX = e.clientX - state.posX;
@@ -431,45 +429,72 @@
             state.posY = e.clientY - state.startY;
             updateTransform(); updatePreviews();
         };
-        window.onmouseup = () => { state.isDragging = false; };
+        window.onmouseup = () => state.isDragging = false;
+
+        // Ratio Controls
+        document.querySelectorAll('.ratio-btn').forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                updateRatio(parseFloat(btn.dataset.ratio));
+            };
+        });
+        elements.flipBtn.onclick = () => updateRatio(1 / state.ratio);
+        elements.autoCompose.onclick = () => {
+            state.zoom = Math.max(state.viewfinderH / state.imgH, state.viewfinderW / state.imgW);
+            state.posX = (state.viewfinderW - state.imgW)/2; state.posY = (state.viewfinderH - state.imgH)/2;
+            updateTransform(); updatePreviews();
+        };
+
+        // Social Preview
+        elements.socialPreview.onchange = (e) => {
+            document.querySelectorAll('.social-overlay').forEach(el => el.classList.remove('active'));
+            const s = e.target.value;
+            if (s === 'reels' || s === 'tiktok') document.getElementById('overlay-tiktok').classList.add('active');
+            else if (s !== 'none') document.getElementById(`overlay-${s}`).classList.add('active');
+        };
 
         function updatePreviews() {
             if (!state.image) return;
             elements.previews.innerHTML = '';
-            const sliceW = state.viewfinderW / state.slices;
+            const sw = state.viewfinderW / state.slices;
             for (let i = 0; i < state.slices; i++) {
                 const canvas = document.createElement('canvas');
-                canvas.width = sliceW * 0.4; canvas.height = state.viewfinderH * 0.4;
+                canvas.width = 200; canvas.height = (200 / state.ratio);
                 const ctx = canvas.getContext('2d');
-                ctx.scale(0.4, 0.4);
-                ctx.translate(-i * sliceW, 0);
+                const s = 200 / sw;
+                ctx.scale(s, s);
+                ctx.translate(-i * sw, 0);
                 ctx.translate(state.posX + state.imgW/2, state.posY + state.imgH/2);
+                ctx.rotate(state.rotation * Math.PI / 180);
                 ctx.scale(state.zoom, state.zoom);
                 ctx.drawImage(state.image, -state.imgW/2, -state.imgH/2);
                 const card = document.createElement('div');
-                card.className = 'preview-card';
+                card.className = 'preview-card group relative';
+                card.innerHTML = `<div class="absolute top-2 left-2 bg-blue-600 text-[8px] font-bold px-1.5 py-0.5 rounded text-white">${i+1}</div>`;
                 card.appendChild(canvas);
                 elements.previews.appendChild(card);
             }
         }
 
         elements.exportBtn.onclick = async () => {
-            const sliceW = state.viewfinderW / state.slices;
-            const scale = 2048 / sliceW;
+            const sw = state.viewfinderW / state.slices;
+            const scale = 2048 / sw;
             for (let i = 0; i < state.slices; i++) {
                 const canvas = document.createElement('canvas');
-                canvas.width = sliceW * scale; canvas.height = state.viewfinderH * scale;
+                canvas.width = sw * scale; canvas.height = state.viewfinderH * scale;
                 const ctx = canvas.getContext('2d');
                 ctx.scale(scale, scale);
-                ctx.translate(-i * sliceW, 0);
+                ctx.translate(-i * sw, 0);
                 ctx.translate(state.posX + state.imgW/2, state.posY + state.imgH/2);
+                ctx.rotate(state.rotation * Math.PI / 180);
                 ctx.scale(state.zoom, state.zoom);
                 ctx.drawImage(state.image, -state.imgW/2, -state.imgH/2);
-                const link = document.createElement('a');
-                link.download = `slice_${i+1}.jpg`;
-                link.href = canvas.toDataURL('image/jpeg', 0.9);
-                link.click();
-                await new Promise(r => setTimeout(r, 200));
+                const a = document.createElement('a');
+                a.download = `fragment_${i+1}.jpg`;
+                a.href = canvas.toDataURL('image/jpeg', 0.95);
+                a.click();
+                await new Promise(r => setTimeout(r, 150));
             }
         };
 
