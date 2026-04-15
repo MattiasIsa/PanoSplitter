@@ -1,20 +1,37 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en" class="dark" id="root-html">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panorama Fragmenter v2.0</title>
+    <title>Panorama Fragmenter v2.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
         :root {
             --brand-primary: #3b82f6;
+            --transition-speed: 0.3s;
+        }
+
+        /* Theme Variables */
+        .dark {
             --bg-main: #0f172a;
             --bg-sidebar: #1e293b;
+            --bg-header: #0f172a;
             --text-main: #f1f5f9;
             --text-muted: #94a3b8;
             --border-color: #334155;
+            --input-bg: #0f172a;
+        }
+
+        .light {
+            --bg-main: #f8fafc;
+            --bg-sidebar: #ffffff;
+            --bg-header: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --input-bg: #f1f5f9;
         }
 
         body {
@@ -23,11 +40,13 @@
             font-family: 'Inter', sans-serif;
             overflow: hidden;
             height: 100vh;
+            transition: background-color var(--transition-speed), color var(--transition-speed);
         }
 
         .sidebar {
             background-color: var(--bg-sidebar);
             border-color: var(--border-color);
+            transition: background-color var(--transition-speed), border-color var(--transition-speed);
         }
 
         .letterbox-overlay {
@@ -36,65 +55,98 @@
         }
 
         input[type="range"] {
-            @apply h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500;
+            @apply h-1.5 rounded-lg appearance-none cursor-pointer accent-blue-500;
+            background-color: var(--border-color);
         }
 
+        /* Improved Numerical Inputs */
         .num-input {
-            @apply bg-slate-800 border border-slate-600 rounded px-2 py-1 text-xs text-blue-400 focus:outline-none focus:border-blue-500 transition-colors w-16 text-center font-mono;
+            @apply border rounded-md px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all w-20 text-center font-bold;
+            background-color: var(--input-bg);
+            border-color: var(--border-color);
+            color: var(--brand-primary);
         }
 
         .btn-ratio {
-            @apply border border-slate-700 rounded-md py-2.5 text-xs font-semibold transition-all bg-slate-800/50 hover:bg-slate-700 hover:border-slate-500 text-slate-400;
+            @apply border rounded-md py-2.5 text-xs font-bold transition-all text-slate-500;
+            background-color: var(--input-bg);
+            border-color: var(--border-color);
         }
 
+        .dark .btn-ratio { @apply text-slate-400; }
+        .light .btn-ratio { @apply text-slate-600; }
+
         .btn-ratio.active-ratio {
-            @apply bg-blue-600 border-blue-400 text-white shadow-lg shadow-blue-900/20;
+            @apply bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-500/20;
         }
 
         .fragment-preview {
             aspect-ratio: var(--preview-ratio);
-            @apply bg-slate-900 rounded-lg border border-slate-700 shadow-xl transition-transform hover:scale-[1.05] relative overflow-hidden;
+            @apply rounded-lg border shadow-xl transition-transform hover:scale-[1.05] relative overflow-hidden;
+            background-color: var(--input-bg);
+            border-color: var(--border-color);
         }
 
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { @apply bg-slate-700 rounded-full hover:bg-slate-600; }
+        ::-webkit-scrollbar-thumb { @apply bg-slate-500/20 rounded-full hover:bg-slate-500/40; }
 
         .viewfinder-border {
-            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 20px 50px rgba(0,0,0,0.5);
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 20px 50px rgba(0,0,0,0.3);
         }
+        
+        .theme-toggle-node {
+            @apply w-10 h-5 rounded-full relative transition-colors duration-300 cursor-pointer border;
+            background-color: var(--input-bg);
+            border-color: var(--border-color);
+        }
+        .theme-toggle-thumb {
+            @apply absolute top-0.5 left-0.5 w-3.5 h-3.5 rounded-full transition-transform duration-300 flex items-center justify-center bg-blue-500;
+        }
+        .dark .theme-toggle-thumb { transform: translateX(1.25rem); }
     </style>
 </head>
-<body class="flex flex-col text-slate-200">
+<body class="flex flex-col">
 
     <!-- HEADER -->
-    <header class="h-14 border-b border-slate-800 flex items-center justify-between px-6 bg-slate-900 z-50">
+    <header class="h-14 border-b flex items-center justify-between px-6 z-50 transition-colors duration-300" style="background-color: var(--bg-header); border-color: var(--border-color);">
         <div class="flex items-center gap-3">
             <div class="w-7 h-7 bg-blue-600 rounded flex items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
             </div>
-            <h1 class="text-sm font-bold tracking-tight text-white uppercase italic">Panorama_Fragmenter.exe</h1>
+            <h1 class="text-sm font-black tracking-tighter uppercase italic" style="color: var(--text-main)">Fragmenter</h1>
         </div>
-        <div id="status-display" class="flex items-center gap-4">
+        
+        <div class="flex items-center gap-6">
+            <!-- Theme Toggle -->
+            <div class="flex items-center gap-3">
+                <span class="text-[10px] font-bold uppercase tracking-widest opacity-50">Theme</span>
+                <div id="theme-toggle" class="theme-toggle-node">
+                    <div class="theme-toggle-thumb">
+                        <div class="w-1.5 h-1.5 bg-white rounded-full"></div>
+                    </div>
+                </div>
+            </div>
+
             <div class="flex items-center gap-2">
-                <span class="w-1.5 h-1.5 rounded-full bg-slate-600" id="status-indicator"></span>
-                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">System Ready</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-slate-500" id="status-indicator"></span>
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Idle</span>
             </div>
         </div>
     </header>
 
     <!-- LANDING / DROPZONE -->
-    <div id="landing-zone" class="absolute inset-0 z-40 bg-slate-950 flex flex-col items-center justify-center transition-opacity duration-500">
-        <label for="file-upload" class="bg-slate-900 border-2 border-dashed border-slate-800 rounded-3xl p-16 flex flex-col items-center cursor-pointer hover:border-blue-500 hover:bg-slate-800/50 transition-all group max-w-lg w-full">
-            <div class="w-16 h-16 bg-blue-900/30 text-blue-500 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+    <div id="landing-zone" class="absolute inset-0 z-40 flex flex-col items-center justify-center transition-opacity duration-500" style="background-color: var(--bg-main)">
+        <label for="file-upload" class="border-2 border-dashed rounded-3xl p-16 flex flex-col items-center cursor-pointer hover:border-blue-500 transition-all group max-w-lg w-full" style="background-color: var(--bg-sidebar); border-color: var(--border-color)">
+            <div class="w-16 h-16 bg-blue-500/10 text-blue-500 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                 </svg>
             </div>
-            <span class="text-xl font-bold text-white">Import Source File</span>
-            <span class="text-sm mt-2 text-slate-500">Drop high-res panorama here</span>
+            <span class="text-xl font-bold" style="color: var(--text-main)">Import Source File</span>
+            <span class="text-sm mt-2" style="color: var(--text-muted)">Drop high-res panorama here</span>
             <input type="file" id="file-upload" class="hidden" accept="image/*">
         </label>
     </div>
@@ -105,12 +157,12 @@
         <!-- LEFT SIDEBAR: CONTROLS -->
         <aside class="sidebar w-72 border-r flex flex-col overflow-y-auto p-5 gap-6 shadow-2xl">
             <section>
-                <h2 class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-4">Geometry</h2>
+                <h2 class="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em] mb-4">Geometry</h2>
                 
                 <!-- Slices -->
                 <div class="mb-5">
                     <div class="flex justify-between items-center mb-2">
-                        <span class="text-xs font-medium text-slate-300">Slice Count</span>
+                        <span class="text-xs font-bold opacity-80">Slice Count</span>
                         <input type="number" id="slice-input" min="2" max="10" value="3" class="num-input">
                     </div>
                     <input type="range" id="slice-range" min="2" max="10" value="3" class="w-full">
@@ -119,7 +171,7 @@
                 <!-- Rotation -->
                 <div class="mb-5">
                     <div class="flex justify-between items-center mb-2">
-                        <span class="text-xs font-medium text-slate-300">Rotation (deg)</span>
+                        <span class="text-xs font-bold opacity-80">Rotation (deg)</span>
                         <input type="number" id="rot-input" step="0.5" value="0" class="num-input">
                     </div>
                     <input type="range" id="rot-range" min="-15" max="15" step="0.5" value="0" class="w-full">
@@ -128,7 +180,7 @@
                 <!-- Zoom -->
                 <div>
                     <div class="flex justify-between items-center mb-2">
-                        <span class="text-xs font-medium text-slate-300">Zoom Level</span>
+                        <span class="text-xs font-bold opacity-80">Zoom</span>
                         <input type="number" id="zoom-input" step="0.01" min="0.1" max="5" value="1.00" class="num-input">
                     </div>
                     <input type="range" id="zoom-range" min="0.1" max="3" step="0.01" value="1" class="w-full">
@@ -137,8 +189,8 @@
 
             <section>
                 <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Frame Aspect</h2>
-                    <button id="flip-ratio-btn" class="p-1.5 hover:bg-slate-700 rounded-md text-slate-400 border border-transparent hover:border-slate-600" title="Switch Orientation">
+                    <h2 class="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em]">Frame Aspect</h2>
+                    <button id="flip-ratio-btn" class="p-1.5 hover:bg-blue-500/10 rounded-md transition-colors" title="Switch Orientation">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
                         </svg>
@@ -153,21 +205,21 @@
             </section>
 
             <section>
-                <h2 class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-4">Overlay Config</h2>
+                <h2 class="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em] mb-4">Overlay</h2>
                 <div class="space-y-2">
-                    <label class="flex items-center justify-between p-2 rounded-lg bg-slate-900/50 cursor-pointer border border-slate-800 hover:border-slate-700">
-                        <span class="text-[11px] font-semibold text-slate-400">Social Safe Zones</span>
+                    <label class="flex items-center justify-between p-2.5 rounded-lg bg-slate-500/5 cursor-pointer border border-transparent hover:border-blue-500/30 transition-all">
+                        <span class="text-[11px] font-bold opacity-70">Safe Zones</span>
                         <input type="checkbox" id="toggle-safe-zones" class="accent-blue-500 w-4 h-4">
                     </label>
-                    <label class="flex items-center justify-between p-2 rounded-lg bg-slate-900/50 cursor-pointer border border-slate-800 hover:border-slate-700">
-                        <span class="text-[11px] font-semibold text-slate-400">Slice Guides</span>
+                    <label class="flex items-center justify-between p-2.5 rounded-lg bg-slate-500/5 cursor-pointer border border-transparent hover:border-blue-500/30 transition-all">
+                        <span class="text-[11px] font-bold opacity-70">Slices</span>
                         <input type="checkbox" id="toggle-grid" checked class="accent-blue-500 w-4 h-4">
                     </label>
                 </div>
             </section>
 
-            <div class="mt-auto pt-4 border-t border-slate-800">
-                <button id="export-btn" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-900/40 hover:bg-blue-500 hover:scale-[0.98] active:scale-95 transition-all flex flex-col items-center justify-center leading-tight">
+            <div class="mt-auto pt-4 border-t" style="border-color: var(--border-color)">
+                <button id="export-btn" class="w-full bg-blue-600 text-white font-black py-4 rounded-xl shadow-lg shadow-blue-500/30 hover:bg-blue-500 hover:scale-[0.98] active:scale-95 transition-all flex flex-col items-center justify-center leading-tight">
                     <span class="text-sm">BATCH EXPORT</span>
                     <span class="text-[9px] opacity-70">DIRECT JPEG SEQUENCE</span>
                 </button>
@@ -175,7 +227,7 @@
         </aside>
 
         <!-- CENTER: VISUAL WORKSPACE -->
-        <section class="flex-1 relative bg-slate-950 overflow-hidden flex items-center justify-center cursor-move" id="workspace">
+        <section class="flex-1 relative overflow-hidden flex items-center justify-center cursor-move" id="workspace" style="background-color: var(--bg-main)">
             <!-- Viewport Container -->
             <div id="viewfinder-container" class="relative z-10 transition-all duration-300">
                 <!-- Overlays -->
@@ -183,7 +235,7 @@
                 <div id="bottom-letterbox" class="letterbox-overlay absolute w-[10000px] h-[5000px] left-[-5000px] top-full"></div>
                 
                 <!-- Viewfinder Content -->
-                <div id="viewfinder" class="relative overflow-hidden bg-slate-900 viewfinder-border">
+                <div id="viewfinder" class="relative overflow-hidden bg-white viewfinder-border">
                     <!-- Image layer -->
                     <img id="main-image" src="" class="absolute max-w-none origin-center pointer-events-none select-none">
                     
@@ -203,16 +255,16 @@
             </div>
 
             <!-- Coordinate Tooltip -->
-            <div class="absolute bottom-6 right-6 px-3 py-1.5 bg-slate-900/90 rounded border border-slate-700 font-mono text-[10px] text-blue-400">
+            <div class="absolute bottom-6 right-6 px-3 py-1.5 rounded border font-mono text-[10px] font-bold text-blue-500" style="background-color: var(--bg-sidebar); border-color: var(--border-color)">
                 POS: <span id="coords">X:0 Y:0</span>
             </div>
         </section>
 
         <!-- RIGHT SIDEBAR: FRAGMENT OUTPUT -->
         <aside class="w-56 sidebar border-l flex flex-col">
-            <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/30">
-                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Live Buffer</span>
-                <span id="fragment-count" class="text-[10px] px-1.5 py-0.5 bg-blue-900/50 text-blue-400 rounded font-bold border border-blue-500/30">0</span>
+            <div class="p-4 border-b flex items-center justify-between" style="border-color: var(--border-color)">
+                <span class="text-[10px] font-black opacity-50 uppercase tracking-widest">Live Buffer</span>
+                <span id="fragment-count" class="text-[10px] px-1.5 py-0.5 bg-blue-500 text-white rounded font-bold">0</span>
             </div>
             <div id="previews-container" class="flex-1 overflow-y-auto p-4 space-y-4">
                 <!-- Previews -->
@@ -224,6 +276,7 @@
         // --- STATE ---
         const state = {
             image: null,
+            fileName: 'panorama',
             imgW: 0,
             imgH: 0,
             posX: 0,
@@ -240,6 +293,8 @@
         };
 
         const elements = {
+            htmlRoot: document.getElementById('root-html'),
+            themeToggle: document.getElementById('theme-toggle'),
             landing: document.getElementById('landing-zone'),
             main: document.getElementById('main-interface'),
             fileInput: document.getElementById('file-upload'),
@@ -264,12 +319,25 @@
             statusIndicator: document.getElementById('status-indicator')
         };
 
+        // --- THEME ---
+        elements.themeToggle.addEventListener('click', () => {
+            const isDark = elements.htmlRoot.classList.contains('dark');
+            if (isDark) {
+                elements.htmlRoot.classList.replace('dark', 'light');
+            } else {
+                elements.htmlRoot.classList.replace('light', 'dark');
+            }
+        });
+
         // --- INIT ---
         elements.fileInput.addEventListener('change', handleFile);
         
         function handleFile(e) {
             const file = e.target.files[0];
             if (!file) return;
+
+            // Strip extension for filename logic
+            state.fileName = file.name.replace(/\.[^/.]+$/, "");
 
             const reader = new FileReader();
             reader.onload = (event) => {
@@ -284,7 +352,8 @@
                     setTimeout(() => {
                         elements.landing.style.display = 'none';
                         elements.main.classList.remove('hidden');
-                        elements.statusIndicator.classList.replace('bg-slate-600', 'bg-blue-500');
+                        elements.statusIndicator.classList.replace('bg-slate-500', 'bg-emerald-500');
+                        document.querySelector('#status-indicator + span').innerText = 'Active';
                         initViewfinder();
                     }, 500);
                 };
@@ -312,6 +381,10 @@
             input.addEventListener('change', (e) => {
                 let val = parseFloat(e.target.value);
                 if (isNaN(val)) val = state[key];
+                
+                // Constraints
+                if (key === 'slices') val = Math.max(2, Math.min(10, val));
+                
                 state[key] = val;
                 range.value = val;
                 callback();
@@ -417,7 +490,7 @@
             elements.sliceGuides.innerHTML = '';
             for (let i = 1; i < state.slices; i++) {
                 const line = document.createElement('div');
-                line.className = 'h-full border-r border-slate-400/20 border-dashed';
+                line.className = 'h-full border-r border-slate-500/20 border-dashed';
                 line.style.width = (100 / state.slices) + '%';
                 elements.sliceGuides.appendChild(line);
             }
@@ -456,7 +529,7 @@
                 thumb.className = 'fragment-preview';
                 const canvas = document.createElement('canvas');
                 canvas.className = 'w-full h-full object-cover';
-                renderSliceToCanvas(canvas, i, 0.5); // Lower res for preview
+                renderSliceToCanvas(canvas, i, 0.5); 
                 
                 const label = document.createElement('div');
                 label.className = 'absolute bottom-1 right-1 bg-blue-600 text-white text-[8px] px-1 rounded font-bold';
@@ -468,10 +541,10 @@
             }
         }
 
-        // --- DIRECT DOWNLOAD EXPORT ---
+        // --- EXPORT ---
         elements.exportBtn.addEventListener('click', async () => {
             const sliceViewW = state.viewfinderW / state.slices;
-            const captureScale = 2500 / sliceViewW; // Scale for ~2.5k px width
+            const captureScale = 2500 / sliceViewW; 
 
             for (let i = 0; i < state.slices; i++) {
                 const exportCanvas = document.createElement('canvas');
@@ -481,12 +554,12 @@
                 
                 const dataUrl = exportCanvas.toDataURL('image/jpeg', 0.95);
                 const link = document.createElement('a');
-                link.download = `Panorama_Part_${(i+1).toString().padStart(2, '0')}.jpg`;
+                // Naming logic: originalName + sliceNumber
+                link.download = `${state.fileName}_${(i+1)}.jpg`;
                 link.href = dataUrl;
                 link.click();
                 
-                // Small delay to prevent browser download congestion
-                await new Promise(r => setTimeout(r, 150));
+                await new Promise(r => setTimeout(r, 200));
             }
         });
 
