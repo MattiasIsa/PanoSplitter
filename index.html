@@ -6,37 +6,31 @@
     <title>Fragmenter Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- QR Code Library for Save to Mobile -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root {
-            --accent: #0071e3; /* Apple Blue */
+            --accent: #0071e3;
             --bg-canvas: #000000;
-            --bg-panel: rgba(28, 28, 30, 0.85); /* Apple dark panel */
+            --bg-panel: rgba(28, 28, 30, 0.85);
             --border: rgba(255, 255, 255, 0.1);
             --text-primary: #f5f5f7;
             --text-secondary: #86868b;
-            --surface-elevated: rgba(44, 44, 46, 0.9);
         }
 
         body {
             background-color: var(--bg-canvas);
             color: var(--text-primary);
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Inter', sans-serif;
             overflow: hidden;
             height: 100vh;
-            -webkit-font-smoothing: antialiased;
         }
 
-        /* Glassmorphism Panels */
         .glass-panel {
             background: var(--bg-panel);
             backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--border);
         }
 
-        /* Modern Typography Styles */
         .heading-xs {
             font-size: 10px;
             font-weight: 700;
@@ -45,14 +39,12 @@
             color: var(--text-secondary);
         }
 
-        /* Custom Modern Slider */
         input[type="range"] {
             -webkit-appearance: none;
             width: 100%;
             height: 4px;
             background: rgba(255, 255, 255, 0.15);
             border-radius: 2px;
-            outline: none;
         }
 
         input[type="range"]::-webkit-slider-thumb {
@@ -63,14 +55,8 @@
             border-radius: 50%;
             cursor: pointer;
             box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-            transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1);
         }
 
-        input[type="range"]::-webkit-slider-thumb:hover {
-            transform: scale(1.1);
-        }
-
-        /* Segmented Controls (Aspect Ratio) */
         .segmented-control {
             display: flex;
             background: rgba(0, 0, 0, 0.25);
@@ -92,34 +78,23 @@
         .segment-btn.active {
             background: rgba(255, 255, 255, 0.1);
             color: #fff;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
 
-        /* Numerical Input Overhaul */
         .stepper-input {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--border);
             border-radius: 6px;
             padding: 4px 8px;
             font-size: 12px;
-            font-weight: 600;
             color: var(--accent);
             text-align: center;
-            width: 48px;
-            outline: none;
+            width: 52px;
         }
 
-        /* Immersive Workspace */
         #workspace {
-            background-image: 
-                radial-gradient(circle at center, #1c1c1e 0%, #000 100%);
+            background-image: radial-gradient(circle at center, #1c1c1e 0%, #000 100%);
         }
 
-        .viewfinder-shadow {
-            box-shadow: 0 30px 100px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.05);
-        }
-
-        /* Preview Thumbnails */
         .preview-card {
             border-radius: 12px;
             overflow: hidden;
@@ -128,60 +103,39 @@
             transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1);
         }
 
-        .preview-card:hover {
-            transform: translateY(-4px);
-            border-color: var(--accent);
-        }
-
         .action-button {
             background: var(--accent);
             color: white;
             font-weight: 600;
             border-radius: 12px;
-            transition: all 0.2s;
         }
 
-        .action-button:hover {
-            filter: brightness(1.1);
-            transform: translateY(-1px);
-        }
-
-        .action-button:active {
-            transform: translateY(0);
-        }
-
-        .letterbox {
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(4px);
-        }
-
-        /* Rule of Thirds Guide */
-        .grid-line-h {
+        /* Platform Overlays */
+        .social-overlay {
             position: absolute;
-            width: 100%;
-            height: 1px;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .social-overlay.active {
+            opacity: 1;
+        }
+
+        .grid-line-h, .grid-line-v {
+            position: absolute;
             background: rgba(255,255,255,0.15);
         }
-        .grid-line-v {
-            position: absolute;
-            height: 100%;
-            width: 1px;
-            background: rgba(255,255,255,0.15);
-        }
+        .grid-line-h { width: 100%; height: 1px; }
+        .grid-line-v { height: 100%; width: 1px; }
 
-        /* Custom Scrollbar */
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
     </style>
 </head>
 <body class="flex flex-col h-screen overflow-hidden">
 
-    <!-- TOP NAVIGATION BAR -->
     <nav class="h-14 glass-panel border-b flex items-center justify-between px-6 z-50">
         <div class="flex items-center gap-6">
             <div class="flex items-center gap-2">
@@ -190,38 +144,32 @@
                 </div>
                 <span class="font-bold text-sm tracking-tight">Fragmenter <span class="text-secondary font-medium">Pro</span></span>
             </div>
-            <div class="h-4 w-[1px] bg-white/10"></div>
             <div id="file-name-display" class="text-xs font-medium text-white/40">No file loaded</div>
         </div>
 
         <div class="flex items-center gap-3">
             <button id="mobile-sync-btn" class="text-xs font-semibold px-4 py-1.5 rounded-full hover:bg-white/10 transition-colors flex items-center gap-2">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                Save to Mobile
+                Mobile Sync
             </button>
             <button id="import-btn-nav" class="text-xs font-semibold px-4 py-1.5 rounded-full hover:bg-white/10 transition-colors">Import</button>
             <button id="export-btn" class="action-button text-xs px-5 py-1.5 shadow-lg shadow-blue-500/20">Export Sequence</button>
         </div>
     </nav>
 
-    <!-- MAIN APP WRAPPER -->
     <div class="flex-1 flex overflow-hidden relative">
-        
-        <!-- LEFT PANEL: TOOLS -->
         <aside class="w-72 glass-panel border-r flex flex-col z-30">
             <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-10">
                 
-                <!-- Composition Section -->
                 <div>
                     <div class="flex items-center justify-between mb-6">
                         <h3 class="heading-xs">Composition</h3>
                         <div class="flex gap-1.5">
-                            <button id="autofit-frame-btn" class="text-[9px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20" title="Fit whole image in frame">Autofit</button>
-                            <button id="auto-compose-btn" class="text-[9px] px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20" title="Fill frame completely">Fill Fit</button>
+                            <button id="autofit-frame-btn" class="text-[9px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20">Autofit</button>
+                            <button id="auto-compose-btn" class="text-[9px] px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20">Fill Fit</button>
                         </div>
                     </div>
                     
-                    <!-- Slices -->
                     <div class="space-y-4 mb-8">
                         <div class="flex justify-between items-center">
                             <label class="text-[11px] font-medium">Split Slices</label>
@@ -230,7 +178,6 @@
                         <input type="range" id="slice-range" min="1" max="15" value="3">
                     </div>
 
-                    <!-- Seam Overlap -->
                     <div class="space-y-4 mb-8">
                         <div class="flex justify-between items-center">
                             <label class="text-[11px] font-medium">Seam Overlap (%)</label>
@@ -239,16 +186,6 @@
                         <input type="range" id="overlap-range" min="0" max="10" step="0.1" value="0">
                     </div>
 
-                    <!-- Rotation -->
-                    <div class="space-y-4 mb-8">
-                        <div class="flex justify-between items-center">
-                            <label class="text-[11px] font-medium">Rotation</label>
-                            <input type="number" id="rot-input" step="0.1" value="0" class="stepper-input !w-[52px]">
-                        </div>
-                        <input type="range" id="rot-range" min="-180" max="180" step="0.1" value="0">
-                    </div>
-
-                    <!-- Zoom -->
                     <div class="space-y-4">
                         <div class="flex justify-between items-center">
                             <label class="text-[11px] font-medium">Scale</label>
@@ -258,145 +195,123 @@
                     </div>
                 </div>
 
-                <!-- Aspect Ratio Section -->
                 <div>
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="heading-xs">Aspect Ratio</h3>
-                        <button id="flip-ratio-btn" class="text-white/40 hover:text-white transition-colors">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
-                        </button>
-                    </div>
-                    <div class="segmented-control">
-                        <button class="ratio-btn segment-btn" data-ratio="0.8">4:5</button>
-                        <button class="ratio-btn segment-btn active" data-ratio="1">1:1</button>
-                        <button class="ratio-btn segment-btn" data-ratio="1.777">16:9</button>
-                        <button class="ratio-btn segment-btn" data-ratio="auto">Auto</button>
-                    </div>
+                    <h3 class="heading-xs mb-4">Preview Mockups</h3>
+                    <select id="social-preview-select" class="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-blue-500">
+                        <option value="none">Clean Canvas (Standard)</option>
+                        <option value="instagram">Instagram Feed Post</option>
+                        <option value="tiktok">TikTok Fullscreen</option>
+                        <option value="reels">Instagram Reels</option>
+                    </select>
                 </div>
 
-                <!-- Overlays -->
                 <div>
                     <h3 class="heading-xs mb-4">View Options</h3>
                     <div class="space-y-2">
                         <label class="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-white/5 cursor-pointer group">
-                            <span class="text-[11px] font-medium text-white/60 group-hover:text-white">Slice Borders</span>
-                            <input type="checkbox" id="toggle-grid" checked class="opacity-40">
+                            <span class="text-[11px] font-medium text-white/60">Slice Borders</span>
+                            <input type="checkbox" id="toggle-grid" checked>
                         </label>
                         <label class="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-white/5 cursor-pointer group">
-                            <span class="text-[11px] font-medium text-white/60 group-hover:text-white">Rule of Thirds</span>
-                            <input type="checkbox" id="toggle-thirds" class="opacity-40">
-                        </label>
-                        <label class="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-white/5 cursor-pointer group">
-                            <span class="text-[11px] font-medium text-white/60 group-hover:text-white">Safe Zones</span>
-                            <input type="checkbox" id="toggle-safe-zones" class="opacity-40">
+                            <span class="text-[11px] font-medium text-white/60">Rule of Thirds</span>
+                            <input type="checkbox" id="toggle-thirds">
                         </label>
                     </div>
                 </div>
             </div>
 
-            <!-- Metadata/Info -->
-            <div class="p-6 border-t border-white/5 space-y-3">
-                <button id="reset-session-btn" class="w-full text-[10px] text-white/30 hover:text-red-400 font-bold uppercase tracking-widest text-left transition-colors">Clear Session Data</button>
-                <div class="flex items-center justify-between text-[10px] text-white/30 font-bold uppercase tracking-widest">
-                    <span>Engine v2.9</span>
-                    <span class="text-emerald-500">Industry Std</span>
-                </div>
+            <div class="p-6 border-t border-white/5">
+                <button id="reset-session-btn" class="w-full text-[10px] text-white/30 hover:text-red-400 font-bold uppercase tracking-widest text-left">Clear Session</button>
             </div>
         </aside>
 
-        <!-- CENTER: CANVAS -->
-        <main id="workspace" class="flex-1 relative flex items-center justify-center overflow-hidden">
-            <div id="viewfinder-container" class="relative transition-all duration-700 ease-[cubic-bezier(0.2,0,0,1)]">
-                <!-- Top/Bottom Masks -->
-                <div id="top-mask" class="letterbox absolute w-[5000px] h-[3000px] left-[-2500px] bottom-full border-b border-white/5"></div>
-                <div id="bottom-mask" class="letterbox absolute w-[5000px] h-[3000px] left-[-2500px] top-full border-t border-white/5"></div>
+        <main id="workspace" class="flex-1 relative flex items-center justify-center">
+            <div id="viewfinder-container" class="relative">
+                <div id="top-mask" class="bg-black/90 absolute w-[5000px] h-[3000px] left-[-2500px] bottom-full"></div>
+                <div id="bottom-mask" class="bg-black/90 absolute w-[5000px] h-[3000px] left-[-2500px] top-full"></div>
                 
-                <div id="viewfinder" class="relative bg-[#080808] overflow-hidden viewfinder-shadow">
+                <div id="viewfinder" class="relative bg-[#080808] overflow-hidden shadow-2xl">
                     <img id="main-image" src="" class="absolute max-w-none pointer-events-none select-none">
-                    
-                    <!-- Guides Layer -->
                     <div id="slice-guides" class="absolute inset-0 flex pointer-events-none"></div>
                     
-                    <!-- Rule of Thirds Layer -->
+                    <!-- Rule of Thirds -->
                     <div id="thirds-guides" class="absolute inset-0 hidden pointer-events-none">
                         <div class="grid-line-h top-1/3"></div>
                         <div class="grid-line-h top-2/3"></div>
                         <div class="grid-line-v left-1/3"></div>
                         <div class="grid-line-v left-2/3"></div>
                     </div>
-                    
-                    <!-- Smart Overlay -->
-                    <div id="safe-zones" class="absolute inset-0 hidden border border-white/5">
-                        <div class="absolute inset-[10%] border border-white/10 rounded-sm"></div>
+
+                    <!-- Instagram Overlay -->
+                    <div id="overlay-instagram" class="social-overlay">
+                        <div class="absolute top-0 w-full p-3 flex items-center justify-between bg-gradient-to-b from-black/40 to-transparent">
+                            <div class="flex items-center gap-2">
+                                <div class="w-8 h-8 rounded-full bg-white/20"></div>
+                                <div class="text-[11px] font-bold">your_profile</div>
+                            </div>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+                        </div>
+                        <div class="absolute bottom-0 w-full p-4 bg-gradient-to-t from-black/40 to-transparent">
+                            <div class="flex gap-4 mb-2">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                            </div>
+                            <div class="text-[10px] font-bold">1,234 likes</div>
+                        </div>
+                    </div>
+
+                    <!-- TikTok Overlay -->
+                    <div id="overlay-tiktok" class="social-overlay">
+                        <div class="absolute right-4 bottom-24 flex flex-col items-center gap-6">
+                            <div class="flex flex-col items-center"><div class="w-10 h-10 rounded-full border border-white bg-white/10"></div><span class="text-[10px] mt-1">Profile</span></div>
+                            <div class="flex flex-col items-center"><svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg><span class="text-[10px] mt-1">88K</span></div>
+                            <div class="flex flex-col items-center"><svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10z"/></svg><span class="text-[10px] mt-1">122</span></div>
+                            <div class="flex flex-col items-center"><svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg><span class="text-[10px] mt-1">Share</span></div>
+                        </div>
+                        <div class="absolute left-4 bottom-8 max-w-[70%]">
+                            <div class="font-bold text-sm mb-1">@creator_name</div>
+                            <div class="text-xs">Amazing panoramic views using #FragmenterPro #Creative </div>
+                        </div>
                     </div>
                 </div>
             </div>
-
-            <!-- HUD Overlay -->
-            <div class="absolute bottom-8 left-1/2 -translate-x-1/2 px-4 py-2 glass-panel rounded-full text-[10px] font-semibold tracking-wide text-white/60 flex items-center gap-4">
-                <div class="flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                    ACTIVE COMP
-                </div>
-                <div class="w-[1px] h-3 bg-white/10"></div>
-                <div id="resolution-info">Ready for Input</div>
-            </div>
         </main>
 
-        <!-- RIGHT PANEL: ASSETS -->
         <aside class="w-64 glass-panel border-l flex flex-col z-30">
             <div class="p-4 border-b border-white/5 flex items-center justify-between">
                 <span class="heading-xs">Fragments</span>
                 <span id="fragment-count" class="text-[10px] font-bold text-white/40">0 items</span>
             </div>
-            <div id="previews-container" class="flex-1 overflow-y-auto p-4 space-y-6">
-                <!-- Previews -->
-            </div>
+            <div id="previews-container" class="flex-1 overflow-y-auto p-4 space-y-6"></div>
         </aside>
     </div>
 
-    <!-- QR MODAL -->
     <div id="qr-modal" class="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-6">
         <div class="glass-panel p-8 rounded-3xl max-w-sm w-full text-center space-y-6">
             <h3 class="text-xl font-bold tracking-tight">Sync to Device</h3>
-            <p class="text-sm text-white/40">Scan to download your high-res fragments directly to your phone.</p>
             <div id="qrcode" class="bg-white p-4 rounded-2xl inline-block"></div>
             <button id="close-qr" class="w-full py-3 rounded-xl bg-white/5 hover:bg-white/10 font-semibold transition-colors">Done</button>
         </div>
     </div>
 
-    <!-- FULLSCREEN DROPZONE -->
-    <div id="landing-zone" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black transition-all duration-700">
+    <div id="landing-zone" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black">
         <label for="file-upload" class="flex flex-col items-center cursor-pointer group">
             <div class="w-20 h-20 rounded-3xl border-2 border-white/10 flex items-center justify-center group-hover:border-blue-500/50 group-hover:bg-blue-500/10 transition-all duration-500">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-white/20 group-hover:text-blue-500"><path d="M12 5v14M5 12h14"/></svg>
             </div>
-            <h2 class="mt-8 text-2xl font-bold tracking-tight text-white group-hover:text-blue-400 transition-colors">Start a Project</h2>
-            <p class="mt-2 text-sm text-white/40">Drag and drop a panoramic image to fragment</p>
+            <h2 class="mt-8 text-2xl font-bold tracking-tight text-white">Start a Project</h2>
+            <p class="mt-2 text-sm text-white/40">Drop a panoramic image to fragment</p>
             <input type="file" id="file-upload" class="hidden" accept="image/*">
         </label>
     </div>
 
     <script>
-        // --- DATA STATE ---
         const state = {
-            image: null,
-            imageDataUrl: null, // For persistence
-            fileName: 'panorama',
-            imgW: 0,
-            imgH: 0,
-            posX: 0,
-            posY: 0,
-            zoom: 1,
-            rotation: 0,
-            slices: 3,
-            overlap: 0, // In percentage (0-10)
-            ratio: 1,
-            isDragging: false,
-            startX: 0,
-            startY: 0,
-            viewfinderW: 0,
-            viewfinderH: 0
+            image: null, imageDataUrl: null, fileName: 'panorama',
+            imgW: 0, imgH: 0, posX: 0, posY: 0, zoom: 1, rotation: 0,
+            slices: 3, overlap: 0, ratio: 1, isDragging: false,
+            startX: 0, startY: 0, viewfinderW: 0, viewfinderH: 0
         };
 
         const elements = {
@@ -409,57 +324,41 @@
             sliceInput: document.getElementById('slice-input'),
             overlapRange: document.getElementById('overlap-range'),
             overlapInput: document.getElementById('overlap-input'),
-            rotRange: document.getElementById('rot-range'),
-            rotInput: document.getElementById('rot-input'),
             zoomRange: document.getElementById('zoom-range'),
             zoomInput: document.getElementById('zoom-input'),
             sliceGuides: document.getElementById('slice-guides'),
             thirdsGuides: document.getElementById('thirds-guides'),
             previews: document.getElementById('previews-container'),
-            toggleSafe: document.getElementById('toggle-safe-zones'),
-            safeZones: document.getElementById('safe-zones'),
             toggleGrid: document.getElementById('toggle-grid'),
             toggleThirds: document.getElementById('toggle-thirds'),
             exportBtn: document.getElementById('export-btn'),
-            flipBtn: document.getElementById('flip-ratio-btn'),
-            fragCount: document.getElementById('fragment-count'),
-            resInfo: document.getElementById('resolution-info'),
-            nameDisplay: document.getElementById('file-name-display'),
             autoCompose: document.getElementById('auto-compose-btn'),
             autofitFrame: document.getElementById('autofit-frame-btn'),
+            socialPreview: document.getElementById('social-preview-select'),
             mobileSync: document.getElementById('mobile-sync-btn'),
             qrModal: document.getElementById('qr-modal'),
-            qrcode: document.getElementById('qrcode'),
             closeQr: document.getElementById('close-qr'),
             resetBtn: document.getElementById('reset-session-btn'),
             importNav: document.getElementById('import-btn-nav')
         };
 
-        // --- PERSISTENCE ---
+        // --- CORE FUNCTIONS ---
         function saveSession() {
             if (!state.image) return;
-            const data = { ...state, image: null, imageDataUrl: state.imageDataUrl };
-            localStorage.setItem('fragmenter_pro_session', JSON.stringify(data));
+            const data = { ...state, image: null };
+            localStorage.setItem('fragmenter_pro_v3', JSON.stringify(data));
         }
 
         function loadSession() {
-            const saved = localStorage.getItem('fragmenter_pro_session');
+            const saved = localStorage.getItem('fragmenter_pro_v3');
             if (saved) {
                 const parsed = JSON.parse(saved);
                 Object.assign(state, parsed);
-                if (state.imageDataUrl) {
-                    loadImageFromUrl(state.imageDataUrl);
-                }
+                if (state.imageDataUrl) loadImage(state.imageDataUrl);
             }
         }
 
-        elements.resetBtn.onclick = () => {
-            localStorage.removeItem('fragmenter_pro_session');
-            window.location.reload();
-        };
-
-        // --- FILE HANDLING ---
-        function loadImageFromUrl(url) {
+        function loadImage(url) {
             const img = new Image();
             img.onload = () => {
                 state.image = img;
@@ -467,110 +366,51 @@
                 state.imgW = img.width;
                 state.imgH = img.height;
                 elements.mainImg.src = url;
-                elements.resInfo.innerText = `${img.width} × ${img.height} RAW`;
                 elements.landing.style.display = 'none';
-                
-                // Refresh UI values from state
-                elements.sliceInput.value = state.slices;
-                elements.sliceRange.value = state.slices;
-                elements.overlapInput.value = state.overlap;
-                elements.overlapRange.value = state.overlap;
-                elements.rotInput.value = state.rotation;
-                elements.rotRange.value = state.rotation;
-                elements.zoomInput.value = state.zoom;
-                elements.zoomRange.value = state.zoom;
-                
                 updateRatio(state.ratio);
             };
             img.src = url;
         }
 
-        elements.fileInput.addEventListener('change', (e) => {
+        elements.fileInput.onchange = (e) => {
             const file = e.target.files[0];
             if (!file) return;
-            state.fileName = file.name.split('.')[0];
-            elements.nameDisplay.innerText = file.name;
             const reader = new FileReader();
-            reader.onload = (event) => loadImageFromUrl(event.target.result);
+            reader.onload = (event) => loadImage(event.target.result);
             reader.readAsDataURL(file);
-        });
+        };
 
-        elements.importNav.onclick = () => elements.fileInput.click();
+        elements.socialPreview.onchange = (e) => {
+            document.querySelectorAll('.social-overlay').forEach(el => el.classList.remove('active'));
+            const selected = e.target.value;
+            if (selected !== 'none') {
+                document.getElementById(`overlay-${selected}`).classList.add('active');
+            }
+        };
 
-        // --- CORE UI LOGIC ---
-        function sync(range, input, key, callback) {
-            range.addEventListener('input', (e) => {
-                state[key] = parseFloat(e.target.value);
-                input.value = state[key].toFixed(key === 'zoom' ? 2 : 1);
-                callback();
-                saveSession();
-            });
-            input.addEventListener('change', (e) => {
-                state[key] = parseFloat(e.target.value) || 0;
-                range.value = state[key];
-                callback();
-                saveSession();
-            });
+        function syncInput(range, input, key, callback) {
+            range.oninput = (e) => { state[key] = parseFloat(e.target.value); input.value = state[key]; callback(); saveSession(); };
+            input.onchange = (e) => { state[key] = parseFloat(e.target.value) || 0; range.value = state[key]; callback(); saveSession(); };
         }
 
-        sync(elements.sliceRange, elements.sliceInput, 'slices', () => {
-            elements.fragCount.innerText = `${Math.floor(state.slices)} items`;
-            updateRatio(state.ratio);
-        });
-        sync(elements.overlapRange, elements.overlapInput, 'overlap', () => {
-            updatePreviews();
-        });
-        sync(elements.rotRange, elements.rotInput, 'rotation', () => {
-            updateTransform();
-            updatePreviews();
-        });
-        sync(elements.zoomRange, elements.zoomInput, 'zoom', () => {
-            updateTransform();
-            updatePreviews();
-        });
-
-        // Aspect Ratios
-        document.querySelectorAll('.ratio-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                const r = btn.dataset.ratio;
-                updateRatio(r === 'auto' ? state.imgW / (state.imgH / state.slices) : parseFloat(r));
-                saveSession();
-            });
-        });
-
-        elements.flipBtn.addEventListener('click', () => updateRatio(1 / state.ratio));
-        elements.toggleGrid.addEventListener('change', (e) => elements.sliceGuides.style.opacity = e.target.checked ? '1' : '0');
-        elements.toggleThirds.addEventListener('change', (e) => elements.thirdsGuides.style.display = e.target.checked ? 'block' : 'none');
-        elements.toggleSafe.addEventListener('change', (e) => elements.safeZones.style.display = e.target.checked ? 'block' : 'none');
+        syncInput(elements.sliceRange, elements.sliceInput, 'slices', () => { updateRatio(state.ratio); });
+        syncInput(elements.overlapRange, elements.overlapInput, 'overlap', updatePreviews);
+        syncInput(elements.zoomRange, elements.zoomInput, 'zoom', () => { updateTransform(); updatePreviews(); });
 
         function updateRatio(ratio) {
             state.ratio = ratio;
             const limitW = elements.workspace.clientWidth * 0.8;
             const limitH = elements.workspace.clientHeight * 0.8;
-
             let totalW = limitW;
             let h = (totalW / state.slices) / state.ratio;
-
-            if (h > limitH) {
-                h = limitH;
-                totalW = (h * state.ratio) * state.slices;
-            }
-
-            state.viewfinderW = totalW;
-            state.viewfinderH = h;
-            elements.viewfinder.style.width = `${totalW}px`;
-            elements.viewfinder.style.height = `${h}px`;
-            
-            updateSliceGuides();
-            updateTransform();
-            updatePreviews();
+            if (h > limitH) { h = limitH; totalW = (h * state.ratio) * state.slices; }
+            state.viewfinderW = totalW; state.viewfinderH = h;
+            elements.viewfinder.style.width = `${totalW}px`; elements.viewfinder.style.height = `${h}px`;
+            updateSliceGuides(); updateTransform(); updatePreviews();
         }
 
-        // --- TRANSFORMS ---
         function updateTransform() {
-            elements.mainImg.style.transform = `translate(${state.posX}px, ${state.posY}px) rotate(${state.rotation}deg) scale(${state.zoom})`;
+            elements.mainImg.style.transform = `translate(${state.posX}px, ${state.posY}px) scale(${state.zoom})`;
         }
 
         function updateSliceGuides() {
@@ -583,151 +423,90 @@
             }
         }
 
-        // --- SMART AUTO-COMPOSITION ---
-        // Fill Fit: Scales to cover the frame completely (no letterboxing)
         elements.autoCompose.onclick = () => {
-            if (!state.image) return;
-            const scaleToFitH = state.viewfinderH / state.imgH;
-            const scaleToFitW = state.viewfinderW / state.imgW;
-            state.zoom = Math.max(scaleToFitH, scaleToFitW);
-            state.posX = (state.viewfinderW - state.imgW) / 2;
-            state.posY = (state.viewfinderH - state.imgH) / 2;
-            state.rotation = 0;
-            
-            elements.zoomInput.value = state.zoom.toFixed(2);
-            elements.zoomRange.value = state.zoom;
-            elements.rotInput.value = 0;
-            elements.rotRange.value = 0;
-            
-            updateTransform();
-            updatePreviews();
-            saveSession();
+            state.zoom = Math.max(state.viewfinderH / state.imgH, state.viewfinderW / state.imgW);
+            state.posX = (state.viewfinderW - state.imgW) / 2; state.posY = (state.viewfinderH - state.imgH) / 2;
+            updateTransform(); updatePreviews();
         };
 
-        // Autofit Frame: Scales to fit the ENTIRE image inside the frame (letterboxing)
         elements.autofitFrame.onclick = () => {
-            if (!state.image) return;
-            const scaleToFitH = state.viewfinderH / state.imgH;
-            const scaleToFitW = state.viewfinderW / state.imgW;
-            state.zoom = Math.min(scaleToFitH, scaleToFitW);
-            state.posX = (state.viewfinderW - state.imgW) / 2;
-            state.posY = (state.viewfinderH - state.imgH) / 2;
-            state.rotation = 0;
-            
-            elements.zoomInput.value = state.zoom.toFixed(2);
-            elements.zoomRange.value = state.zoom;
-            elements.rotInput.value = 0;
-            elements.rotRange.value = 0;
-            
-            updateTransform();
-            updatePreviews();
-            saveSession();
+            state.zoom = Math.min(state.viewfinderH / state.imgH, (state.viewfinderW / state.slices) / state.imgW);
+            state.posX = (state.viewfinderW - state.imgW) / 2; state.posY = (state.viewfinderH - state.imgH) / 2;
+            updateTransform(); updatePreviews();
         };
 
-        // --- INTERACTION ---
-        elements.workspace.addEventListener('mousedown', (e) => {
+        elements.workspace.onmousedown = (e) => {
             state.isDragging = true;
             state.startX = e.clientX - state.posX;
             state.startY = e.clientY - state.posY;
-            elements.workspace.style.cursor = 'grabbing';
-        });
-        window.addEventListener('mousemove', (e) => {
+        };
+        window.onmousemove = (e) => {
             if (!state.isDragging) return;
             state.posX = e.clientX - state.startX;
             state.posY = e.clientY - state.startY;
-            updateTransform();
-            updatePreviews();
-        });
-        window.addEventListener('mouseup', () => {
-            if (state.isDragging) saveSession();
-            state.isDragging = false;
-            elements.workspace.style.cursor = 'move';
-        });
-
-        // --- PREVIEWS & EXPORT ---
-        function renderToCanvas(canvas, index, scale) {
-            const sliceW = state.viewfinderW / state.slices;
-            const sliceH = state.viewfinderH;
-            
-            // Calculate overlap pixel value
-            const overlapPx = (state.overlap / 100) * sliceW;
-            
-            // Adjust canvas width for overlap
-            canvas.width = (sliceW + overlapPx) * scale;
-            canvas.height = sliceH * scale;
-            
-            const ctx = canvas.getContext('2d');
-            ctx.scale(scale, scale);
-            
-            // Translate for slice index
-            ctx.translate(-index * sliceW, 0);
-            
-            // Apply standard transforms
-            ctx.translate(state.posX + state.imgW/2, state.posY + state.imgH/2);
-            ctx.rotate(state.rotation * Math.PI / 180);
-            ctx.scale(state.zoom, state.zoom);
-            ctx.drawImage(state.image, -state.imgW/2, -state.imgH/2, state.imgW, state.imgH);
-        }
+            updateTransform(); updatePreviews();
+        };
+        window.onmouseup = () => { if (state.isDragging) saveSession(); state.isDragging = false; };
 
         function updatePreviews() {
             if (!state.image) return;
             elements.previews.innerHTML = '';
+            const sliceW = state.viewfinderW / state.slices;
+            const overlapPx = (state.overlap / 100) * sliceW;
+
             for (let i = 0; i < state.slices; i++) {
-                const card = document.createElement('div');
-                card.className = 'preview-card group relative';
                 const canvas = document.createElement('canvas');
-                canvas.className = 'w-full h-auto block';
-                renderToCanvas(canvas, i, 0.4); 
+                canvas.width = (sliceW + overlapPx) * 0.5;
+                canvas.height = state.viewfinderH * 0.5;
+                const ctx = canvas.getContext('2d');
+                ctx.scale(0.5, 0.5);
+                ctx.translate(-i * sliceW, 0);
+                ctx.translate(state.posX + state.imgW/2, state.posY + state.imgH/2);
+                ctx.scale(state.zoom, state.zoom);
+                ctx.drawImage(state.image, -state.imgW/2, -state.imgH/2);
+                
+                const card = document.createElement('div');
+                card.className = 'preview-card';
                 card.appendChild(canvas);
-                
-                const badge = document.createElement('div');
-                badge.className = 'absolute top-2 left-2 bg-black/50 backdrop-blur-md text-[9px] font-bold px-2 py-1 rounded border border-white/10';
-                badge.innerText = `0${i+1}`;
-                card.appendChild(badge);
-                
                 elements.previews.appendChild(card);
             }
         }
 
         elements.exportBtn.onclick = async () => {
-            const originalSliceW = state.viewfinderW / state.slices;
-            const exportScale = 2048 / originalSliceW; // Target 2K width per slice
+            const sliceW = state.viewfinderW / state.slices;
+            const scale = 2048 / sliceW;
+            const overlapPx = (state.overlap / 100) * sliceW;
 
             for (let i = 0; i < state.slices; i++) {
                 const canvas = document.createElement('canvas');
-                renderToCanvas(canvas, i, exportScale);
+                canvas.width = (sliceW + overlapPx) * scale;
+                canvas.height = state.viewfinderH * scale;
+                const ctx = canvas.getContext('2d');
+                ctx.scale(scale, scale);
+                ctx.translate(-i * sliceW, 0);
+                ctx.translate(state.posX + state.imgW/2, state.posY + state.imgH/2);
+                ctx.scale(state.zoom, state.zoom);
+                ctx.drawImage(state.image, -state.imgW/2, -state.imgH/2);
+                
                 const link = document.createElement('a');
-                link.download = `${state.fileName}_part_${i+1}.jpg`;
-                link.href = canvas.toDataURL('image/jpeg', 0.95);
+                link.download = `slice_${i+1}.jpg`;
+                link.href = canvas.toDataURL('image/jpeg', 0.9);
                 link.click();
-                await new Promise(r => setTimeout(r, 200));
+                await new Promise(r => setTimeout(r, 250));
             }
         };
 
-        // --- SAVE TO MOBILE (QR) ---
         elements.mobileSync.onclick = () => {
             elements.qrModal.classList.remove('hidden');
-            elements.qrcode.innerHTML = '';
-            // In a real app, this would be a URL to a temporary cloud bucket
-            const demoUrl = "https://fragmenter.pro/sync/" + Math.random().toString(36).substring(7);
-            new QRCode(elements.qrcode, {
-                text: demoUrl,
-                width: 180,
-                height: 180,
-                colorDark : "#000000",
-                colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.H
-            });
+            document.getElementById('qrcode').innerHTML = '';
+            new QRCode(document.getElementById('qrcode'), "https://fragmenter.pro/sync/demo");
         };
-
         elements.closeQr.onclick = () => elements.qrModal.classList.add('hidden');
+        elements.toggleGrid.onclick = (e) => elements.sliceGuides.style.opacity = e.target.checked ? '1' : '0';
+        elements.toggleThirds.onclick = (e) => elements.thirdsGuides.style.display = e.target.checked ? 'block' : 'none';
+        elements.resetBtn.onclick = () => { localStorage.clear(); location.reload(); };
 
-        // Init
-        window.onload = () => {
-            loadSession();
-        };
-
-        window.addEventListener('resize', () => state.image && updateRatio(state.ratio));
+        window.onload = loadSession;
     </script>
 </body>
 </html>
