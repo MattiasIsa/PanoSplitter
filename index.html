@@ -15,6 +15,7 @@
             --text-primary: #f8fafc;
             --text-secondary: #94a3b8;
             --input-bg: rgba(15, 23, 42, 0.6);
+            --viewfinder-border: rgba(255, 255, 255, 0.3);
         }
 
         .light-theme {
@@ -24,6 +25,7 @@
             --text-primary: #1e293b;
             --text-secondary: #64748b;
             --input-bg: rgba(241, 245, 249, 1);
+            --viewfinder-border: rgba(0, 0, 0, 0.2);
         }
 
         body {
@@ -146,6 +148,12 @@
         .grid-line-h, .grid-line-v { position: absolute; background: rgba(255,255,255,0.2); }
         .grid-line-h { width: 100%; height: 1px; }
         .grid-line-v { height: 100%; width: 1px; }
+
+        /* Masks matching theme */
+        .theme-mask {
+            background-color: var(--bg-canvas);
+            transition: background-color 0.3s;
+        }
     </style>
 </head>
 <body class="flex flex-col h-screen overflow-hidden">
@@ -181,7 +189,6 @@
                     <h3 class="heading-section">Geometry</h3>
                     
                     <div class="space-y-6">
-                        <!-- Slice Count -->
                         <div class="space-y-3">
                             <div class="flex justify-between items-center">
                                 <label class="text-xs font-semibold text-[var(--text-secondary)]">Slice Count</label>
@@ -192,18 +199,16 @@
                             <input type="range" id="slice-range" min="1" max="15" value="3">
                         </div>
 
-                        <!-- Rotation -->
                         <div class="space-y-3">
                             <div class="flex justify-between items-center">
                                 <label class="text-xs font-semibold text-[var(--text-secondary)] text-nowrap">Rotation (deg)</label>
                                 <div class="stepper-box">
-                                    <input type="number" id="rot-input" step="0.5" value="0.0" class="stepper-input">
+                                    <input type="number" id="rot-input" step="0.1" value="0.0" class="stepper-input">
                                 </div>
                             </div>
-                            <input type="range" id="rot-range" min="-45" max="45" step="0.5" value="0">
+                            <input type="range" id="rot-range" min="-45" max="45" step="0.1" value="0">
                         </div>
 
-                        <!-- Zoom -->
                         <div class="space-y-3">
                             <div class="flex justify-between items-center">
                                 <label class="text-xs font-semibold text-[var(--text-secondary)]">Zoom</label>
@@ -226,21 +231,22 @@
                     </div>
                     <div class="aspect-grid">
                         <button class="ratio-btn aspect-btn" data-ratio="0.8">4:5</button>
-                        <button class="ratio-btn aspect-btn active" data-ratio="1">1:1</button>
+                        <button class="ratio-btn aspect-btn" data-ratio="1">1:1</button>
                         <button class="ratio-btn aspect-btn" data-ratio="1.777">16:9</button>
-                        <button id="auto-compose-btn" class="aspect-btn hover:bg-blue-500/10">AUTO</button>
+                        <button class="ratio-btn aspect-btn active" data-ratio="0.5625">9:16</button>
+                        <button id="auto-compose-btn" class="aspect-btn col-span-2 border-blue-500/50 text-blue-500 hover:bg-blue-500/10">AUTO FIT</button>
                     </div>
                 </section>
 
-                <!-- PREVIEW MOCKUPS SECTION -->
+                <!-- OVERLAY SECTION -->
                 <section>
-                    <h3 class="heading-section">Preview Mockups</h3>
+                    <h3 class="heading-section">Overlay</h3>
                     <div class="space-y-6">
                         <div class="relative">
                             <select id="social-preview-select" class="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-lg p-3 text-sm text-[var(--text-primary)] focus:outline-none focus:border-blue-500 appearance-none">
                                 <option value="none">None</option>
                                 <option value="instagram">Instagram Post</option>
-                                <option value="tiktok">TikTok Fullscreen</option>
+                                <option value="tiktok" selected>TikTok Fullscreen</option>
                                 <option value="reels">Instagram Reels</option>
                             </select>
                             <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--text-secondary)]">
@@ -251,6 +257,10 @@
                         <div class="space-y-4">
                             <label class="flex items-center justify-between group cursor-pointer">
                                 <span class="text-sm font-medium text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">Safe Zones</span>
+                                <input type="checkbox" id="toggle-safe" class="custom-checkbox">
+                            </label>
+                            <label class="flex items-center justify-between group cursor-pointer">
+                                <span class="text-sm font-medium text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">Slices</span>
                                 <input type="checkbox" id="toggle-grid" checked class="custom-checkbox">
                             </label>
                             <label class="flex items-center justify-between group cursor-pointer">
@@ -264,13 +274,16 @@
         </aside>
 
         <!-- Main Canvas -->
-        <main id="workspace" class="flex-1 relative flex items-center justify-center p-12">
-            <div id="viewfinder-container" class="relative">
-                <div id="top-mask" class="bg-black/90 absolute w-[5000px] h-[3000px] left-[-2500px] bottom-full"></div>
-                <div id="bottom-mask" class="bg-black/90 absolute w-[5000px] h-[3000px] left-[-2500px] top-full"></div>
+        <main id="workspace" class="flex-1 relative flex items-center justify-center p-12 select-none overflow-hidden">
+            <div id="viewfinder-container" class="relative z-10">
+                <!-- Outer Masks -->
+                <div id="top-mask" class="theme-mask absolute w-[5000px] h-[3000px] left-[-2500px] bottom-full opacity-90 border-b border-[var(--viewfinder-border)]"></div>
+                <div id="bottom-mask" class="theme-mask absolute w-[5000px] h-[3000px] left-[-2500px] top-full opacity-90 border-t border-[var(--viewfinder-border)]"></div>
+                <div id="left-mask" class="theme-mask absolute h-[5000px] w-[3000px] top-[-2500px] right-full opacity-90 border-r border-[var(--viewfinder-border)]"></div>
+                <div id="right-mask" class="theme-mask absolute h-[5000px] w-[3000px] top-[-2500px] left-full opacity-90 border-l border-[var(--viewfinder-border)]"></div>
                 
-                <div id="viewfinder" class="relative bg-black overflow-hidden shadow-2xl transition-all duration-300">
-                    <img id="main-image" src="" class="absolute max-w-none pointer-events-none select-none origin-center">
+                <div id="viewfinder" class="relative bg-black overflow-hidden shadow-2xl">
+                    <img id="main-image" src="" class="absolute max-w-none pointer-events-none select-none origin-center transition-transform duration-75">
                     <div id="slice-guides" class="absolute inset-0 flex pointer-events-none"></div>
                     
                     <div id="thirds-guides" class="absolute inset-0 hidden pointer-events-none">
@@ -278,9 +291,8 @@
                         <div class="grid-line-v left-1/3"></div><div class="grid-line-v left-2/3"></div>
                     </div>
 
-                    <!-- Overlays -->
                     <div id="overlay-instagram" class="social-overlay">
-                        <div class="absolute top-0 w-full p-4 flex items-center justify-between bg-gradient-to-b from-black/60 to-transparent">
+                         <div class="absolute top-0 w-full p-4 flex items-center justify-between bg-gradient-to-b from-black/60 to-transparent">
                             <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-white/20"></div><div class="text-xs font-bold text-white">username</div></div>
                         </div>
                     </div>
@@ -320,7 +332,7 @@
         const state = {
             image: null, fileName: 'panorama',
             imgW: 0, imgH: 0, posX: 0, posY: 0, zoom: 1, rotation: 0,
-            slices: 3, ratio: 1, isDragging: false,
+            slices: 3, ratio: 0.5625, isDragging: false,
             startX: 0, startY: 0, viewfinderW: 0, viewfinderH: 0
         };
 
@@ -349,7 +361,7 @@
             themeToggle: document.getElementById('theme-toggle')
         };
 
-        // Theme Toggle
+        // Initialize Theme Logic
         elements.themeToggle.onclick = () => {
             const isLight = elements.html.classList.toggle('light-theme');
             elements.html.classList.toggle('dark', !isLight);
@@ -366,7 +378,15 @@
                 state.imgH = img.height;
                 elements.mainImg.src = url;
                 elements.landing.style.display = 'none';
+                
+                // Initial update
                 updateRatio(state.ratio);
+                
+                // Trigger Auto Fit immediately on upload
+                autoFit();
+                
+                // Initial overlay state
+                updateOverlayVisibility(elements.socialPreview.value);
             };
             img.src = url;
         }
@@ -381,9 +401,8 @@
             }
         };
 
-        // UI Sync
         function sync(range, input, key, cb) {
-            range.oninput = () => { state[key] = parseFloat(range.value); input.value = state[key]; cb(); };
+            range.oninput = () => { state[key] = parseFloat(range.value); input.value = state[key].toFixed(key === 'slices' ? 0 : (key === 'rotation' ? 1 : 2)); cb(); };
             input.onchange = () => { state[key] = parseFloat(input.value) || 0; range.value = state[key]; cb(); };
         }
         sync(elements.sliceRange, elements.sliceInput, 'slices', () => updateRatio(state.ratio));
@@ -392,8 +411,8 @@
 
         function updateRatio(ratio) {
             state.ratio = ratio;
-            const limitW = elements.workspace.clientWidth * 0.85;
-            const limitH = elements.workspace.clientHeight * 0.85;
+            const limitW = elements.workspace.clientWidth * 0.8;
+            const limitH = elements.workspace.clientHeight * 0.8;
             let tw = limitW;
             let h = (tw / state.slices) / state.ratio;
             if (h > limitH) { h = limitH; tw = (h * state.ratio) * state.slices; }
@@ -417,21 +436,38 @@
             document.getElementById('fragment-count').innerText = `${state.slices} ITEMS`;
         }
 
-        // Draggable
+        function autoFit() {
+            if (!state.image) return;
+            // Fits the height of the image to the height of the viewfinder
+            state.zoom = state.viewfinderH / state.imgH;
+            state.posX = (state.viewfinderW - state.imgW * state.zoom) / 2 / state.zoom;
+            state.posY = 0;
+            state.rotation = 0;
+            
+            // Sync UI inputs
+            elements.zoomRange.value = state.zoom;
+            elements.zoomInput.value = state.zoom.toFixed(2);
+            elements.rotRange.value = 0;
+            elements.rotInput.value = "0.0";
+            
+            updateTransform(); 
+            updatePreviews();
+        }
+
         elements.workspace.onmousedown = (e) => {
+            if (!state.image) return;
             state.isDragging = true;
-            state.startX = e.clientX - state.posX;
-            state.startY = e.clientY - state.posY;
+            state.startX = e.clientX - state.posX * state.zoom;
+            state.startY = e.clientY - state.posY * state.zoom;
         };
         window.onmousemove = (e) => {
             if (!state.isDragging) return;
-            state.posX = e.clientX - state.startX;
-            state.posY = e.clientY - state.startY;
+            state.posX = (e.clientX - state.startX) / state.zoom;
+            state.posY = (e.clientY - state.startY) / state.zoom;
             updateTransform(); updatePreviews();
         };
         window.onmouseup = () => state.isDragging = false;
 
-        // Ratio Controls
         document.querySelectorAll('.ratio-btn').forEach(btn => {
             btn.onclick = () => {
                 document.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('active'));
@@ -440,19 +476,15 @@
             };
         });
         elements.flipBtn.onclick = () => updateRatio(1 / state.ratio);
-        elements.autoCompose.onclick = () => {
-            state.zoom = Math.max(state.viewfinderH / state.imgH, state.viewfinderW / state.imgW);
-            state.posX = (state.viewfinderW - state.imgW)/2; state.posY = (state.viewfinderH - state.imgH)/2;
-            updateTransform(); updatePreviews();
-        };
+        elements.autoCompose.onclick = autoFit;
 
-        // Social Preview
-        elements.socialPreview.onchange = (e) => {
+        function updateOverlayVisibility(val) {
             document.querySelectorAll('.social-overlay').forEach(el => el.classList.remove('active'));
-            const s = e.target.value;
-            if (s === 'reels' || s === 'tiktok') document.getElementById('overlay-tiktok').classList.add('active');
-            else if (s !== 'none') document.getElementById(`overlay-${s}`).classList.add('active');
-        };
+            if (val === 'reels' || val === 'tiktok') document.getElementById('overlay-tiktok').classList.add('active');
+            else if (val !== 'none') document.getElementById(`overlay-${val}`).classList.add('active');
+        }
+
+        elements.socialPreview.onchange = (e) => updateOverlayVisibility(e.target.value);
 
         function updatePreviews() {
             if (!state.image) return;
@@ -465,13 +497,15 @@
                 const s = 200 / sw;
                 ctx.scale(s, s);
                 ctx.translate(-i * sw, 0);
-                ctx.translate(state.posX + state.imgW/2, state.posY + state.imgH/2);
+                ctx.translate(state.viewfinderW/2, state.viewfinderH/2);
                 ctx.rotate(state.rotation * Math.PI / 180);
                 ctx.scale(state.zoom, state.zoom);
+                ctx.translate(state.posX, state.posY);
                 ctx.drawImage(state.image, -state.imgW/2, -state.imgH/2);
+                
                 const card = document.createElement('div');
                 card.className = 'preview-card group relative';
-                card.innerHTML = `<div class="absolute top-2 left-2 bg-blue-600 text-[8px] font-bold px-1.5 py-0.5 rounded text-white">${i+1}</div>`;
+                card.innerHTML = `<div class="absolute top-2 left-2 bg-blue-600 text-[8px] font-bold px-1.5 py-0.5 rounded text-white z-10">${i+1}</div>`;
                 card.appendChild(canvas);
                 elements.previews.appendChild(card);
             }
@@ -479,22 +513,28 @@
 
         elements.exportBtn.onclick = async () => {
             const sw = state.viewfinderW / state.slices;
-            const scale = 2048 / sw;
+            const targetWidth = 1080; // Instagram standard
+            const scale = targetWidth / sw;
+            
             for (let i = 0; i < state.slices; i++) {
                 const canvas = document.createElement('canvas');
-                canvas.width = sw * scale; canvas.height = state.viewfinderH * scale;
+                canvas.width = targetWidth; 
+                canvas.height = (state.viewfinderH * scale);
                 const ctx = canvas.getContext('2d');
+                
                 ctx.scale(scale, scale);
                 ctx.translate(-i * sw, 0);
-                ctx.translate(state.posX + state.imgW/2, state.posY + state.imgH/2);
+                ctx.translate(state.viewfinderW/2, state.viewfinderH/2);
                 ctx.rotate(state.rotation * Math.PI / 180);
                 ctx.scale(state.zoom, state.zoom);
+                ctx.translate(state.posX, state.posY);
                 ctx.drawImage(state.image, -state.imgW/2, -state.imgH/2);
+                
                 const a = document.createElement('a');
                 a.download = `fragment_${i+1}.jpg`;
                 a.href = canvas.toDataURL('image/jpeg', 0.95);
                 a.click();
-                await new Promise(r => setTimeout(r, 150));
+                await new Promise(r => setTimeout(r, 200));
             }
         };
 
