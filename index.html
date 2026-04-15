@@ -1,344 +1,529 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PanoSplitter Cyberpunk</title>
+    <title>PANORAMA_FRAGMENTER_v1.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: { 
-                        cyber: '#00ff41',
-                        zinc: { 950: '#050505' } 
-                    }
-                }
-            }
-        }
-    </script>
     <style>
-        body { background-color: #000; color: #00ff41; font-family: monospace; }
-        .canvas-container {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: grab;
-            position: relative;
-            background: radial-gradient(circle, #001a00 0%, #000 100%);
-            overflow: hidden;
-        }
-        .canvas-container:active { cursor: grabbing; }
-        
-        #view {
-            max-width: 90%;
-            max-height: 90%;
-            object-fit: contain;
-            box-shadow: 0 0 30px rgba(0, 255, 65, 0.1);
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+
+        :root {
+            --matrix-green: #00ff41;
+            --matrix-glow: rgba(0, 255, 65, 0.3);
+            --zinc-950: #050505;
         }
 
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #00ff41; }
-        input[type=range] { accent-color: #00ff41; }
-        
-        .ratio-opt.active {
-            background-color: #00ff41;
-            color: #000;
+        body {
+            background-color: #000000;
+            color: var(--matrix-green);
+            font-family: 'JetBrains Mono', monospace;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .cyber-border {
+            border: 1px solid var(--matrix-green);
+            box-shadow: 0 0 10px var(--matrix-glow);
+        }
+
+        .letterbox-overlay {
+            background: rgba(0, 0, 0, 0.85);
+            pointer-events: none;
+        }
+
+        .viewfinder-grid {
+            border: 1px dashed var(--matrix-green);
+            pointer-events: none;
+        }
+
+        input[type="range"] {
+            accent-color: var(--matrix-green);
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #000;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--matrix-green);
+        }
+
+        .safe-zone-ui {
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        .scanline {
+            width: 100%;
+            height: 2px;
+            background: rgba(0, 255, 65, 0.1);
+            position: absolute;
+            animation: scan 4s linear infinite;
+            z-index: 50;
+            pointer-events: none;
+        }
+
+        @keyframes scan {
+            0% { top: 0% }
+            100% { top: 100% }
+        }
+
+        .fragment-preview {
+            aspect-ratio: var(--preview-ratio);
         }
     </style>
 </head>
-<body class="min-h-screen overflow-hidden flex flex-col">
+<body class="flex flex-col">
 
-    <!-- Cyberpunk Header -->
-    <nav class="border-b border-cyber/30 bg-black px-6 py-4 flex justify-between items-center z-50">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-transparent border-2 border-cyber flex items-center justify-center font-bold text-cyber shadow-[0_0_10px_#00ff41]">
-                PS
-            </div>
-            <h1 class="text-xl font-black tracking-tighter uppercase italic">Pano<span class="text-white">Splitter</span></h1>
+    <!-- HEADER -->
+    <header class="h-12 border-b border-[#00ff41] flex items-center justify-between px-4 bg-black z-50">
+        <div class="flex items-center gap-2">
+            <div class="w-3 h-3 bg-[#00ff41] animate-pulse"></div>
+            <h1 class="text-sm font-bold tracking-widest">SYSTEM_DEFRAG :: PANORAMA_FRAGMENTER_v1.0</h1>
         </div>
-        <button id="uploadTrigger" class="px-4 py-2 border border-cyber text-[10px] font-bold uppercase tracking-widest hover:bg-cyber hover:text-black transition-all">
-            Load_System_File
-        </button>
-    </nav>
+        <div id="status-display" class="text-[10px] opacity-70 uppercase">
+            STATUS: STANDBY
+        </div>
+    </header>
 
-    <!-- Upload Overlay -->
-    <div id="landing" class="flex-1 flex flex-col items-center justify-center p-6 text-center">
-        <div id="dropZone" class="border border-cyber/20 p-20 hover:border-cyber transition-all cursor-pointer group bg-zinc-950/50">
-            <p class="text-cyber/50 group-hover:text-cyber mb-4">[ INSERT_PANORAMA ]</p>
-            <p class="text-[10px] uppercase tracking-[0.4em]">Drag or Click to Initialize</p>
-        </div>
-        <input type="file" id="fileInput" class="hidden" accept="image/*">
+    <!-- LANDING / DROPZONE -->
+    <div id="landing-zone" class="absolute inset-0 z-40 bg-black flex flex-col items-center justify-center transition-opacity duration-500">
+        <div class="scanline"></div>
+        <label for="file-upload" class="cyber-border p-12 flex flex-col items-center cursor-pointer hover:bg-[#00ff41]/10 transition-colors group">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 mb-4 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            <span class="text-lg font-bold tracking-tighter">INITIALIZE_LOAD_SEQUENCE</span>
+            <span class="text-[10px] mt-2 opacity-50">DRAG_AND_DROP_OR_CLICK_TO_PROCEED</span>
+            <input type="file" id="file-upload" class="hidden" accept="image/*">
+        </label>
     </div>
 
-    <!-- Main Workspace -->
-    <main id="workspace" class="hidden flex-1 flex flex-col lg:flex-row overflow-hidden">
+    <!-- MAIN INTERFACE -->
+    <main class="flex-1 flex overflow-hidden hidden" id="main-interface">
         
-        <!-- Controls -->
-        <aside class="w-full lg:w-80 border-r border-cyber/20 bg-black flex flex-col shrink-0">
-            <div class="p-6 space-y-10 overflow-y-auto custom-scrollbar">
+        <!-- LEFT SIDEBAR: CONTROLS -->
+        <aside class="w-72 border-r border-[#00ff41] flex flex-col bg-black overflow-y-auto p-4 gap-6">
+            <section>
+                <label class="text-[10px] mb-2 block opacity-70">TRANSFORM_PARAMETERS</label>
                 
-                <section>
-                    <div class="flex justify-between text-[10px] mb-4 uppercase tracking-widest font-bold">
-                        <span>Splits</span>
-                        <span id="valSlices">3</span>
+                <div class="mb-4">
+                    <div class="flex justify-between text-[11px] mb-1">
+                        <span>SLICE_COUNT</span>
+                        <span id="slice-val">3</span>
                     </div>
-                    <input type="range" id="inputSlices" min="2" max="10" value="3" class="w-full h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer">
-                </section>
+                    <input type="range" id="slice-range" min="2" max="10" value="3" class="w-full">
+                </div>
 
-                <section>
-                    <label class="text-[10px] mb-4 block uppercase tracking-widest font-bold">Ratio</label>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button class="ratio-opt py-2 border border-cyber/30 text-[10px] hover:border-cyber active" data-r="0.8">4:5</button>
-                        <button class="ratio-opt py-2 border border-cyber/30 text-[10px] hover:border-cyber" data-r="1">1:1</button>
-                        <button class="ratio-opt py-2 border border-cyber/30 text-[10px] hover:border-cyber" data-r="1.777">16:9</button>
-                        <button class="ratio-opt py-2 border border-cyber/30 text-[10px] hover:border-cyber" data-r="orig">AUTO</button>
+                <div class="mb-4">
+                    <div class="flex justify-between text-[11px] mb-1">
+                        <span>ROTATION_LEVEL</span>
+                        <span id="rot-val">0.0°</span>
                     </div>
-                </section>
+                    <input type="range" id="rot-range" min="-15" max="15" step="0.5" value="0" class="w-full">
+                </div>
+            </section>
 
-                <section>
-                    <div class="flex justify-between text-[10px] mb-4 uppercase tracking-widest font-bold">
-                        <span>Rotate</span>
-                        <span id="valRot">0°</span>
-                    </div>
-                    <input type="range" id="inputRot" min="-15" max="15" step="0.5" value="0" class="w-full h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer">
-                </section>
+            <section>
+                <label class="text-[10px] mb-2 block opacity-70">ASPECT_RATIO_PRESETS</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <button class="ratio-btn border border-[#00ff41] py-2 text-[10px] hover:bg-[#00ff41]/20" data-ratio="0.8">4:5 PORTRAIT</button>
+                    <button class="ratio-btn border border-[#00ff41] py-2 text-[10px] hover:bg-[#00ff41]/20 active-ratio bg-[#00ff41]/20" data-ratio="1">1:1 SQUARE</button>
+                    <button class="ratio-btn border border-[#00ff41] py-2 text-[10px] hover:bg-[#00ff41]/20" data-ratio="1.777">16:9 LANDSCAPE</button>
+                    <button class="ratio-btn border border-[#00ff41] py-2 text-[10px] hover:bg-[#00ff41]/20" data-ratio="auto">AUTO_HEIGHT</button>
+                </div>
+            </section>
 
-            </div>
+            <section>
+                <label class="text-[10px] mb-2 block opacity-70">OVERLAY_GUIDES</label>
+                <div class="space-y-2">
+                    <label class="flex items-center gap-2 cursor-pointer text-[10px]">
+                        <input type="checkbox" id="toggle-safe-zones" class="accent-[#00ff41]">
+                        TOGGLE_SAFE_ZONES (SM)
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer text-[10px]">
+                        <input type="checkbox" id="toggle-grid" checked class="accent-[#00ff41]">
+                        SHOW_SLICE_BOUNDARIES
+                    </label>
+                </div>
+            </section>
 
-            <div class="mt-auto p-6 border-t border-cyber/20 bg-black">
-                <button id="btnDownload" class="w-full py-4 bg-cyber text-black font-black uppercase text-xs tracking-widest hover:shadow-[0_0_20px_#00ff41] transition-all active:scale-95">
-                    Compile & Export
+            <div class="mt-auto pt-4">
+                <button id="export-btn" class="w-full cyber-border bg-[#00ff41] text-black font-bold py-3 text-sm hover:scale-[0.98] transition-transform flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                    COMPILE_&_EXPORT
                 </button>
             </div>
         </aside>
 
-        <!-- Preview Viewport -->
-        <div class="flex-1 bg-black relative overflow-hidden flex flex-col">
-            <div id="canvasContainer" class="canvas-container">
-                <canvas id="view"></canvas>
+        <!-- CENTER: VISUAL WORKSPACE -->
+        <section class="flex-1 relative bg-[#050505] overflow-hidden flex items-center justify-center cursor-move" id="workspace">
+            <!-- Viewport Container (This is what stays fixed) -->
+            <div id="viewfinder-container" class="relative z-10 border border-[#00ff41]/30">
+                <!-- Overlays -->
+                <div id="top-letterbox" class="letterbox-overlay absolute w-[5000px] h-[2000px] left-[-2500px] bottom-full"></div>
+                <div id="bottom-letterbox" class="letterbox-overlay absolute w-[5000px] h-[2000px] left-[-2500px] top-full"></div>
+                
+                <!-- Viewfinder Content -->
+                <div id="viewfinder" class="relative overflow-hidden bg-black shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+                    <!-- Image layer -->
+                    <img id="main-image" src="" class="absolute max-w-none origin-center pointer-events-none select-none">
+                    
+                    <!-- Guides -->
+                    <div id="slice-guides" class="absolute inset-0 flex pointer-events-none"></div>
+                    
+                    <!-- Social Media Safe Zones -->
+                    <div id="safe-zones" class="safe-zone-ui absolute inset-0 hidden">
+                        <!-- Right buttons mock -->
+                        <div class="absolute right-2 bottom-32 flex flex-col gap-4">
+                            <div class="w-8 h-8 rounded-full border border-[#00ff41]/50"></div>
+                            <div class="w-8 h-8 rounded-full border border-[#00ff41]/50"></div>
+                            <div class="w-8 h-8 rounded-full border border-[#00ff41]/50"></div>
+                        </div>
+                        <!-- Bottom caption mock -->
+                        <div class="absolute bottom-4 left-4 right-12 h-12 border border-[#00ff41]/50 bg-black/20"></div>
+                    </div>
+                </div>
             </div>
-            
-            <div class="absolute bottom-6 left-6 text-[9px] text-cyber/40 uppercase tracking-widest font-mono pointer-events-none">
-                System_Status: <span class="text-cyber">Active</span> // Drag_To_Adjust
-            </div>
-        </div>
 
-        <!-- Right Side Preview -->
-        <aside class="hidden xl:flex w-64 border-l border-cyber/20 bg-zinc-950 flex-col overflow-hidden">
-            <div class="p-4 border-b border-cyber/20 text-[9px] uppercase tracking-widest text-cyber/60">Fragment_Output</div>
-            <div id="grid" class="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar"></div>
+            <div class="absolute top-4 left-1/2 -translate-x-1/2 text-[10px] bg-black px-2 py-1 cyber-border pointer-events-none">
+                AXIS_COORDS: <span id="coords">X:0 Y:0</span>
+            </div>
+        </section>
+
+        <!-- RIGHT SIDEBAR: FRAGMENT OUTPUT -->
+        <aside class="w-48 border-l border-[#00ff41] bg-black flex flex-col">
+            <div class="p-3 border-b border-[#00ff41] text-[10px] font-bold tracking-widest text-center">
+                FRAGMENT_OUTPUT
+            </div>
+            <div id="previews-container" class="flex-1 overflow-y-auto p-3 space-y-4">
+                <!-- Dynamic thumbnails go here -->
+            </div>
         </aside>
     </main>
 
+    <!-- PROCESSING OVERLAY -->
+    <div id="processing-screen" class="fixed inset-0 bg-black/90 z-[100] hidden flex flex-col items-center justify-center">
+        <div class="cyber-border p-8 bg-black max-w-sm w-full">
+            <div class="text-sm mb-4 animate-pulse">EXTRACTING_FRAGMENTS...</div>
+            <div class="w-full bg-[#00ff41]/20 h-1 mb-2">
+                <div id="progress-bar" class="bg-[#00ff41] h-full w-0 transition-all duration-300"></div>
+            </div>
+            <div id="progress-text" class="text-[10px] text-right">0%</div>
+        </div>
+    </div>
+
     <script>
-        let img = null, name = "pano", offY = 0, rot = 0, slices = 3, ratio = 0.8;
-        let isDrag = false, startY = 0;
+        // --- CONFIG & STATE ---
+        const state = {
+            image: null,
+            imgW: 0,
+            imgH: 0,
+            posX: 0,
+            posY: 0,
+            zoom: 1,
+            rotation: 0,
+            slices: 3,
+            ratio: 1, // width / height
+            isDragging: false,
+            startX: 0,
+            startY: 0,
+            viewfinderW: 0,
+            viewfinderH: 0
+        };
 
-        const canvas = document.getElementById('view');
-        const ctx = canvas.getContext('2d');
+        const elements = {
+            landing: document.getElementById('landing-zone'),
+            main: document.getElementById('main-interface'),
+            fileInput: document.getElementById('file-upload'),
+            mainImg: document.getElementById('main-image'),
+            viewfinder: document.getElementById('viewfinder'),
+            sliceRange: document.getElementById('slice-range'),
+            sliceVal: document.getElementById('slice-val'),
+            rotRange: document.getElementById('rot-range'),
+            rotVal: document.getElementById('rot-val'),
+            workspace: document.getElementById('workspace'),
+            sliceGuides: document.getElementById('slice-guides'),
+            previews: document.getElementById('previews-container'),
+            coordDisplay: document.getElementById('coords'),
+            toggleSafe: document.getElementById('toggle-safe-zones'),
+            safeZones: document.getElementById('safe-zones'),
+            toggleGrid: document.getElementById('toggle-grid'),
+            exportBtn: document.getElementById('export-btn'),
+            processing: document.getElementById('processing-screen'),
+            progressBar: document.getElementById('progress-bar')
+        };
 
-        // Initial Setup
-        document.getElementById('fileInput').onchange = (e) => {
+        // --- INITIALIZATION ---
+        elements.fileInput.addEventListener('change', handleFile);
+        
+        // Drag and Drop support
+        elements.landing.addEventListener('dragover', (e) => { e.preventDefault(); e.target.classList.add('bg-[#00ff41]/10'); });
+        elements.landing.addEventListener('dragleave', (e) => { e.preventDefault(); e.target.classList.remove('bg-[#00ff41]/10'); });
+        elements.landing.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if (e.dataTransfer.files.length) {
+                elements.fileInput.files = e.dataTransfer.files;
+                handleFile({ target: elements.fileInput });
+            }
+        });
+
+        function handleFile(e) {
             const file = e.target.files[0];
             if (!file) return;
-            name = file.name.replace(/\.[^/.]+$/, "");
+
             const reader = new FileReader();
-            reader.onload = (re) => {
-                const i = new Image();
-                i.onload = () => {
-                    img = i;
-                    document.getElementById('landing').classList.add('hidden');
-                    document.getElementById('workspace').classList.remove('hidden');
-                    offY = 0; // Reset offset on new image
-                    update();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    state.image = img;
+                    state.imgW = img.width;
+                    state.imgH = img.height;
+                    elements.mainImg.src = event.target.result;
+                    
+                    // Show UI
+                    elements.landing.classList.add('opacity-0');
+                    setTimeout(() => {
+                        elements.landing.style.display = 'none';
+                        elements.main.classList.remove('hidden');
+                        initViewfinder();
+                    }, 500);
                 };
-                i.src = re.target.result;
+                img.src = event.target.result;
             };
             reader.readAsDataURL(file);
-        };
+        }
 
-        document.getElementById('dropZone').onclick = () => document.getElementById('fileInput').click();
-        document.getElementById('uploadTrigger').onclick = () => document.getElementById('fileInput').click();
+        function initViewfinder() {
+            updateRatio(1); // Default to square
+            // Center image
+            state.posX = (state.viewfinderW - state.imgW) / 2;
+            state.posY = (state.viewfinderH - state.imgH) / 2;
+            updateTransform();
+            updateSliceGuides();
+            updatePreviews();
+        }
 
-        // UI Events
-        document.getElementById('inputSlices').oninput = (e) => {
-            slices = parseInt(e.target.value);
-            document.getElementById('valSlices').textContent = slices;
-            update();
-        };
-
-        document.getElementById('inputRot').oninput = (e) => {
-            rot = parseFloat(e.target.value);
-            document.getElementById('valRot').textContent = rot + '°';
-            update();
-        };
-
-        document.querySelectorAll('.ratio-opt').forEach(b => {
-            b.onclick = () => {
-                document.querySelectorAll('.ratio-opt').forEach(el => el.classList.remove('active', 'bg-cyber', 'text-black'));
-                b.classList.add('active');
-                ratio = b.dataset.r === 'orig' ? 'orig' : parseFloat(b.dataset.r);
-                update();
-            };
+        // --- CONTROLS ---
+        elements.sliceRange.addEventListener('input', (e) => {
+            state.slices = parseInt(e.target.value);
+            elements.sliceVal.innerText = state.slices;
+            updateSliceGuides();
+            updatePreviews();
         });
 
-        function update() {
-            if (!img) return;
-            
-            // Calculate slice dimensions
-            const sw = img.width / slices;
-            const sh = ratio === 'orig' ? img.height : sw / ratio;
-            
-            renderMain(sw, sh);
-            renderFragments(sw, sh);
-        }
+        elements.rotRange.addEventListener('input', (e) => {
+            state.rotation = parseFloat(e.target.value);
+            elements.rotVal.innerText = state.rotation.toFixed(1) + '°';
+            updateTransform();
+            updatePreviews();
+        });
 
-        function renderMain(sw, sh) {
-            // We use a fixed-height canvas to prevent jumps during ratio changes
-            // The "Virtual Workspace" height is larger than the image to allow dragging
-            const workspaceHeight = Math.max(img.width, img.height) * 2;
-            canvas.width = img.width;
-            canvas.height = workspaceHeight;
+        document.querySelectorAll('.ratio-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('bg-[#00ff41]/20'));
+                btn.classList.add('bg-[#00ff41]/20');
+                
+                const r = btn.dataset.ratio;
+                if (r === 'auto') {
+                    // Match image height but keep width as current container ratio relative to image
+                    // Simple approach: stick to 1:1 width/height of viewport
+                    updateRatio(state.imgW / state.imgH);
+                } else {
+                    updateRatio(parseFloat(r));
+                }
+            });
+        });
 
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            const cx = canvas.width / 2;
-            const cy = canvas.height / 2;
-            
-            // 1. The Viewport Frame is anchored exactly in the center of the canvas
-            const frameTop = cy - sh / 2;
-            const frameBottom = cy + sh / 2;
+        elements.toggleSafe.addEventListener('change', (e) => {
+            elements.safeZones.style.display = e.target.checked ? 'block' : 'none';
+        });
 
-            // 2. Draw the actual image behind the frame with current rotation and Y-offset
-            ctx.save();
-            ctx.translate(cx, cy + offY);
-            ctx.rotate(rot * Math.PI / 180);
-            ctx.drawImage(img, -img.width / 2, -img.height / 2);
-            ctx.restore();
+        elements.toggleGrid.addEventListener('change', (e) => {
+            elements.sliceGuides.style.opacity = e.target.checked ? '1' : '0';
+        });
 
-            // 3. Dark Overlay (Letterboxing)
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
-            // Top box
-            ctx.fillRect(0, 0, canvas.width, frameTop);
-            // Bottom box
-            ctx.fillRect(0, frameBottom, canvas.width, canvas.height);
+        function updateRatio(ratio) {
+            state.ratio = ratio;
+            const containerWidth = elements.workspace.clientWidth * 0.8;
+            const containerHeight = elements.workspace.clientHeight * 0.8;
 
-            // 4. Cyber Viewfinder Border
-            ctx.strokeStyle = '#00ff41';
-            ctx.lineWidth = 4;
-            ctx.strokeRect(0, frameTop, canvas.width, sh);
+            // Total width for all slices combined
+            let totalW = containerWidth;
+            let singleSliceW = totalW / state.slices;
+            let h = singleSliceW / state.ratio;
 
-            // 5. Slice Guides
-            ctx.setLineDash([15, 10]);
-            ctx.strokeStyle = 'rgba(0, 255, 65, 0.4)';
-            ctx.lineWidth = 2;
-            for(let i = 1; i < slices; i++) {
-                const x = i * sw;
-                ctx.beginPath();
-                ctx.moveTo(x, frameTop);
-                ctx.lineTo(x, frameBottom);
-                ctx.stroke();
+            // If height overflows, scale down
+            if (h > containerHeight) {
+                h = containerHeight;
+                singleSliceW = h * state.ratio;
+                totalW = singleSliceW * state.slices;
             }
-            ctx.setLineDash([]); // Reset
+
+            state.viewfinderW = totalW;
+            state.viewfinderH = h;
+            
+            elements.viewfinder.style.width = totalW + 'px';
+            elements.viewfinder.style.height = h + 'px';
+            
+            // Set CSS var for previews
+            document.documentElement.style.setProperty('--preview-ratio', state.ratio);
+            
+            updateSliceGuides();
+            updateTransform();
+            updatePreviews();
         }
 
-        function renderFragments(sw, sh) {
-            const grid = document.getElementById('grid');
-            grid.innerHTML = '';
-            
-            for(let i = 0; i < slices; i++) {
-                const tmp = document.createElement('canvas');
-                tmp.width = sw;
-                tmp.height = sh;
-                const tctx = tmp.getContext('2d');
-                
-                tctx.save();
-                // We recreate the exact framing from the main preview
-                tctx.translate(-i * sw, sh / 2);
-                tctx.translate(img.width / 2, offY);
-                tctx.rotate(rot * Math.PI / 180);
-                tctx.drawImage(img, -img.width / 2, -img.height / 2);
-                tctx.restore();
+        // --- INTERACTION (DRAG) ---
+        elements.workspace.addEventListener('mousedown', startDrag);
+        window.addEventListener('mousemove', doDrag);
+        window.addEventListener('mouseup', endDrag);
+        
+        // Touch support
+        elements.workspace.addEventListener('touchstart', (e) => startDrag(e.touches[0]));
+        window.addEventListener('touchmove', (e) => doDrag(e.touches[0]));
+        window.addEventListener('touchend', endDrag);
 
-                const wrapper = document.createElement('div');
-                wrapper.className = "relative group cursor-zoom-in";
+        function startDrag(e) {
+            state.isDragging = true;
+            state.startX = e.clientX - state.posX;
+            state.startY = e.clientY - state.posY;
+            document.body.style.cursor = 'grabbing';
+        }
+
+        function doDrag(e) {
+            if (!state.isDragging) return;
+            state.posX = e.clientX - state.startX;
+            state.posY = e.clientY - state.startY;
+            updateTransform();
+            updatePreviews();
+        }
+
+        function endDrag() {
+            state.isDragging = false;
+            document.body.style.cursor = 'default';
+        }
+
+        function updateTransform() {
+            elements.mainImg.style.transform = `translate(${state.posX}px, ${state.posY}px) rotate(${state.rotation}deg)`;
+            elements.coordDisplay.innerText = `X:${Math.round(state.posX)} Y:${Math.round(state.posY)}`;
+        }
+
+        function updateSliceGuides() {
+            elements.sliceGuides.innerHTML = '';
+            for (let i = 1; i < state.slices; i++) {
+                const line = document.createElement('div');
+                line.className = 'h-full border-r border-dashed border-[#00ff41]/50';
+                line.style.width = (100 / state.slices) + '%';
+                elements.sliceGuides.appendChild(line);
+            }
+        }
+
+        // --- PREVIEW SYSTEM ---
+        const previewCanvas = document.createElement('canvas');
+        const pCtx = previewCanvas.getContext('2d');
+
+        function updatePreviews() {
+            if (!state.image) return;
+            
+            elements.previews.innerHTML = '';
+            const sliceWidth = state.viewfinderW / state.slices;
+            
+            // We draw each slice to a hidden canvas to generate thumbnails
+            for (let i = 0; i < state.slices; i++) {
+                const thumb = document.createElement('div');
+                thumb.className = 'fragment-preview cyber-border relative overflow-hidden bg-zinc-900 group';
                 
-                const imgEl = document.createElement('img');
-                imgEl.src = tmp.toDataURL('image/jpeg', 0.8);
-                imgEl.className = "w-full border border-cyber/20 hover:border-cyber/60 transition-all shadow-lg";
+                const canvas = document.createElement('canvas');
+                canvas.className = 'w-full h-full object-cover';
+                
+                // Draw logic
+                renderSliceToCanvas(canvas, i);
                 
                 const label = document.createElement('div');
-                label.className = "absolute top-2 left-2 bg-black/80 border border-cyber/30 px-1 text-[8px] text-cyber";
-                label.textContent = `SLICE_${i+1}`;
+                label.className = 'absolute bottom-0 right-0 bg-[#00ff41] text-black text-[8px] px-1 font-bold';
+                label.innerText = `FRAG_${i+1}`;
                 
-                wrapper.appendChild(label);
-                wrapper.appendChild(imgEl);
-                grid.appendChild(wrapper);
+                thumb.appendChild(canvas);
+                thumb.appendChild(label);
+                elements.previews.appendChild(thumb);
             }
         }
 
-        // Draggable Interaction
-        canvas.addEventListener('mousedown', (e) => {
-            isDrag = true;
-            startY = e.clientY - offY;
-        });
+        function renderSliceToCanvas(canvas, index) {
+            const sliceViewW = state.viewfinderW / state.slices;
+            const sliceViewH = state.viewfinderH;
 
-        window.addEventListener('mousemove', (e) => {
-            if (isDrag) {
-                offY = e.clientY - startY;
-                update();
-            }
-        });
+            // Output resolution (scaling for quality/preview)
+            const qualityScale = 1.5; 
+            canvas.width = sliceViewW * qualityScale;
+            canvas.height = sliceViewH * qualityScale;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = "#000";
+            ctx.fillRect(0,0, canvas.width, canvas.height);
 
-        window.addEventListener('mouseup', () => {
-            isDrag = false;
-        });
+            ctx.save();
+            ctx.scale(qualityScale, qualityScale);
+            
+            // Shift context to current slice position
+            ctx.translate(-index * sliceViewW, 0);
+            
+            // Apply image transformations relative to viewfinder
+            ctx.translate(state.posX + state.imgW/2, state.posY + state.imgH/2);
+            ctx.rotate(state.rotation * Math.PI / 180);
+            ctx.drawImage(state.image, -state.imgW/2, -state.imgH/2, state.imgW, state.imgH);
+            
+            ctx.restore();
+        }
 
-        // Download Logic
-        document.getElementById('btnDownload').onclick = async () => {
-            const btn = document.getElementById('btnDownload');
-            const originalText = btn.textContent;
-            btn.textContent = "PROCESSING...";
-            btn.disabled = true;
+        // --- EXPORT LOGIC ---
+        elements.exportBtn.addEventListener('click', async () => {
+            elements.processing.classList.remove('hidden');
+            const zip = new JSZip();
+            const sliceViewW = state.viewfinderW / state.slices;
+            
+            // High res capture
+            const captureScale = 2; // Export at 2x resolution
 
-            try {
-                const zip = new JSZip();
-                const sw = img.width / slices;
-                const sh = ratio === 'orig' ? img.height : sw / ratio;
-
-                for(let i = 0; i < slices; i++) {
-                    const out = document.createElement('canvas');
-                    out.width = sw;
-                    out.height = sh;
-                    const octx = out.getContext('2d');
-                    
-                    octx.save();
-                    octx.translate(-i * sw, sh / 2);
-                    octx.translate(img.width / 2, offY);
-                    octx.rotate(rot * Math.PI / 180);
-                    octx.drawImage(img, -img.width / 2, -img.height / 2);
-                    octx.restore();
-                    
-                    zip.file(`${name}_${i+1}.jpg`, out.toDataURL('image/jpeg', 0.95).split(',')[1], {base64: true});
-                }
+            for (let i = 0; i < state.slices; i++) {
+                const exportCanvas = document.createElement('canvas');
+                exportCanvas.width = sliceViewW * captureScale;
+                exportCanvas.height = state.viewfinderH * captureScale;
                 
-                const blob = await zip.generateAsync({type: "blob"});
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(blob);
-                a.download = `${name}_CAROUSEL.zip`;
-                a.click();
-            } catch (err) {
-                console.error(err);
-            } finally {
-                btn.textContent = originalText;
-                btn.disabled = false;
+                renderSliceToCanvas(exportCanvas, i);
+                
+                const blob = await new Promise(res => exportCanvas.toBlob(res, 'image/jpeg', 0.95));
+                zip.file(`fragment_${(i+1).toString().padStart(2, '0')}.jpg`, blob);
+                
+                const progress = Math.round(((i + 1) / state.slices) * 100);
+                elements.progressBar.style.width = progress + '%';
+                document.getElementById('progress-text').innerText = progress + '%';
             }
-        };
+
+            const content = await zip.generateAsync({ type: "blob" });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(content);
+            link.download = `PANORAMA_EXPORT_${Date.now()}.zip`;
+            link.click();
+            
+            setTimeout(() => {
+                elements.processing.classList.add('hidden');
+                elements.progressBar.style.width = '0%';
+            }, 500);
+        });
+
+        // Initialize display on resize
+        window.addEventListener('resize', () => {
+            if (state.image) updateRatio(state.ratio);
+        });
+
     </script>
 </body>
 </html>
