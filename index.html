@@ -29,6 +29,550 @@
             touch-action: none;
             position: relative;
             overflow: hidden;
+            background-color: #09090b;
+            background-image: radial-gradient(#27272a 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+        
+        .canvas-container:active { cursor: grabbing; }
+        
+        canvas {
+            max-width: 95%;
+            max-height: 95%;
+            box-shadow: 0 0 100px rgba(0,0,0,0.8);
+            image-rendering: -webkit-optimize-contrast;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #27272a; border-radius: 10px; }
+
+        .ratio-btn.active {
+            background-color: #2563eb;
+            color: white;
+            border-color: #2563eb;
+        }
+
+        input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-black min-h-screen text-gray-900 dark:text-gray-100 antialiased overflow-hidden flex flex-col">
+
+    <!-- Header -->
+    <nav class="relative z-[60] border-b border-zinc-200 dark:border-zinc-900 bg-white/90 dark:bg-black/90 backdrop-blur-md px-4 py-3 lg:px-6 shrink-0">
+        <div class="max-w-full mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-black text-white italic shadow-lg shadow-blue-600/20">P</div>
+                <h1 class="text-xl font-bold tracking-tight">PanoSplitter <span class="text-blue-500">Pro</span></h1>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <button id="themeToggle" class="p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full transition-colors">
+                    <svg id="sunIcon" class="w-5 h-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1-1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"></path></svg>
+                </button>
+                <button id="headerUploadBtn" class="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-xl text-xs font-bold transition-all">Replace Image</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Initial Landing -->
+    <div id="uploadSection" class="flex-1 flex items-center justify-center p-8">
+        <div id="dropZone" class="max-w-4xl w-full border-2 border-dashed border-gray-200 dark:border-zinc-800 rounded-[3rem] p-24 text-center hover:border-blue-500 hover:bg-blue-50/5 transition-all cursor-pointer">
+            <div class="flex flex-col items-center">
+                <div class="w-24 h-24 bg-blue-600/10 rounded-[2rem] flex items-center justify-center mb-8">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2-2v12a2 2 0 002 2z" /></svg>
+                </div>
+                <h2 class="text-3xl font-bold mb-3 tracking-tight">Import Panoramic Shot</h2>
+                <p class="text-zinc-500 font-medium">Drag and drop to begin splitting for Instagram or LinkedIn</p>
+            </div>
+        </div>
+        <input type="file" id="fileInput" class="hidden" accept="image/*">
+    </div>
+
+    <!-- Main Editor -->
+    <main id="editorSection" class="hidden flex-1 flex flex-col lg:flex-row overflow-hidden">
+        
+        <!-- Left Sidebar -->
+        <aside class="w-full lg:w-72 h-auto lg:h-full border-b lg:border-b-0 lg:border-r border-zinc-200 dark:border-zinc-900 bg-white dark:bg-black flex flex-col z-20 shrink-0">
+            <div class="flex-1 overflow-y-auto p-5 space-y-8 custom-scrollbar">
+                
+                <!-- Core Controls -->
+                <section class="space-y-6">
+                    <div>
+                        <div class="flex justify-between items-center mb-3">
+                            <label class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Number of Slices</label>
+                            <span id="sliceVal" class="text-blue-500 font-bold text-sm">3</span>
+                        </div>
+                        <input type="range" id="sliceRange" min="2" max="10" value="3" class="w-full h-1 bg-zinc-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between items-center mb-3">
+                            <label class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Rotation / Leveling</label>
+                            <span id="rotVal" class="text-zinc-500 font-bold text-sm">0°</span>
+                        </div>
+                        <input type="range" id="rotationRange" min="-10" max="10" step="0.1" value="0" class="w-full h-1 bg-zinc-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between items-center mb-3">
+                            <label class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Aspect Ratio</label>
+                            <button id="flipBtn" class="text-[9px] font-bold text-blue-500 flex items-center gap-1 uppercase hover:opacity-70">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path></svg>
+                                Flip
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button class="ratio-btn p-3 text-[10px] font-bold border border-zinc-200 dark:border-zinc-800 rounded-xl active transition-all" data-ratio="0.8">4:5 / 5:4</button>
+                            <button class="ratio-btn p-3 text-[10px] font-bold border border-zinc-200 dark:border-zinc-800 rounded-xl transition-all" data-ratio="1">1:1 Square</button>
+                            <button class="ratio-btn p-3 text-[10px] font-bold border border-zinc-200 dark:border-zinc-800 rounded-xl transition-all" data-ratio="1.777">9:16 / 16:9</button>
+                            <button class="ratio-btn p-3 text-[10px] font-bold border border-zinc-200 dark:border-zinc-800 rounded-xl transition-all" data-ratio="original">Original</button>
+                        </div>
+                    </div>
+
+                    <button id="aiFrameBtn" class="w-full py-4 bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2">
+                        <span class="text-blue-500 text-lg">✦</span>
+                        AI Auto-Frame
+                    </button>
+                </section>
+
+                <div class="h-px bg-zinc-100 dark:bg-zinc-900"></div>
+
+                <!-- Advanced Params -->
+                <section class="space-y-6">
+                    <div>
+                        <div class="flex justify-between items-center mb-3">
+                            <label class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">JPEG Quality</label>
+                            <span id="qualityVal" class="text-zinc-100 font-bold text-xs">95%</span>
+                        </div>
+                        <input type="range" id="qualityRange" min="50" max="100" value="95" class="w-full h-1 bg-zinc-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between items-center mb-3">
+                            <label class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Seamless Overlap</label>
+                            <span id="overlapVal" class="text-zinc-100 font-bold text-xs">0px</span>
+                        </div>
+                        <input type="range" id="overlapRange" min="0" max="100" value="0" class="w-full h-1 bg-zinc-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                    </div>
+
+                    <div class="space-y-3">
+                        <label class="flex items-center justify-between p-1 cursor-pointer">
+                            <div class="flex flex-col">
+                                <span class="text-[11px] font-bold">Smart Sharpen</span>
+                                <span class="text-[9px] text-zinc-500 font-medium">Enhance export clarity</span>
+                            </div>
+                            <input type="checkbox" id="sharpenToggle" class="sr-only peer">
+                            <div class="w-8 h-4 bg-zinc-200 dark:bg-zinc-800 rounded-full peer peer-checked:bg-blue-600 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-4"></div>
+                        </label>
+
+                        <label class="flex items-center justify-between p-1 cursor-pointer">
+                            <span class="text-[11px] font-bold">Safe Zone Overlays</span>
+                            <input type="checkbox" id="safeZoneToggle" checked class="sr-only peer">
+                            <div class="w-8 h-4 bg-zinc-200 dark:bg-zinc-800 rounded-full peer peer-checked:bg-blue-600 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-4"></div>
+                        </label>
+
+                        <label class="flex items-center justify-between p-1 cursor-pointer">
+                            <span class="text-[11px] font-bold">Blur Background Fill</span>
+                            <input type="checkbox" id="blurToggle" class="sr-only peer">
+                            <div class="w-8 h-4 bg-zinc-200 dark:bg-zinc-800 rounded-full peer peer-checked:bg-blue-600 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-4"></div>
+                        </label>
+                    </div>
+                </section>
+            </div>
+
+            <div class="p-5 border-t border-zinc-100 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-950/50 shrink-0">
+                <div class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.15em] space-y-2">
+                    <div class="flex justify-between"><span>Slice Size:</span> <span id="resText" class="text-zinc-900 dark:text-zinc-100 font-mono">0 x 0</span></div>
+                    <div class="flex justify-between"><span>Total Width:</span> <span id="totalResText" class="text-zinc-900 dark:text-zinc-100 font-mono">0 PX</span></div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Preview Area -->
+        <div class="flex-1 bg-zinc-950 flex flex-col relative overflow-hidden">
+            <div class="canvas-container" id="canvasContainer">
+                <canvas id="previewCanvas"></canvas>
+            </div>
+
+            <!-- Export Floating Bar -->
+            <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-zinc-900/90 backdrop-blur-2xl px-3 py-3 rounded-[1.75rem] border border-white/5 shadow-2xl z-40">
+                <button id="resetBtn" class="w-12 h-12 flex items-center justify-center text-zinc-500 hover:text-white transition-colors bg-white/5 rounded-[1.2rem] hover:bg-white/10" title="Reset View">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                </button>
+                <div class="w-px h-8 bg-white/10 mx-1"></div>
+                <button id="downloadZipBtn" class="h-12 pl-6 pr-4 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs uppercase tracking-widest rounded-[1.2rem] flex items-center gap-4 transition-all active:scale-[0.98] group">
+                    <span>Export Carousel</span>
+                    <div class="w-8 h-8 bg-black/20 rounded-lg flex items-center justify-center group-hover:bg-black/30">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+        <!-- Right Side Preview Grid -->
+        <aside class="hidden xl:flex w-64 bg-black/40 backdrop-blur-md border-l border-zinc-900 flex-col shrink-0">
+            <div class="p-4 border-b border-zinc-900 flex justify-center items-center shrink-0">
+                <h3 class="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500">Output Grid</h3>
+            </div>
+            <div id="slicesGrid" class="flex-1 overflow-y-auto p-4 flex flex-col gap-4 custom-scrollbar">
+                <!-- Slices auto-generated here -->
+            </div>
+        </aside>
+    </main>
+
+    <!-- UI feedback -->
+    <div id="toast" class="fixed bottom-10 right-10 bg-white text-black px-6 py-4 rounded-2xl shadow-2xl translate-x-[200%] transition-transform duration-500 z-[100] font-bold flex items-center gap-3">
+        <div id="toastSpinner" class="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full hidden"></div>
+        <span id="toastMsg">Ready</span>
+    </div>
+
+    <script>
+        const apiKey = ""; 
+        let originalImage = null;
+        let originalFileName = "panorama";
+        let offsetY = 0; 
+        let isDragging = false;
+        let startY = 0;
+        let currentRatio = 0.8;
+        let isFlipped = false;
+        let rotation = 0;
+        let slices = 3;
+
+        const cvs = document.getElementById('previewCanvas');
+        const ctx = cvs.getContext('2d');
+
+        // Initial Logic
+        document.getElementById('fileInput').onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            originalFileName = file.name.split('.').slice(0, -1).join('.') || "panorama";
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const img = new Image();
+                img.onload = () => {
+                    originalImage = img;
+                    document.getElementById('uploadSection').classList.add('hidden');
+                    document.getElementById('editorSection').classList.remove('hidden');
+                    resetState();
+                    updateAll();
+                };
+                img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
+
+        document.getElementById('dropZone').onclick = () => document.getElementById('fileInput').click();
+        document.getElementById('headerUploadBtn').onclick = () => document.getElementById('fileInput').click();
+
+        function resetState() {
+            offsetY = 0;
+            rotation = 0;
+            slices = 3;
+            currentRatio = 0.8;
+            isFlipped = false;
+            document.getElementById('sliceRange').value = 3;
+            document.getElementById('rotationRange').value = 0;
+            document.getElementById('rotVal').textContent = '0°';
+            document.getElementById('sliceVal').textContent = '3';
+        }
+
+        // Input Listeners
+        document.getElementById('sliceRange').oninput = (e) => {
+            slices = parseInt(e.target.value);
+            document.getElementById('sliceVal').textContent = slices;
+            updateAll();
+        };
+
+        document.getElementById('rotationRange').oninput = (e) => {
+            rotation = parseFloat(e.target.value);
+            document.getElementById('rotVal').textContent = rotation + '°';
+            updateAll();
+        };
+
+        document.getElementById('overlapRange').oninput = (e) => {
+            document.getElementById('overlapVal').textContent = e.target.value + "px";
+            updateAll();
+        };
+
+        document.getElementById('qualityRange').oninput = (e) => {
+            document.getElementById('qualityVal').textContent = e.target.value + "%";
+        };
+
+        document.getElementById('flipBtn').onclick = () => {
+            isFlipped = !isFlipped;
+            updateAll();
+        };
+
+        document.querySelectorAll('.ratio-btn').forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentRatio = btn.dataset.ratio === 'original' ? 'original' : parseFloat(btn.dataset.ratio);
+                updateAll();
+            };
+        });
+
+        [ 'blurToggle', 'safeZoneToggle', 'sharpenToggle' ].forEach(id => {
+            document.getElementById(id).onchange = updateAll;
+        });
+
+        // Main Logic Flow
+        function updateAll() {
+            if (!originalImage) return;
+            
+            let effectiveRatio = currentRatio;
+            if (currentRatio !== 'original' && isFlipped) {
+                effectiveRatio = 1 / currentRatio;
+            }
+
+            const sliceW = originalImage.width / slices;
+            const sliceH = effectiveRatio === 'original' ? originalImage.height : sliceW / effectiveRatio;
+            
+            document.getElementById('resText').textContent = `${Math.round(sliceW)} x ${Math.round(sliceH)}`;
+            document.getElementById('totalResText').textContent = `${Math.round(sliceW * slices)} PX`;
+
+            drawPreview(sliceW, sliceH);
+            renderGrid(sliceW, sliceH);
+        }
+
+        function drawPreview(sliceW, sliceH) {
+            // Anchor canvas height to a multiple of width to prevent jumping when sliceH changes
+            const totalWidth = originalImage.width;
+            cvs.width = totalWidth;
+            cvs.height = Math.max(originalImage.height * 2, sliceH * 2);
+
+            ctx.clearRect(0, 0, cvs.width, cvs.height);
+            
+            const centerX = cvs.width / 2;
+            const centerY = cvs.height / 2;
+            const imgY = centerY + offsetY;
+            const cropY = centerY - (sliceH / 2);
+
+            // 1. Background Blur
+            if (document.getElementById('blurToggle').checked) {
+                ctx.save();
+                ctx.filter = 'blur(60px) brightness(0.3)';
+                const scale = Math.max(cvs.width / originalImage.width, cvs.height / originalImage.height) * 1.1;
+                ctx.translate(centerX, centerY);
+                ctx.rotate(rotation * Math.PI / 180);
+                ctx.drawImage(originalImage, -(originalImage.width * scale) / 2, -(originalImage.height * scale) / 2, originalImage.width * scale, originalImage.height * scale);
+                ctx.restore();
+            }
+
+            // 2. Main Panorama Image
+            ctx.save();
+            ctx.translate(centerX, imgY);
+            ctx.rotate(rotation * Math.PI / 180);
+            ctx.drawImage(originalImage, -originalImage.width/2, -originalImage.height/2);
+            ctx.restore();
+
+            // 3. UI Overlays (Darkened areas outside crop)
+            ctx.fillStyle = 'rgba(0,0,0,0.75)';
+            ctx.fillRect(0, 0, cvs.width, cropY);
+            ctx.fillRect(0, cropY + sliceH, cvs.width, cvs.height);
+
+            // 4. Blue Frame
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = cvs.width / 400;
+            ctx.strokeRect(0, cropY, cvs.width, sliceH);
+
+            // 5. Slice Dividers
+            ctx.setLineDash([cvs.width/100, cvs.width/100]);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = cvs.width / 600;
+            for(let i=1; i<slices; i++) {
+                const x = (cvs.width / slices) * i;
+                ctx.beginPath(); ctx.moveTo(x, cropY); ctx.lineTo(x, cropY + sliceH); ctx.stroke();
+            }
+
+            // 6. Safe Zones (Insta UI mimic)
+            if (document.getElementById('safeZoneToggle').checked) {
+                ctx.setLineDash([]);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+                const sW = cvs.width / slices;
+                for(let i=0; i<slices; i++) {
+                    const x = i * sW;
+                    // Interaction Buttons area
+                    ctx.roundRect ? ctx.beginPath() : null;
+                    if(ctx.roundRect) {
+                        ctx.roundRect(x + sW * 0.86, cropY + sliceH * 0.45, sW * 0.1, sliceH * 0.45, 4);
+                        ctx.fill();
+                        // Text area
+                        ctx.roundRect(x + sW * 0.04, cropY + sliceH * 0.82, sW * 0.5, sliceH * 0.12, 4);
+                        ctx.fill();
+                    }
+                }
+            }
+        }
+
+        function renderGrid(sliceW, sliceH) {
+            const grid = document.getElementById('slicesGrid');
+            grid.innerHTML = '';
+            const overlap = parseInt(document.getElementById('overlapRange').value);
+
+            for (let i = 0; i < slices; i++) {
+                const tempCvs = document.createElement('canvas');
+                tempCvs.width = sliceW + overlap;
+                tempCvs.height = sliceH;
+                const tctx = tempCvs.getContext('2d');
+                
+                if (document.getElementById('sharpenToggle').checked) tctx.filter = 'contrast(1.05) saturate(1.05)';
+
+                tctx.save();
+                // Match the drawing logic exactly
+                const drawOffset = (sliceH / 2) - (originalImage.height / 2) + offsetY;
+                tctx.translate(-i * sliceW, drawOffset);
+                tctx.translate(originalImage.width/2, originalImage.height/2);
+                tctx.rotate(rotation * Math.PI / 180);
+                tctx.drawImage(originalImage, -originalImage.width/2, -originalImage.height/2);
+                tctx.restore();
+
+                const div = document.createElement('div');
+                div.className = "group relative rounded-xl overflow-hidden border border-zinc-800 shrink-0 bg-zinc-900";
+                div.innerHTML = `
+                    <div class="absolute top-2 left-2 z-10 bg-black/70 backdrop-blur-md text-[9px] px-2 py-0.5 rounded-full text-white font-black border border-white/10">${i+1}</div>
+                    <img src="${tempCvs.toDataURL('image/jpeg', 0.6)}" class="w-full h-auto block opacity-90 group-hover:opacity-100 transition-opacity">
+                `;
+                grid.appendChild(div);
+            }
+        }
+
+        // Mouse Interactivity
+        cvs.onmousedown = (e) => { 
+            isDragging = true; 
+            startY = e.clientY - offsetY; 
+        };
+        window.onmousemove = (e) => { 
+            if(isDragging) { 
+                offsetY = e.clientY - startY; 
+                updateAll(); 
+            } 
+        };
+        window.onmouseup = () => { isDragging = false; };
+
+        document.getElementById('resetBtn').onclick = () => { 
+            resetState(); 
+            updateAll(); 
+            showToast("View Reset"); 
+        };
+
+        document.getElementById('downloadZipBtn').onclick = async () => {
+            showToast("Packaging Carousel...", true);
+            const zip = new JSZip();
+            const overlap = parseInt(document.getElementById('overlapRange').value);
+            const quality = parseInt(document.getElementById('qualityRange').value) / 100;
+            
+            let effectiveRatio = currentRatio;
+            if (currentRatio !== 'original' && isFlipped) effectiveRatio = 1 / currentRatio;
+
+            const sliceW = originalImage.width / slices;
+            const sliceH = effectiveRatio === 'original' ? originalImage.height : sliceW / effectiveRatio;
+
+            for(let i=0; i<slices; i++) {
+                const out = document.createElement('canvas');
+                out.width = sliceW + overlap;
+                out.height = sliceH;
+                const octx = out.getContext('2d');
+                
+                if (document.getElementById('sharpenToggle').checked) octx.filter = 'contrast(1.05) saturate(1.05)';
+                
+                octx.save();
+                const drawOffset = (sliceH / 2) - (originalImage.height / 2) + offsetY;
+                octx.translate(-i * sliceW, drawOffset);
+                octx.translate(originalImage.width/2, originalImage.height/2);
+                octx.rotate(rotation * Math.PI / 180);
+                octx.drawImage(originalImage, -originalImage.width/2, -originalImage.height/2);
+                octx.restore();
+                
+                const data = out.toDataURL('image/jpeg', quality).split(',')[1];
+                zip.file(`${originalFileName}_part_${i+1}.jpg`, data, {base64: true});
+            }
+
+            const content = await zip.generateAsync({type: "blob"});
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(content);
+            link.download = `${originalFileName}_Split.zip`;
+            link.click();
+            showToast("Carousel Exported!");
+        };
+
+        document.getElementById('aiFrameBtn').onclick = async () => {
+            showToast("AI Vision Scanning...", true);
+            const thumb = document.createElement('canvas');
+            thumb.width = 800; thumb.height = (originalImage.height / originalImage.width) * 800;
+            thumb.getContext('2d').drawImage(originalImage, 0, 0, 800, thumb.height);
+            const b64 = thumb.toDataURL('image/jpeg', 0.4).split(',')[1];
+
+            try {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{text: "Focus on the main subject. Provide JSON: {center_y_percent: 0-100}"}, {inlineData: {mimeType: "image/jpeg", data: b64}}] }],
+                        generationConfig: { responseMimeType: "application/json" }
+                    })
+                });
+                const json = await res.json();
+                const data = JSON.parse(json.candidates[0].content.parts[0].text);
+                
+                // Align the chosen percent with the center of our crop frame
+                const targetPixelY = originalImage.height * (data.center_y_percent / 100);
+                offsetY = (originalImage.height / 2) - targetPixelY;
+                
+                updateAll();
+                showToast("AI Auto-Framed");
+            } catch (e) { 
+                showToast("AI Analysis Offline"); 
+            }
+        };
+
+        function showToast(msg, spin = false) {
+            const t = document.getElementById('toast');
+            document.getElementById('toastMsg').textContent = msg;
+            document.getElementById('toastSpinner').classList.toggle('hidden', !spin);
+            t.classList.remove('translate-x-[200%]');
+            if (!spin) setTimeout(() => t.classList.add('translate-x-[200%]'), 3000);
+        }
+
+        document.getElementById('themeToggle').onclick = () => {
+            document.documentElement.classList.toggle('dark');
+            updateAll();
+        };
+
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PanoSplitter Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: { zinc: { 950: '#09090b' } }
+                }
+            }
+        }
+    </script>
+    <style>
+        .dark body { background-color: #000000; }
+        
+        .canvas-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: grab;
+            touch-action: none;
+            position: relative;
+            overflow: hidden;
             background-image: radial-gradient(#27272a 1px, transparent 1px), radial-gradient(#27272a 1px, transparent 1px);
             background-size: 20px 20px;
             background-position: 0 0, 10px 10px;
