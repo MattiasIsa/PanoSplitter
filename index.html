@@ -59,42 +59,54 @@
             height: 4px;
             background: var(--accent);
             border-radius: 2px;
-            opacity: 0.8;
+            cursor: pointer;
         }
 
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
             background: #fff;
             border: 2px solid var(--accent);
             border-radius: 50%;
             cursor: pointer;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
         /* Aspect Grid */
         .aspect-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
         }
 
         .aspect-btn {
             background: var(--input-bg);
             border: 1px solid var(--border);
-            padding: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            border-radius: 4px;
+            padding: 10px 4px;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 6px;
             color: var(--text-primary);
             transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .aspect-btn .icon {
+            border: 1.5px solid currentColor;
+            border-radius: 2px;
+            opacity: 0.6;
         }
 
         .aspect-btn.active {
-            background: rgba(59, 130, 246, 0.2);
+            background: rgba(59, 130, 246, 0.15);
             border-color: var(--accent);
+            color: var(--accent);
         }
+        .aspect-btn.active .icon { opacity: 1; }
 
         /* Steppers */
         .stepper-box {
@@ -141,12 +153,41 @@
         .grid-line-h { width: 100%; height: 1px; }
         .grid-line-v { height: 100%; width: 1px; }
 
-        /* Masks matching theme */
         .theme-mask {
             background-color: var(--bg-canvas);
             transition: background-color 0.3s;
             pointer-events: none;
             z-index: 20;
+        }
+
+        /* Custom Checkbox */
+        .custom-checkbox {
+            appearance: none;
+            width: 32px;
+            height: 18px;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .custom-checkbox:checked {
+            background: var(--accent);
+        }
+        .custom-checkbox::before {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            background: white;
+            border-radius: 50%;
+            top: 1px;
+            left: 1px;
+            transition: transform 0.2s;
+        }
+        .custom-checkbox:checked::before {
+            transform: translateX(14px);
         }
     </style>
 </head>
@@ -176,12 +217,11 @@
     <div class="flex-1 flex overflow-hidden relative">
         <!-- Sidebar -->
         <aside class="w-80 glass-panel border-r flex flex-col z-30">
-            <div class="flex-1 overflow-y-auto p-6 space-y-10 custom-scrollbar">
+            <div class="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
                 
                 <!-- GEOMETRY SECTION -->
                 <section>
                     <h3 class="heading-section">Geometry</h3>
-                    
                     <div class="space-y-6">
                         <div class="space-y-3">
                             <div class="flex justify-between items-center">
@@ -190,12 +230,12 @@
                                     <input type="number" id="slice-input" min="1" max="15" value="3" class="stepper-input">
                                 </div>
                             </div>
-                            <input type="range" id="slice-range" min="1" max="15" value="3">
+                            <input type="range" id="slice-range" min="1" max="15" value="3" step="1">
                         </div>
 
                         <div class="space-y-3">
                             <div class="flex justify-between items-center">
-                                <label class="text-xs font-semibold text-[var(--text-secondary)] text-nowrap">Rotation (deg)</label>
+                                <label class="text-xs font-semibold text-[var(--text-secondary)]">Rotation</label>
                                 <div class="stepper-box">
                                     <input type="number" id="rot-input" step="0.1" value="0.0" class="stepper-input">
                                 </div>
@@ -218,47 +258,61 @@
                 <!-- FRAME ASPECT SECTION -->
                 <section>
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="heading-section !mb-0">Frame Aspect</h3>
-                        <button id="flip-ratio-btn" class="text-[var(--text-secondary)] hover:text-blue-500 transition-colors">
+                        <h3 class="heading-section !mb-0">Aspect Ratio</h3>
+                        <button id="flip-ratio-btn" title="Flip Orientation" class="text-[var(--text-secondary)] hover:text-blue-500 transition-colors">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
                         </button>
                     </div>
-                    <div class="aspect-grid">
-                        <button class="ratio-btn aspect-btn" data-ratio="0.8">4:5</button>
-                        <button class="ratio-btn aspect-btn" data-ratio="1.0">1:1</button>
-                        <button class="ratio-btn aspect-btn" data-ratio="1.777">16:9</button>
-                        <button class="ratio-btn aspect-btn active" data-ratio="0.5625">9:16</button>
-                        <button id="auto-compose-btn" class="aspect-btn col-span-2 border-blue-500/50 text-blue-500 hover:bg-blue-500/10">AUTO FIT</button>
+                    <div class="aspect-grid mb-4">
+                        <button class="ratio-btn aspect-btn" data-ratio="0.5625">
+                            <div class="icon w-3 h-5"></div>
+                            9:16
+                        </button>
+                        <button class="ratio-btn aspect-btn active" data-ratio="0.8">
+                            <div class="icon w-4 h-5"></div>
+                            4:5
+                        </button>
+                        <button class="ratio-btn aspect-btn" data-ratio="1.0">
+                            <div class="icon w-4 h-4"></div>
+                            1:1
+                        </button>
+                        <button class="ratio-btn aspect-btn" data-ratio="1.333">
+                            <div class="icon w-5 h-4"></div>
+                            4:3
+                        </button>
+                        <button class="ratio-btn aspect-btn" data-ratio="1.777">
+                            <div class="icon w-6 h-3"></div>
+                            16:9
+                        </button>
+                        <button class="ratio-btn aspect-btn" data-ratio="2.35">
+                            <div class="icon w-6 h-2"></div>
+                            2.35:1
+                        </button>
                     </div>
+                    <button id="auto-compose-btn" class="w-full py-2.5 rounded-lg border border-blue-500/30 text-blue-500 text-xs font-bold hover:bg-blue-500/10 transition-colors uppercase tracking-widest">
+                        Auto Fit Center
+                    </button>
                 </section>
 
                 <!-- OVERLAY SECTION -->
                 <section>
-                    <h3 class="heading-section">Overlay</h3>
-                    <div class="space-y-6">
+                    <h3 class="heading-section">Interface</h3>
+                    <div class="space-y-4">
                         <div class="relative">
-                            <select id="social-preview-select" class="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-lg p-3 text-sm text-[var(--text-primary)] focus:outline-none focus:border-blue-500 appearance-none">
-                                <option value="none">None</option>
-                                <option value="instagram">Instagram Post</option>
-                                <option value="tiktok" selected>TikTok Fullscreen</option>
-                                <option value="reels">Instagram Reels</option>
+                            <select id="social-preview-select" class="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-lg p-3 text-xs font-medium text-[var(--text-primary)] focus:outline-none focus:border-blue-500 appearance-none">
+                                <option value="none">Guide: None</option>
+                                <option value="instagram">Guide: Instagram Post</option>
+                                <option value="tiktok">Guide: TikTok / Reels</option>
                             </select>
-                            <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--text-secondary)]">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-                            </div>
                         </div>
 
                         <div class="space-y-4">
-                            <label class="flex items-center justify-between group cursor-pointer">
-                                <span class="text-sm font-medium text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">Safe Zones</span>
-                                <input type="checkbox" id="toggle-safe" class="custom-checkbox">
-                            </label>
-                            <label class="flex items-center justify-between group cursor-pointer">
-                                <span class="text-sm font-medium text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">Slices</span>
+                            <label class="flex items-center justify-between cursor-pointer group">
+                                <span class="text-xs font-semibold text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]">Show Slices</span>
                                 <input type="checkbox" id="toggle-grid" checked class="custom-checkbox">
                             </label>
-                            <label class="flex items-center justify-between group cursor-pointer">
-                                <span class="text-sm font-medium text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">Rule of Thirds</span>
+                            <label class="flex items-center justify-between cursor-pointer group">
+                                <span class="text-xs font-semibold text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]">Rule of Thirds</span>
                                 <input type="checkbox" id="toggle-thirds" class="custom-checkbox">
                             </label>
                         </div>
@@ -269,15 +323,13 @@
 
         <!-- Main Canvas -->
         <main id="workspace" class="flex-1 relative flex items-center justify-center p-12 select-none overflow-hidden">
-            <div id="viewfinder-container" class="relative z-10">
-                <!-- Outer Masks matching background -->
+            <div id="viewfinder-container" class="relative z-10 transition-all duration-300 ease-out">
                 <div id="top-mask" class="theme-mask absolute w-[10000px] h-[5000px] left-[-5000px] bottom-full border-b border-[var(--viewfinder-border)]"></div>
                 <div id="bottom-mask" class="theme-mask absolute w-[10000px] h-[5000px] left-[-5000px] top-full border-t border-[var(--viewfinder-border)]"></div>
                 <div id="left-mask" class="theme-mask absolute h-[10000px] w-[5000px] top-[-5000px] right-full border-r border-[var(--viewfinder-border)]"></div>
                 <div id="right-mask" class="theme-mask absolute h-[10000px] w-[5000px] top-[-5000px] left-full border-l border-[var(--viewfinder-border)]"></div>
                 
-                <div id="viewfinder" class="relative bg-neutral-900 overflow-hidden shadow-2xl">
-                    <!-- Image centered in div initially, we transform relative to its own center -->
+                <div id="viewfinder" class="relative bg-black overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.5)]">
                     <img id="main-image" src="" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 max-w-none pointer-events-none select-none origin-center">
                     
                     <div id="slice-guides" class="absolute inset-0 flex pointer-events-none z-10"></div>
@@ -289,13 +341,13 @@
 
                     <div id="overlay-instagram" class="social-overlay z-10">
                          <div class="absolute top-0 w-full p-4 flex items-center justify-between bg-gradient-to-b from-black/60 to-transparent">
-                            <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-white/20"></div><div class="text-xs font-bold text-white">username</div></div>
+                            <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-white/20"></div><div class="text-[10px] font-bold text-white">panorama_user</div></div>
                         </div>
                     </div>
                     <div id="overlay-tiktok" class="social-overlay z-10">
-                        <div class="absolute right-4 bottom-20 flex flex-col items-center gap-6">
+                        <div class="absolute right-4 bottom-24 flex flex-col items-center gap-6">
                             <div class="w-10 h-10 rounded-full border-2 border-white bg-white/10"></div>
-                            <div class="flex flex-col items-center gap-1"><svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg><span class="text-[10px] text-white">42k</span></div>
+                            <div class="flex flex-col items-center gap-1"><svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg><span class="text-[10px] text-white">Likes</span></div>
                         </div>
                     </div>
                 </div>
@@ -305,8 +357,8 @@
         <!-- Right Preview Column -->
         <aside class="w-64 glass-panel border-l flex flex-col z-30">
             <div class="p-4 border-b border-[var(--border)] flex items-center justify-between">
-                <span class="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">Fragments</span>
-                <span id="fragment-count" class="text-[10px] font-bold text-blue-500">0 ITEMS</span>
+                <span class="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">Live Export Preview</span>
+                <span id="fragment-count" class="text-[10px] font-bold text-blue-500">0</span>
             </div>
             <div id="previews-container" class="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar"></div>
         </aside>
@@ -314,12 +366,12 @@
 
     <!-- Upload Landing -->
     <div id="landing-zone" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-slate-950">
-        <label for="file-upload" class="flex flex-col items-center cursor-pointer group px-10 py-16 rounded-3xl border-2 border-dashed border-white/10 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all">
-            <div class="w-20 h-20 rounded-2xl bg-blue-600 flex items-center justify-center shadow-2xl shadow-blue-600/30 group-hover:scale-110 transition-transform">
+        <label for="file-upload" class="flex flex-col items-center cursor-pointer group px-12 py-20 rounded-[40px] border-2 border-dashed border-white/10 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all">
+            <div class="w-20 h-20 rounded-3xl bg-blue-600 flex items-center justify-center shadow-2xl shadow-blue-600/30 group-hover:scale-110 transition-transform">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
             </div>
             <h2 class="mt-8 text-2xl font-bold text-white">Import Panorama</h2>
-            <p class="text-slate-400 mt-2 text-sm">Drag and drop or click to browse</p>
+            <p class="text-slate-400 mt-2 text-sm">Drag and drop or click to start</p>
             <input type="file" id="file-upload" class="hidden" accept="image/*">
         </label>
     </div>
@@ -328,9 +380,9 @@
         const state = {
             image: null, fileName: 'panorama',
             imgW: 0, imgH: 0, 
-            posX: 0, posY: 0, // Offsets from center
+            posX: 0, posY: 0, 
             zoom: 1, rotation: 0,
-            slices: 3, ratio: 0.5625, isDragging: false,
+            slices: 3, ratio: 0.8, isDragging: false,
             startX: 0, startY: 0, viewfinderW: 0, viewfinderH: 0
         };
 
@@ -359,6 +411,7 @@
             themeToggle: document.getElementById('theme-toggle')
         };
 
+        // Theme logic
         elements.themeToggle.onclick = () => {
             const isLight = elements.html.classList.toggle('light-theme');
             elements.html.classList.toggle('dark', !isLight);
@@ -375,8 +428,6 @@
                 state.imgH = img.height;
                 elements.mainImg.src = url;
                 elements.landing.style.display = 'none';
-                
-                // Set reasonable initial zoom and update layout
                 updateRatio(state.ratio);
                 autoFit();
             };
@@ -393,13 +444,23 @@
             }
         };
 
-        function sync(range, input, key, cb) {
-            range.oninput = () => { state[key] = parseFloat(range.value); input.value = state[key].toFixed(key === 'slices' ? 0 : (key === 'rotation' ? 1 : 2)); cb(); };
-            input.onchange = () => { state[key] = parseFloat(input.value) || 0; range.value = state[key]; cb(); };
+        // UI Syncing - Fixed the hover reset bug
+        function setupControl(range, input, key, cb) {
+            range.addEventListener('input', () => {
+                state[key] = parseFloat(range.value);
+                input.value = state[key].toFixed(key === 'slices' ? 0 : (key === 'rotation' ? 1 : 2));
+                cb();
+            });
+            input.addEventListener('change', () => {
+                state[key] = parseFloat(input.value) || 0;
+                range.value = state[key];
+                cb();
+            });
         }
-        sync(elements.sliceRange, elements.sliceInput, 'slices', () => updateRatio(state.ratio));
-        sync(elements.rotRange, elements.rotInput, 'rotation', () => { updateTransform(); updatePreviews(); });
-        sync(elements.zoomRange, elements.zoomInput, 'zoom', () => { updateTransform(); updatePreviews(); });
+        
+        setupControl(elements.sliceRange, elements.sliceInput, 'slices', () => updateRatio(state.ratio));
+        setupControl(elements.rotRange, elements.rotInput, 'rotation', () => { updateTransform(); updatePreviews(); });
+        setupControl(elements.zoomRange, elements.zoomInput, 'zoom', () => { updateTransform(); updatePreviews(); });
 
         function updateRatio(ratio) {
             state.ratio = ratio;
@@ -414,8 +475,6 @@
         }
 
         function updateTransform() {
-            // Translate is relative to the "left: 50%; top: 50%" start point
-            // translate -50% -50% handles centering the image itself.
             elements.mainImg.style.transform = `translate(calc(-50% + ${state.posX}px), calc(-50% + ${state.posY}px)) scale(${state.zoom}) rotate(${state.rotation}deg)`;
         }
 
@@ -427,28 +486,19 @@
                 g.style.width = `${100 / state.slices}%`;
                 elements.sliceGuides.appendChild(g);
             }
-            document.getElementById('fragment-count').innerText = `${state.slices} ITEMS`;
+            document.getElementById('fragment-count').innerText = `${state.slices} SLYCES`;
         }
 
         function autoFit() {
             if (!state.image) return;
-            
-            // 1. Calculate zoom to match the viewfinder height
             state.zoom = state.viewfinderH / state.imgH;
-            
-            // 2. Reset rotation
             state.rotation = 0;
-            
-            // 3. Reset position to center of image (0 offset from center)
             state.posX = 0;
             state.posY = 0;
-            
-            // Update inputs
             elements.zoomRange.value = state.zoom;
             elements.zoomInput.value = state.zoom.toFixed(2);
             elements.rotRange.value = 0;
             elements.rotInput.value = "0.0";
-            
             updateTransform(); 
             updatePreviews();
         }
@@ -459,13 +509,13 @@
             state.startX = e.clientX - state.posX;
             state.startY = e.clientY - state.posY;
         };
-        window.onmousemove = (e) => {
+        window.addEventListener('mousemove', (e) => {
             if (!state.isDragging) return;
             state.posX = e.clientX - state.startX;
             state.posY = e.clientY - state.startY;
             updateTransform(); updatePreviews();
-        };
-        window.onmouseup = () => state.isDragging = false;
+        });
+        window.addEventListener('mouseup', () => state.isDragging = false);
 
         document.querySelectorAll('.ratio-btn').forEach(btn => {
             btn.onclick = () => {
@@ -474,45 +524,49 @@
                 updateRatio(parseFloat(btn.dataset.ratio));
             };
         });
+
         elements.flipBtn.onclick = () => {
-            const active = document.querySelector('.ratio-btn.active');
             updateRatio(1 / state.ratio);
+            // Update the UI button states to match if possible
+            document.querySelectorAll('.ratio-btn').forEach(btn => {
+                if (Math.abs(parseFloat(btn.dataset.ratio) - state.ratio) < 0.01) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
         };
+
         elements.autoCompose.onclick = autoFit;
 
-        function updateOverlayVisibility(val) {
+        elements.socialPreview.onchange = (e) => {
+            const val = e.target.value;
             document.querySelectorAll('.social-overlay').forEach(el => el.classList.remove('active'));
-            if (val === 'reels' || val === 'tiktok') document.getElementById('overlay-tiktok').classList.add('active');
-            else if (val !== 'none') document.getElementById(`overlay-${val}`).classList.add('active');
-        }
-
-        elements.socialPreview.onchange = (e) => updateOverlayVisibility(e.target.value);
+            if (val === 'tiktok') document.getElementById('overlay-tiktok').classList.add('active');
+            else if (val === 'instagram') document.getElementById('overlay-instagram').classList.add('active');
+        };
 
         function updatePreviews() {
             if (!state.image) return;
             elements.previews.innerHTML = '';
             const sw = state.viewfinderW / state.slices;
+            const previewWidth = 200;
+            
             for (let i = 0; i < state.slices; i++) {
                 const canvas = document.createElement('canvas');
-                canvas.width = 200; canvas.height = Math.round(200 / state.ratio);
+                canvas.width = previewWidth; 
+                canvas.height = Math.round(previewWidth / state.ratio);
                 const ctx = canvas.getContext('2d');
                 
-                const s = 200 / sw;
+                const s = previewWidth / sw;
                 ctx.scale(s, s);
-                ctx.translate(-i * sw, 0); // Viewport for this slice
-                
-                // Replicate the transform logic from the main viewfinder
+                ctx.translate(-i * sw, 0); 
                 ctx.translate(state.viewfinderW / 2, state.viewfinderH / 2);
                 ctx.rotate(state.rotation * Math.PI / 180);
                 ctx.scale(state.zoom, state.zoom);
                 ctx.translate(state.posX / state.zoom, state.posY / state.zoom);
-                
-                // Draw image centered at the translated point
                 ctx.drawImage(state.image, -state.imgW / 2, -state.imgH / 2);
                 
                 const card = document.createElement('div');
                 card.className = 'preview-card group relative';
-                card.innerHTML = `<div class="absolute top-2 left-2 bg-blue-600 text-[8px] font-bold px-1.5 py-0.5 rounded text-white z-20 shadow-md">${i+1}</div>`;
+                card.innerHTML = `<div class="absolute top-2 left-2 bg-blue-600 text-[8px] font-bold px-1.5 py-0.5 rounded text-white z-20 shadow-md">Fragment ${i+1}</div>`;
                 card.appendChild(canvas);
                 elements.previews.appendChild(card);
             }
@@ -541,6 +595,7 @@
                 a.download = `fragment_${i+1}.jpg`;
                 a.href = canvas.toDataURL('image/jpeg', 0.95);
                 a.click();
+                // Add a small delay to prevent browser download grouping issues
                 await new Promise(r => setTimeout(r, 200));
             }
         };
